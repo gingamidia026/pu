@@ -59,6 +59,9 @@ MARCADOR = re.compile(r"^QUEST[ÃA]O\s*(\d{1,3})\b", re.I)
 # "Texto para as questões de 06 a 10": texto comum a várias questões
 TEXTO_COMUM = re.compile(r"^Texto para as quest(?:ões|ão)\s+(?:de\s+)?(\d+)\s+(?:a|e)\s+(\d+)", re.I)
 # Linhas que encerram a questão anterior: títulos de área, opção de língua e redação
+# Cabeçalho e rodapé sem faixa: "LC - 1° dia | Caderno 1 - AZUL", "–CH • 1º DIA • CADERNO 1 • AZUL–",
+# código de barras "*010175AZ4*" e número de página (este só bem perto da borda).
+BORDA = re.compile(r"(\bdia\b.*\bcaderno\b|^\*[0-9A-Z]+\*$|^\d{1,3}$)", re.I)
 FIM = re.compile(r"^(Questões de \d|PROPOSTA DE REDAÇÃO|INSTRUÇÕES PARA A REDAÇÃO|"
                  r"(LINGUAGENS, CÓDIGOS|CIÊNCIAS HUMANAS|CIÊNCIAS DA NATUREZA|MATEMÁTICA) E SUAS TECNOLOGIAS$)", re.I)
 
@@ -129,8 +132,14 @@ def preparar_pagina(pg):
     # Faixas horizontais "ENEM2024ENEM2024..." do topo e do rodapé (há também uma vertical na margem)
     eh_faixa = [bool(re.match(r"(ENEM\d{4}){3}", l[4].replace(" ", ""))) for l in pg["linhas"]]
     faixas = [l for l, f in zip(pg["linhas"], eh_faixa) if f and l[2] - l[0] > l[3] - l[1]]
-    topo = max([l[3] for l in faixas if l[1] < pg["h"] * 0.3], default=95) + 2
-    base = min([l[1] for l in faixas if l[1] > pg["h"] * 0.7], default=pg["h"] - 70) - 1
+    # Sem faixa no topo ou no rodapé (Enem 2021 a 2023: código de barras ou cabeçalho curto no topo,
+    # "LC - 1° dia | Caderno 1" no rodapé), o limite são as linhas coladas na borda da página.
+    h = pg["h"]
+    cabecalho = [l[3] for l in pg["linhas"] if l[3] < h * 0.1 and BORDA.search(l[4])]
+    rodape = [l[1] for l in pg["linhas"] if (l[1] > h * 0.9 and BORDA.search(l[4]) and not l[4].strip().isdigit())
+              or (l[1] > h * 0.94 and l[4].strip().isdigit())]
+    topo = max([l[3] for l in faixas if l[1] < pg["h"] * 0.3], default=max(cabecalho, default=28)) + 2
+    base = min([l[1] for l in faixas if l[1] > pg["h"] * 0.7], default=min(rodape, default=pg["h"] - 28)) - 1
     corpo = [l for l, f in zip(pg["linhas"], eh_faixa) if not f and topo <= l[1] and l[3] <= base + 1]
     meio = pg["w"] / 2
     cruzam = [l for l in corpo if l[0] < meio - 20 and l[2] > meio + 20]
@@ -141,7 +150,46 @@ def preparar_pagina(pg):
     else:
         x0, x1 = 50, pg["w"] - 50
     colunas = [(x0, meio - 3), (meio + 3, x1)] if duas else [(x0, x1)]
-    pg.update(topo=topo, base=base, corpo=corpo, colunas=colunas)
+    pg.update(topo=topo, base=base, corpo=juntar_mesma_linha(corpo, colunas), colunas=colunas)
+
+
+LETRAS_SOLTAS = set("ABCDE")
+PALAVRA = re.compile(r"^[^\W\d_]{2,}")  # pedaço que começa por palavra de duas letras ou mais
+
+
+def juntar_mesma_linha(linhas, colunas, folga=25):
+    """Junta pedaços de uma mesma linha dentro da coluna: a letra da alternativa separada do texto
+    e um pouco mais baixa que ele (Enem 2022) e as palavras de linha justificada que o pdftotext
+    parte em várias (Enem 2021). Agrupa por sobreposição vertical e junta da esquerda para a direita."""
+    def mesma_altura(a, b):
+        altura = min(a[3] - a[1], b[3] - b[1])
+        return altura > 0 and min(a[3], b[3]) - max(a[1], b[1]) > altura * .6
+    resultado, usadas = [], set()
+    for cx0, cx1 in colunas:
+        coluna = sorted([l for l in linhas if cx0 - 6 <= l[0] < cx1 and id(l) not in usadas], key=lambda l: (l[1], l[0]))
+        usadas.update(id(l) for l in coluna)
+        fileiras = []
+        for l in coluna:
+            fileira = next((f for f in reversed(fileiras[-3:]) if mesma_altura(f[0], l)), None)
+            (fileira.append(l) if fileira is not None else fileiras.append([l]))
+        for fileira in fileiras:
+            atual, ultimo = None, None
+            for l in sorted(fileira, key=lambda l: l[0]):
+                # Só junta a letra da alternativa ao texto ou duas palavras da mesma altura. Pedaços de fórmula
+                # (frações, parênteses, símbolos) ficam separados para o recorte de mídia continuar cobrindo-os.
+                letra = atual is not None and atual[4] in LETRAS_SOLTAS and atual is ultimo and re.match(r"[^\W_]", l[4])
+                palavras = ultimo is not None and PALAVRA.search(ultimo[4]) and PALAVRA.search(l[4]) \
+                    and abs((ultimo[3] - ultimo[1]) - (l[3] - l[1])) < 1.5
+                if atual and -2 <= l[0] - atual[2] < folga and (letra or palavras):
+                    ultimo = l
+                    atual = (atual[0], min(atual[1], l[1]), max(atual[2], l[2]), max(atual[3], l[3]), atual[4] + ' ' + l[4])
+                    continue
+                if atual:
+                    resultado.append(atual)
+                atual = ultimo = l
+            resultado.append(atual)
+    resultado += [l for l in linhas if id(l) not in usadas]
+    return sorted(resultado, key=lambda l: (l[1], l[0]))
 
 
 def alternativas_completas(linhas):
@@ -149,7 +197,18 @@ def alternativas_completas(linhas):
     return "E" in letras and "D" in letras
 
 
+def fonte_legivel(pdf):
+    """PDF com o texto que o pdftotext consegue ler. Fontes sem mapa Unicode completo (Enem 2021)
+    são reparadas numa cópia em cache, fora do cofre; o original não muda."""
+    from reparo_texto import reparar, precisa_reparo
+    if not precisa_reparo(pdf):
+        return pdf, {'reparo': False}
+    cache = Path(os.environ.get('PU_CACHE_EXTRACAO', Path(tempfile.gettempdir()) / 'pu-extracao')) / hashlib.sha256(pdf.read_bytes()).hexdigest()[:20]
+    return reparar(pdf, cache)
+
+
 def recortar(pdf, ano, pasta_img, selecionadas=None):
+    pdf, reparo = fonte_legivel(pdf)
     paginas = ler_paginas(pdf)
     for pg in paginas:
         preparar_pagina(pg)
@@ -194,6 +253,7 @@ def recortar(pdf, ano, pasta_img, selecionadas=None):
     # O mesmo mecanismo atende a importação e a correção de notas existentes.
     import fitz
     from midias import extrair, alternativas_visuais, VERSAO
+    from reparo_texto import SUBSTITUTO
     pasta_img.mkdir(parents=True, exist_ok=True)
     documento = fitz.open(pdf)
     # pdftotext usa MediaBox; alinhar o renderizador evita perder figuras por CropBox.
@@ -216,14 +276,22 @@ def recortar(pdf, ano, pasta_img, selecionadas=None):
                     grupo = f"{pdf.stem}:Q{a:02d}a{b:02d}"
             marcas = re.findall(r"^([A-E])(?:\s|$)", texto, re.M)
             completa = marcas[-5:] == list("ABCDE")
+            falha = ''
             if not completa or re.search(r'^[A-E][ \t]*$',texto,re.M):
-                texto, imgs, evs = alternativas_visuais(documento, q['trechos'], paginas, pasta_img, nome+'-midia')
-                imagens = list(dict.fromkeys(re.findall(r'!\[\[([^]]+)\]\]', comum))) + imgs
-                evidencias = [e for e in evidencias if e['arquivo'] in imagens] + evs
-                completa = True
+                try:
+                    texto, imgs, evs = alternativas_visuais(documento, q['trechos'], paginas, pasta_img, nome+'-midia')
+                    imagens = list(dict.fromkeys(re.findall(r'!\[\[([^]]+)\]\]', comum))) + imgs
+                    evidencias = [e for e in evidencias if e['arquivo'] in imagens] + evs
+                    completa = True
+                except ValueError as erro:
+                    # Uma questão difícil não derruba a prova: fica fora do ar, marcada para revisão.
+                    completa, falha = False, str(erro)
+            if SUBSTITUTO in texto or SUBSTITUTO in comum:
+                falha = (falha + '; ' if falha else '') + 'caractere sem mapa Unicode depois do reparo'
             resultado.append({"n": q["n"], "nome": nome, "imagens": imagens, "texto": texto,
                               "completa": completa, "texto_comum": comum, "grupo": grupo,
-                              "midias": evidencias, "extrator": VERSAO})
+                              "midias": evidencias, "extrator": VERSAO, "falha": falha,
+                              "reparo_texto": reparo.get('reparo', False)})
     finally:
         documento.close()
     return resultado
@@ -299,6 +367,8 @@ def cmd_preparar(pdf):
             problemas.append(f"Q{q['n']} sem gabarito")
         if not q["completa"]:
             problemas.append(f"Q{q['n']} sem as alternativas A–E no texto (confira a imagem)")
+        if q.get("falha"):
+            problemas.append(f"Q{q['n']}: {q['falha']}")
     pasta = trabalho_de(pdf)
     pasta.mkdir(parents=True, exist_ok=True)
     info = {"prova": str(pdf), "gabarito": str(gb), "ano": ano, "dia": dia, "caderno": caderno,
@@ -396,13 +466,18 @@ def ler_classificacao(pasta):
 def cmd_gravar(pdf):
     pasta = trabalho_de(pdf)
     info = json.loads((pasta / "trabalho.json").read_text(encoding="utf-8"))
-    if any(q.get("extrator") != 2 or not q.get("completa") for q in info["questoes"]):
-        raise ValueError("Reprepare a prova com o extrator atual e resolva as extrações incompletas antes de gravar")
+    if any(q.get("extrator") != 2 for q in info["questoes"]):
+        raise ValueError("Reprepare a prova com o extrator atual antes de gravar")
+    # Extração incompleta, caractere sem mapa ou gabarito em dúvida: a nota é gravada com `fora_do_ar: true`
+    # e o motivo, e a sincronização a deixa fora do catálogo. Nada entra no ar com dúvida.
+    fora = {q["n"]: (q.get("falha") or "alternativas incompletas") for q in info["questoes"]
+            if not q.get("completa") or q.get("falha")}
     classif = ler_classificacao(pasta)
     tax = todas_taxonomias()
     ano, dia, caderno = info["ano"], info["dia"], info["caderno"]
     pasta_notas = QUESTOES / str(ano)
     contagem, revisar, sem_carta = {}, [], []
+    assinatura = hashlib.sha256(Path(info["prova"]).read_bytes()).hexdigest()
     for q in info["questoes"]:
         c = classif.get(f"Q{q['n']}", {})
         item = tax.get(c.get("codigo"))
@@ -411,7 +486,7 @@ def cmd_gravar(pdf):
             revisar.append(q["nome"])
         if c.get("codigo") and not item:
             print(f"Aviso: código desconhecido {c.get('codigo')} em Q{q['n']}")
-        imagens = "".join(f"![[{i}]]" for i in q["imagens"])
+        motivo_fora = fora.get(q["n"]) or ("" if anulada or q["gabarito"] in list("ABCDE") else "gabarito ausente ou incerto")
         # Nota da questão
         materia = item["materia"].split("- ", 1)[1] if item else ""
         fm = [
@@ -424,8 +499,11 @@ def cmd_gravar(pdf):
             f"conteúdo: {json.dumps(item['conteudo'], ensure_ascii=False) if item else ''}",
             f"código: {c.get('codigo', '')}",
             f"gabarito: {q['gabarito'] or ''}", f"anulada: {str(anulada).lower()}",
-            f"revisar: {str(q['nome'] in revisar).lower()}",
-            "autores:", "  - Dominique-Oliveira-ChatGPT🤖💚", "extrator: 2", "tags:", "  - enem", f"  - enem-{ano}",
+            f"revisar: {str(q['nome'] in revisar or bool(motivo_fora)).lower()}",
+            f"fora_do_ar: {str(bool(motivo_fora)).lower()}",
+            "autores:", "  - Dominique-Oliveira-ChatGPT🤖💚", "  - Dominique-Oliveira-Claude🤖🧡",
+            f"origem_arquivo: {json.dumps(Path(info['prova']).name)}", f"origem_sha256: {assinatura}",
+            "extrator: 2", "tags:", "  - enem", f"  - enem-{ano}",
             "---",
         ]
         corpo = [f"# Enem {ano} · Questão {q['n']:02d}", "",
@@ -434,13 +512,15 @@ def cmd_gravar(pdf):
             corpo.append(f"**Carta em:** {link_da_carta(item)}")
         if c.get("obs"):
             corpo.append(f"**Observação:** {c['obs']}")
+        if motivo_fora:
+            corpo.append(f"**Fora do ar até revisão:** {motivo_fora}")
         if q.get("grupo"):
             fm.insert(fm.index("tags:"), "grupo: " + json.dumps(q["grupo"]))
             corpo += ["", "## Texto comum", "", q["texto_comum"]]
         corpo += ["", "## Texto", "", q["texto"]]
         (pasta_notas / f"{q['nome']}.md").write_text("\n".join(fm + corpo) + "\n", encoding="utf-8")
         # Carta
-        if anulada or not item:
+        if anulada or not item or motivo_fora:
             if not anulada:
                 sem_carta.append(q["nome"])
             continue
@@ -478,6 +558,7 @@ def aplicar_correcao(saida):
         if not fonte.resolve().is_relative_to(PROVAS.resolve()) or hashlib.sha256(fonte.read_bytes()).hexdigest() != r['sha256']:
             raise ValueError('Fonte mudou ou está fora da pasta de provas')
         for q in r['questoes']:
+            if q['n'] in r.get('preservadas', []): continue
             if q['n'] not in r['aprovadas']: raise ValueError('Questão não aprovada no relatório')
             nome = q['nome'] + '.md'
             alvo = QUESTOES / str(r['ano'] if 'ano' in r else identificar(fonte)[0]) / nome
@@ -548,7 +629,7 @@ def cmd_corrigir(pdf, saida, selecionadas=None):
     questoes = recortar(pdf, ano, pasta_img, selecionadas)
     notas = saida / "Provas Enem/Questões" / str(ano)
     notas.mkdir(parents=True, exist_ok=True)
-    problemas, aprovadas, originais = [], [], {}
+    problemas, aprovadas, originais, preservadas = [], [], {}, []
     esperadas = selecionadas if selecionadas is not None else set(range(1,91) if dia==1 else range(91,181))
     numeros=[q['n'] for q in questoes]
     for n in sorted(esperadas-set(numeros)):
@@ -563,8 +644,12 @@ def cmd_corrigir(pdf, saida, selecionadas=None):
             continue
         antiga = origem.read_text()
         originais[origem.name] = hashlib.sha256(origem.read_bytes()).hexdigest()
-        if not q['completa']:
-            problemas.append({'questao':q['n'], 'motivo':'Alternativas incompletas; versão anterior preservada'})
+        # Nota já fora do ar (dúvida registrada na gravação): continua como está, sem travar o lote.
+        if re.search(r'^fora_do_ar: true$', antiga.split('---', 2)[1], re.M) and (not q['completa'] or q.get('falha')):
+            preservadas.append(q['n'])
+            continue
+        if not q['completa'] or q.get('falha'):
+            problemas.append({'questao':q['n'], 'motivo':(q.get('falha') or 'Alternativas incompletas') + '; versão anterior preservada'})
             continue
         cabecalho, corpo = antiga.split('---', 2)[1:]
         if not re.search(rf'^dia: {dia}$',cabecalho,re.M) or not re.search(rf'^caderno: {caderno}\b',cabecalho,re.M):
@@ -583,7 +668,7 @@ def cmd_corrigir(pdf, saida, selecionadas=None):
         (notas / origem.name).write_text('---' + cabecalho + '---' + corpo)
         aprovadas.append(q['n'])
     resultado={'formato':VERSAO, 'origem':str(pdf), 'sha256':assinatura, 'ano':ano,
-               'gerado':datetime.now(timezone.utc).isoformat(), 'aprovadas':aprovadas,
+               'gerado':datetime.now(timezone.utc).isoformat(), 'aprovadas':aprovadas, 'preservadas':preservadas,
                'problemas':problemas, 'questoes':questoes, 'originais':originais}
     (saida / (pdf.stem + '-relatorio.json')).write_text(json.dumps(resultado,ensure_ascii=False,indent=2))
     print(json.dumps({'origem':pdf.name,'aprovadas':len(aprovadas),'problemas':problemas},ensure_ascii=False))

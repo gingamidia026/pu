@@ -40,7 +40,8 @@ def executar_lote(aplicar=False, forcar=False):
     if not fontes:raise ValueError('Nenhuma prova local encontrada; catálogo anterior preservado')
     base=RAIZ/'.extracao';base.mkdir(exist_ok=True)
     estado=base/'estado.json'
-    versao=hashlib.sha256(b''.join((FERRAMENTA/n).read_bytes() for n in ('importar.py','midias.py'))).hexdigest()
+    # Todos os módulos do extrator (reparo de texto e formatos das bancas entraram em 14/11/2026).
+    versao=hashlib.sha256(b''.join(p.read_bytes() for p in sorted(FERRAMENTA.glob('*.py')))).hexdigest()
     assinaturas={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in fontes}
     esperado={'ferramenta':versao,'fontes':assinaturas}
     notas=list(importar.QUESTOES.rglob('*.md'))
