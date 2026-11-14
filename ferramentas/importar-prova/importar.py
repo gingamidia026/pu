@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Importa uma prova do Enem para o cofre Vestibular.
+"""Importa uma prova do Enem, da Fuvest, da Unesp, da Unicamp ou da Famerp para o cofre Vestibular.
+
+O que é de cada banca (marcador, texto comum, letras, gabarito, notas sem cartas) fica em formatos.py;
+nome do caderno das outras bancas: fuvest-2026-V1.pdf, unesp-2026-V1.pdf, unicamp-2026-QX.pdf, famerp-2026-V1.pdf.
 
 Etapas:
   preparar <prova.pdf>   baixa o gabarito, recorta as questões e grava o trabalho.json
