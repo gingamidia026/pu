@@ -144,7 +144,7 @@ await item('entrada nova: faixa que corre, selos fora da leitura e botão princi
   igual(await p.avaliar('getComputedStyle(document.querySelector(".faixa-corre")).overflowX'), 'clip', 'faixa recortada');
   const selos = await p.avaliar('[...document.querySelectorAll(".selos-cartaz")].map(s => ({oculto: s.getAttribute("aria-hidden"), desenhos: s.querySelectorAll("svg").length, noTitulo: Boolean(s.closest("h1"))}))');
   igual(selos, [{oculto: 'true', desenhos: 3, noTitulo: true}], 'selos encostados no título e fora da leitura');
-  igual(await nomeAcessivel('.apresentacao h1'), 'Estude para o Enem uma questão por vez.', 'título sem os selos no nome');
+  igual(await nomeAcessivel('.apresentacao h1'), 'Estude para o vestibular uma questão por vez.', 'título sem os selos no nome');
   const botao = '#acesso button[type=submit]';
   igual(await p.avaliar(`[...document.querySelector("${botao}").querySelectorAll(".vira-a, .vira-b")].map(e => e.className + ":" + e.getAttribute("aria-hidden"))`), ['vira-a:null', 'vira-b:true'], 'rótulo duplicado com aria-hidden na cópia');
   igual(await nomeAcessivel(botao), 'Entrar', 'nome acessível único'); igual((await p.texto(botao)).trim(), 'Entrar', 'innerText único');
@@ -217,7 +217,20 @@ await item('entrada de 14/11: texto da apresentação no HTML, seções na ordem
       return [...document.querySelectorAll('.selo-desenho, .selo-novo, .tarja, .cena-mar, .pegadas, .faixa-corre')].filter(e => { const r = e.getBoundingClientRect(); return r.right > f.left - 16 && r.left < f.right + 16 && r.bottom > f.top - 16 && r.top < f.bottom + 16; }).map(e => e.className.baseVal ?? e.className); })()`);
     igual(encostados, [], 'formulário limpo em ' + largura);
     certo(await p.semRolagemLateral(), 'rolagem lateral em ' + largura);
+    // Frente sobras: o mar do topo vai de uma borda à outra da tela, logo abaixo da cena; o pescador ocupa a caixa reservada.
+    const mar = await p.avaliar(`(() => { const m = document.querySelector('.mar-topo').getBoundingClientRect(), c = document.querySelector('.cena-mar').getBoundingClientRect(), e = document.querySelector('.pescador');
+      return {esquerda: Math.round(m.left), direita: Math.round(m.right - document.documentElement.clientWidth), colado: Math.round(m.top - c.bottom), imagem: getComputedStyle(e).backgroundImage.split('/ilustracoes/')[1]?.split('"')[0], proporcao: Math.round(c.width / c.height * 100) / 100}; })()`);
+    igual([mar.esquerda, mar.direita], [0, 0], 'mar do topo até as duas bordas em ' + largura);
+    certo(mar.colado >= 0 && mar.colado <= 8, 'mar logo abaixo da cena em ' + largura + ' (' + mar.colado + ' px)');
+    igual([mar.imagem, mar.proporcao], ['pescador-livro.webp', 2.09], 'pescador na cena, caixa de proporção fixa em ' + largura);
   }
+  // Frente sobras: imagem de compartilhamento de 1200 × 630, servida pelo site, com texto alternativo e cartão grande.
+  // O endereço é o do GitHub Pages (a aplicação em Docker não serve icones/): o arquivo é conferido no repositório, pelo cabeçalho do PNG.
+  const og = await p.avaliar(`(() => { const m = n => document.querySelector('meta[property="' + n + '"], meta[name="' + n + '"]')?.content;
+    return {imagem: m('og:image'), largura: m('og:image:width'), altura: m('og:image:height'), alt: (m('og:image:alt') || '').length > 40, cartao: m('twitter:card')}; })()`);
+  const png = fs.readFileSync(path.join(RAIZ, 'icones/pu-compartilhamento.png'));
+  og.real = [png.toString('ascii', 1, 4), png.readUInt32BE(16), png.readUInt32BE(20), png.length < 60000];
+  igual(og, {imagem: 'https://pu.gingamidia.com/icones/pu-compartilhamento.png', largura: '1200', altura: '630', alt: true, cartao: 'summary_large_image', real: ['PNG', 1200, 630, true]}, 'imagem de compartilhamento 1200 × 630, abaixo de 60 KB');
   await p.tamanho(390, 844); await dormir(100);
   // Cores de decoração da página: azul-mar, amarelo-sol e laranja-boia; nada de rosa-goiaba nem roxo-ipê.
   const decoracao = await p.avaliar(`(() => { const sonda = document.createElement('span'); document.body.append(sonda); const valor = v => { sonda.style.color = 'var(' + v + ')'; return getComputedStyle(sonda).color; };
