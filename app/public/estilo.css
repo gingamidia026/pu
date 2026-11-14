@@ -1,6 +1,6 @@
 /* Pé na Universidade (PU): minimalismo utilitário e editorial, celular primeiro.
    Dominique-Oliveira-Claude🤖🧡, 12/11/2026. Identidade em "Identidade visual do site VpT" (cofre Ginga Mídia).
-   Duas famílias: sem serifa do sistema no corpo e serifada nos títulos. Pastéis só com sentido: verde certo, vermelho errado, amarelo marcado, azul dica. */
+   Desde 14/11/2026: Bricolage (títulos e números de cartaz) e Atkinson (texto), papéis de cor nas variáveis abaixo e no bloco de temas do fim. */
 /* Fontes da direção de 14/11/2026, todas SIL Open Font License 1.1 (https://openfontlicense.org), servidas pelo próprio site.
    Direitos autorais e licença ficam dentro de cada arquivo (campos de nome 0, 13 e 14) e em fontes/LICENCAS-OFL.txt no repositório.
    Só baixam quando algum elemento usa a família: até as frentes seguintes aplicarem, nada muda na tela. */
@@ -14,19 +14,14 @@
 .topo .simbolo svg { width: 32px; height: 32px; display: block; }
 html[data-tema=noturno] .topo .simbolo { color: var(--marca-noite); }
 :root {
+  /* Papéis no diurno (nota de identidade, tabela "Papéis"); o noturno troca o valor no bloco de temas do fim do arquivo. */
   --fundo: #FFFFFF; --painel: #FFFFFF; --texto: #2F3437; --secundario: #6B6A67;
-  --linha: #EAEAEA; --suave: #F7F6F3; --destaque: #111111; --foco: #346538;
-  --verde: #346538; --verde-fundo: #EDF3EC; --vermelho: #9F2F2D; --vermelho-fundo: #FDEBEC;
-  --amarelo: #956400; --amarelo-fundo: #FBF3DB; --azul: #1F6C9F; --azul-fundo: #E1F3FE;
+  --linha: #EAEAEA; --suave: #F7F6F3; --destaque: #111111; --foco: #2747F5;
+  --verde: #00695F; --verde-fundo: #D2EFEA; --vermelho: #B3261E; --vermelho-fundo: #FFF0E8;
+  --amarelo: #8A5A00; --amarelo-fundo: #FBF3DB; --azul: #1F5FA0; --azul-fundo: #E1F3FE;
   --altura-topo: 3.25rem; --altura-menu: 3.75rem;
   /* Fio cinza dos círculos da entrada; serve às linhas de lista. Contornos de bloco usam a cor do texto. */
   --fio: #858480;
-  /* Os mesmos selos da entrada (livro, visto, calendário) e o alvo, como imagem: nas telas de dentro ficam fora da marcação e da leitura de tela. */
-  --selo-livro: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' stroke='%232F3437' stroke-width='1' stroke-linejoin='round' stroke-linecap='round'%3E%3Cstyle%3E*%7Bvector-effect:non-scaling-stroke%7D%3C/style%3E%3Cpath fill='%23E1F3FE' d='M5 17c9-5 18-5 27 1 9-6 18-6 27-1v32c-9-5-18-5-27 1-9-6-18-6-27-1z'/%3E%3Cpath fill='none' d='M32 18v32M11 26c5-2 10-2 15 0M11 33c5-2 10-2 15 0M38 33c5-2 10-2 15 0'/%3E%3Cpath fill='%23FBF3DB' d='M41 15v15l4-3 4 3V14z'/%3E%3C/svg%3E");
-  --selo-visto: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' stroke='%232F3437' stroke-width='1' stroke-linejoin='round' stroke-linecap='round'%3E%3Cstyle%3E*%7Bvector-effect:non-scaling-stroke%7D%3C/style%3E%3Ccircle fill='%23E1F3FE' cx='32' cy='32' r='26'/%3E%3Cpath fill='%23FBF3DB' d='M16 33l6-6 7 7 13-15 6 6-19 21z'/%3E%3C/svg%3E");
-  --selo-calendario: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' stroke='%232F3437' stroke-width='1' stroke-linejoin='round' stroke-linecap='round' fill='none'%3E%3Cstyle%3E*%7Bvector-effect:non-scaling-stroke%7D%3C/style%3E%3Crect fill='%23E1F3FE' x='8' y='13' width='48' height='43' rx='4'/%3E%3Cpath d='M8 25h48M20 8v10M44 8v10'/%3E%3Crect x='15' y='32' width='8' height='7'/%3E%3Crect fill='%23FBF3DB' x='28' y='32' width='8' height='7'/%3E%3Crect x='41' y='32' width='8' height='7'/%3E%3Crect x='15' y='44' width='8' height='7'/%3E%3Crect x='28' y='44' width='8' height='7'/%3E%3C/svg%3E");
-  --selo-alvo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' stroke='%232F3437' stroke-width='1' stroke-linejoin='round' stroke-linecap='round'%3E%3Cstyle%3E*%7Bvector-effect:non-scaling-stroke%7D%3C/style%3E%3Ccircle fill='%23E1F3FE' cx='32' cy='32' r='26'/%3E%3Ccircle fill='%23FFFFFF' cx='32' cy='32' r='17'/%3E%3Ccircle fill='%23FBF3DB' cx='32' cy='32' r='8'/%3E%3C/svg%3E");
-  --serifada: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
   --curva: cubic-bezier(.23,1,.32,1);
   /* Mola (referência Slush, adaptada): passa do ponto e assenta. Sem linear(), cai na curva antiga do PU. */
   --mola: cubic-bezier(0.16, 1, 0.3, 1);
@@ -140,8 +135,8 @@ footer { padding: 1.25rem 1rem calc(1.25rem + var(--altura-menu) + env(safe-area
 body.sem-sessao footer { padding-bottom: 1.25rem; }
 
 /* Texto */
-h1 { font-family: var(--serifada); font-weight: 400; font-size: clamp(2rem,6vw,3rem); line-height: 1.1; letter-spacing: -.03em; margin: .5rem 0 1rem; text-wrap: balance; }
-h2 { font-family: var(--serifada); font-weight: 400; font-size: 1.5rem; line-height: 1.2; letter-spacing: -.02em; margin: 2.5rem 0 .75rem; }
+h1 { margin: .5rem 0 1rem; }
+h2 { margin: 2.5rem 0 .75rem; }
 h3 { font-size: 1.0625rem; font-weight: 600; margin: 2rem 0 .5rem; }
 p { margin: 0 0 1rem; }
 .lide { font-size: 1.125rem; color: var(--texto); }
@@ -164,6 +159,7 @@ progress::-moz-progress-bar { background: var(--texto); border-radius: 999px; }
 .ritmo { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 0 .75rem; }
 .ritmo-hoje { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: .125rem .5rem; flex: 1; min-width: 0; max-width: 17rem; }
 .ritmo-hoje strong { font-variant-numeric: tabular-nums; font-weight: 650; white-space: nowrap; }
+.ritmo-hoje .rotulo { white-space: nowrap; overflow-wrap: normal; }
 .ritmo-hoje progress { grid-column: 1 / -1; }
 .ritmo-hoje .selo { grid-column: 1 / -1; justify-self: start; white-space: nowrap; margin-top: .125rem; }
 .semana { display: flex; gap: .25rem; list-style: none; margin: 0; padding: 0; flex-shrink: 0; }
@@ -249,7 +245,7 @@ fieldset:disabled .alternativa { cursor: default; }
 .indicadores { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .75rem; margin: 1.5rem 0; }
 .indicador { min-width: 0; padding-left: .75rem; border-left: 1px solid var(--linha); }
 .indicador:first-child { padding-left: 0; border-left: 0; }
-.indicador strong { display: block; font-family: var(--serifada); font-weight: 400; font-size: 2.25rem; line-height: 1.2; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.indicador strong { display: block; }
 .indicador span { display: block; color: var(--secundario); font-size: .8125rem; line-height: 1.4; }
 progress.largo { height: 8px; margin-bottom: 1rem; }
 .materia { border-top: 1px solid var(--linha); }
@@ -294,7 +290,6 @@ main:has(.entrada) { padding: 0; }
 #conteudo:has(.entrada) { max-width: none; }
 .entrada {
   --foco: var(--azul-mar);
-  --forma-pata: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='78 84 356 350'%3E%3Cpath d='M251.7 86.4C247.1 87.0 243.1 88.2 238.9 90.2C227.7 95.8 219.8 106.4 217.7 118.9C217.1 122.8 217.1 122.4 215.8 169.6C215.1 191.8 214.6 210.6 214.6 211.5C214.4 215.9 213.8 217.9 212.1 219.5C209.8 221.9 206.7 221.4 202.9 218.1C202.5 217.8 191.3 206.1 178.0 192.2C149.5 162.4 147.8 160.7 144.3 158.0C132.4 149.1 117.0 147.6 103.7 154.1C88.0 161.9 79.3 179.2 82.7 196.3C83.9 202.6 86.5 208.0 90.9 213.8C92.5 215.8 88.7 211.3 131.2 261.4C173.8 311.6 171.3 308.7 172.6 310.3C175.2 313.7 176.8 316.4 178.4 320.8C179.0 322.3 188.8 350.3 192.5 360.9C195.0 368.3 195.6 370.4 196.2 375.9C196.8 380.0 197.1 381.7 197.6 384.0C203.0 408.3 222.9 426.8 247.5 430.4C253.0 431.2 259.2 431.2 264.6 430.4C289.2 426.8 309.2 408.3 314.6 384.0C315.1 381.7 315.4 380.0 315.9 375.9C316.8 369.0 316.2 370.9 325.8 343.2C335.3 316.0 334.8 317.4 336.8 314.1C338.6 311.1 334.1 316.5 380.1 262.2C423.4 211.2 419.6 215.8 421.1 213.8C423.5 210.7 424.8 208.6 426.2 205.7C435.4 186.6 427.4 163.5 408.3 154.1C395.1 147.6 379.6 149.1 367.7 158.0C364.2 160.7 362.5 162.4 334.0 192.2C320.7 206.1 309.6 217.8 309.1 218.1C307.0 220.0 305.8 220.6 304.1 220.9C300.7 221.3 298.3 218.8 297.8 214.1C297.6 212.4 297.5 211.7 296.4 169.6C295.1 122.4 295.1 122.8 294.4 118.9C291.6 101.6 277.7 88.4 260.2 86.4C258.2 86.2 253.8 86.2 251.7 86.4Z'/%3E%3C/svg%3E");
   --forma-onda: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 16'%3E%3Cpath d='M0 8q12-8 24 0t24 0v8H0z'/%3E%3C/svg%3E");
   --forma-linha: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 12'%3E%3Cpath d='M0 6q12-6 24 0t24 0' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E");
   font-family: var(--fonte-texto); font-size: 1.0625rem; line-height: 1.6; color: var(--texto);
@@ -497,7 +492,7 @@ small.legenda { color: inherit; }
 .resultado-opcao { border-top: 1px solid var(--linha); padding-block: 1.75rem; }
 .resultado-opcao h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.6; overflow-wrap: anywhere; }
 .resultado-opcao h4 { font-size: 1rem; margin-bottom: .75rem; }
-.media-nota strong { display: block; font-family: "Iowan Old Style",Palatino,serif; font-weight: 400; font-size: 3rem; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.media-nota strong { display: block; font-size: 3rem; overflow-wrap: anywhere; }
 .media-nota span { color: var(--secundario); font-size: .875rem; }
 .metas-nota > div,.parcelas-nota > div { border-top: 1px solid var(--linha); padding-block: .75rem; }
 .simulador dt { font-weight: 600; }
@@ -505,52 +500,176 @@ small.legenda { color: inherit; }
 .metodo-nota { margin-top: 2rem; }
 @media(max-width:500px) { .campos-notas,.campos-pesos,.campos-opcao { grid-template-columns: minmax(0,1fr); } }
 
-/* Telas de dentro com a identidade da entrada (pedido de Dominique, 12/11/2026). Só visual: marcação, ordem e texto seguem os mesmos.
-   Cabeçalho e menu com contorno de 1 px na cor do texto; o topo de cada tela vira uma faixa de areia na largura toda,
-   como as faixas da entrada; título de cartaz com um selo nas telas de passagem; a folha da questão continua calma, sem selo nem faixa que corre. */
+/* ---------- Telas de dentro: direção de 14/11/2026 (frente dentro) ----------
+   Nota "Identidade visual do site VpT", seção de 14/11, "Densidade por tipo de tela". Duas famílias até Dominique responder
+   sobre as outras duas (afazer "Confirmar as fontes do PU"): Bricolage nos títulos e números das telas de passagem, Atkinson no resto.
+   Telas de passagem (progresso, simulado antes e depois, nota, conta, dados, meta cumprida): faixa de cor no topo com base em onda,
+   título de cartaz, um selo e uma ilustração pequena; uma cor de decoração por tela (data-tom). Estudar e a folha da questão
+   ficam contidas: neutros, cores de sentido e Atkinson. As cores saem das variáveis; o noturno troca o valor. */
+body { font-family: var(--fonte-texto); }
+/* Reserva da Bricolage enquanto o arquivo chega (sem cache): Arial negrito reduzida a 70%, a largura média da Bricolage condensada,
+   para o título quebrar nas mesmas linhas e a tela não pular quando a fonte troca. Só nas telas de dentro; a entrada fica como está. */
+@font-face { font-family: "Bricolage reserva"; src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"); font-weight: 600 800; size-adjust: 70%; }
+body:not(.sem-sessao) { --fonte-cartaz: "Bricolage Grotesque", "Bricolage reserva", "Arial Narrow", Arial, sans-serif; }
+:root {
+  --forma-pata: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='78 84 356 350'%3E%3Cpath d='M251.7 86.4C247.1 87.0 243.1 88.2 238.9 90.2C227.7 95.8 219.8 106.4 217.7 118.9C217.1 122.8 217.1 122.4 215.8 169.6C215.1 191.8 214.6 210.6 214.6 211.5C214.4 215.9 213.8 217.9 212.1 219.5C209.8 221.9 206.7 221.4 202.9 218.1C202.5 217.8 191.3 206.1 178.0 192.2C149.5 162.4 147.8 160.7 144.3 158.0C132.4 149.1 117.0 147.6 103.7 154.1C88.0 161.9 79.3 179.2 82.7 196.3C83.9 202.6 86.5 208.0 90.9 213.8C92.5 215.8 88.7 211.3 131.2 261.4C173.8 311.6 171.3 308.7 172.6 310.3C175.2 313.7 176.8 316.4 178.4 320.8C179.0 322.3 188.8 350.3 192.5 360.9C195.0 368.3 195.6 370.4 196.2 375.9C196.8 380.0 197.1 381.7 197.6 384.0C203.0 408.3 222.9 426.8 247.5 430.4C253.0 431.2 259.2 431.2 264.6 430.4C289.2 426.8 309.2 408.3 314.6 384.0C315.1 381.7 315.4 380.0 315.9 375.9C316.8 369.0 316.2 370.9 325.8 343.2C335.3 316.0 334.8 317.4 336.8 314.1C338.6 311.1 334.1 316.5 380.1 262.2C423.4 211.2 419.6 215.8 421.1 213.8C423.5 210.7 424.8 208.6 426.2 205.7C435.4 186.6 427.4 163.5 408.3 154.1C395.1 147.6 379.6 149.1 367.7 158.0C364.2 160.7 362.5 162.4 334.0 192.2C320.7 206.1 309.6 217.8 309.1 218.1C307.0 220.0 305.8 220.6 304.1 220.9C300.7 221.3 298.3 218.8 297.8 214.1C297.6 212.4 297.5 211.7 296.4 169.6C295.1 122.4 295.1 122.8 294.4 118.9C291.6 101.6 277.7 88.4 260.2 86.4C258.2 86.2 253.8 86.2 251.7 86.4Z'/%3E%3C/svg%3E");
+  /* Base da faixa do topo: a faixa termina numa onda (parte de cima cheia). */
+  --forma-onda-base: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 16'%3E%3Cpath d='M0 0h48v8q-12 8-24 0T0 8z'/%3E%3C/svg%3E");
+  --forma-visto: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 8.5l3.5 3.5 7.5-8' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --forma-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 4l8 8M12 4l-8 8' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+/* Cor que conduz a tela: --tom (forma e selo), --tom-faixa (faixa do topo, disco do número, cartão da meta) e --tom-detalhe
+   (o detalhe do selo, até 15% da área). Combinações do paletas.json: Mar, Boia, Ipê, Goiaba e Sol. */
+[data-tom] { --tom: var(--azul-mar); --tom-faixa: var(--azul-mar-claro); --tom-detalhe: var(--amarelo-sol); --papel-selo: var(--fundo); }
+[data-tom=boia] { --tom: var(--laranja-boia); --tom-faixa: var(--laranja-claro); --tom-detalhe: var(--azul-mar); }
+[data-tom=ipe] { --tom: var(--roxo-ipe); --tom-faixa: var(--roxo-claro); --tom-detalhe: var(--amarelo-sol); }
+[data-tom=goiaba] { --tom: var(--rosa-goiaba); --tom-faixa: var(--rosa-claro); --tom-detalhe: var(--azul-mar); }
+[data-tom=sol] { --tom: var(--amarelo-sol); --tom-faixa: var(--amarelo-claro); --tom-detalhe: var(--tinta); }
+html[data-tema=noturno] [data-tom] { --tom: var(--azul-mar-noite); --tom-faixa: var(--azul-mar-escuro); --tom-detalhe: var(--amarelo-sol-noite); }
+html[data-tema=noturno] [data-tom=boia] { --tom: var(--laranja-boia-noite); --tom-faixa: var(--laranja-escuro); --tom-detalhe: var(--azul-mar-noite); }
+html[data-tema=noturno] [data-tom=ipe] { --tom: var(--roxo-ipe-noite); --tom-faixa: var(--roxo-escuro); --tom-detalhe: var(--amarelo-sol-noite); }
+html[data-tema=noturno] [data-tom=goiaba] { --tom: var(--rosa-goiaba-noite); --tom-faixa: var(--rosa-escuro); --tom-detalhe: var(--azul-mar-noite); }
+html[data-tema=noturno] [data-tom=sol] { --tom: var(--amarelo-sol-noite); --tom-faixa: var(--amarelo-escuro); --tom-detalhe: var(--tinta); }
+
+/* Topo e menu: contorno de 1 px na cor do texto. */
 body:not(.sem-sessao) .topo { background: var(--barra); border-bottom-color: var(--texto); }
 body:not(.sem-sessao) footer { border-top-color: var(--texto); }
+/* Antes de o app.js decidir a primeira tela, o rodapé ficava no fim da casca vazia e era empurrado quando a tela chegava
+   (era todo o deslocamento de layout medido ao abrir). Fica invisível, no mesmo lugar, até o molde da entrada sair. */
+body:has(#conteudo > .entrada[data-estatica]) footer { visibility: hidden; animation: mostrar-rodape 0s 4s forwards; }
+/* Se o app.js falhar, o rodapé (com "Dados e segurança") volta depois de 4 s; não é movimento, vale também com movimento reduzido. */
+@keyframes mostrar-rodape { to { visibility: visible; } }
+@media (prefers-reduced-motion: reduce) { body:has(#conteudo > .entrada[data-estatica]) footer { animation: mostrar-rodape 0s 4s forwards !important; } }
 .menu { background: var(--barra); border-top-color: var(--texto); }
-.menu a[aria-current=page] { color: var(--texto); border-top-color: var(--texto); background: var(--suave); }
-/* Faixa de areia: um fundo na largura toda por trás do bloco, sem elemento novo. */
-:is(#conteudo > h1:not(.oculto), .simulador > h1, #conteudo > .ritmo, #conteudo > .ritmo + .modos) { position: relative; isolation: isolate; }
-:is(#conteudo > h1:not(.oculto), .simulador > h1, #conteudo > .ritmo, #conteudo > .ritmo + .modos)::before {
-  content: ""; position: absolute; z-index: -1; inset: 0 calc(50% - 50vw); background: var(--suave); pointer-events: none;
+.menu a[aria-current=page] { color: var(--texto); border-top-color: var(--texto); background: var(--suave); font-weight: 700; }
+
+/* Títulos: cartaz em Bricolage 800 nas telas de passagem; seções em Bricolage 600. O título escondido de Estudar fica na Atkinson,
+   para a tela da questão não baixar a Bricolage. */
+/* Só seletores de elemento: as regras da entrada, com classe, continuam valendo lá. */
+h1, h2 { font-family: var(--fonte-cartaz); color: var(--tinta); text-wrap: balance; }
+h1 { font-weight: 800; font-size: clamp(2.25rem, 8vw, 3.5rem); line-height: .92; letter-spacing: -.02em; }
+h2 { font-weight: 600; font-size: 1.625rem; line-height: 1.1; letter-spacing: -.01em; }
+h3 { font-weight: 700; }
+h1.oculto { font-family: inherit; }
+
+/* Faixa do topo das telas de passagem: cor da tela na largura toda, base em onda, título, selo e a ilustração ao lado. */
+.cabeca { position: relative; isolation: isolate; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin: -1rem 0 1.75rem; padding: 1.5rem 0 2.25rem; }
+.cabeca-texto { min-width: 0; flex: 1; }
+.cabeca h1 { margin: 0; }
+.cabeca .lide { margin: .875rem 0 0; color: var(--texto); }
+.cabeca :is(.secundario, .rotulo) { color: var(--texto); } /* o cinza secundário fica abaixo de 4,5:1 sobre a faixa azul-mar-clara */
+.cabeca h1 .sem-quebra { white-space: nowrap; } /* a última palavra não se separa do selo */
+:is(#conteudo > .cabeca, .simulador > h1)::before {
+  content: ""; position: absolute; z-index: -1; inset: 0 calc(50% - 50vw); background: var(--tom-faixa, var(--suave)); pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 15px) no-repeat, var(--forma-onda-base) 0 100% / 48px 16px repeat-x;
+  mask: linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 15px) no-repeat, var(--forma-onda-base) 0 100% / 48px 16px repeat-x;
 }
-:is(#conteudo > h1:not(.oculto), .simulador > h1, #conteudo > .ritmo:not(:has(+ .modos)), #conteudo > .ritmo + .modos)::before { border-bottom: 1px solid var(--texto); }
-/* Título de cartaz nas telas de passagem (progresso, simulado, nota, conta, dados), menor que o da entrada. */
-:is(#conteudo > h1:not(.oculto), .simulador > h1) {
-  font-size: clamp(2.5rem, 10vw, 4.5rem); line-height: .95; letter-spacing: -.04em; max-width: none;
-  margin: -1rem 0 1.75rem; padding: 1.75rem 0 1.5rem;
-}
+/* A tela de nota é desenhada pelo simulador.js: a faixa e o selo vêm só do CSS, no título dele. */
+.simulador > h1 { position: relative; isolation: isolate; margin: -1rem 0 1.75rem; padding: 1.5rem 0 2.25rem; }
+.simulador > h1::after { content: ""; display: inline-block; width: .85em; height: .85em; margin-left: .2em; vertical-align: -.1em; rotate: 6deg;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' stroke='%23000000' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath fill='%23FFC93C' d='M12 44 40 16l8 8-28 28z'/%3E%3Cpath fill='%23000000' d='m40 16 4-4 8 8-4 4zM8 56l1-4.5 3.5 3.5z'/%3E%3Cpath fill='%23FFFFFF' d='m12 44 8 8-12 4z'/%3E%3C/svg%3E") center / contain no-repeat; animation: selo 400ms var(--mola) both; }
+html[data-tema=noturno] .simulador > h1::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' stroke='%23F2F0EB' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath fill='%23FFD45C' d='M12 44 40 16l8 8-28 28z'/%3E%3Cpath fill='%23F2F0EB' d='m40 16 4-4 8 8-4 4zM8 56l1-4.5 3.5 3.5z'/%3E%3Cpath fill='%23000000' d='m12 44 8 8-12 4z'/%3E%3C/svg%3E"); }
+
+/* Selos das telas de dentro: desenho de 64 × 64, contorno de 1 px em tinta (claro no noturno), a cor da tela e o detalhe. Fora da leitura de tela. */
+.selo-tela { display: inline-block; width: .85em; height: .85em; margin-left: .2em; vertical-align: -.1em; overflow: visible; animation: selo 400ms var(--mola) both; }
+.selo-tela * { stroke: var(--tinta); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+.selo-alvo { rotate: -6deg; } .selo-cronometro { rotate: 6deg; } .selo-capelo { rotate: -8deg; } .selo-livro { rotate: -4deg; } .selo-peixe { rotate: 8deg; }
+.s-tom { fill: var(--tom); } .s-detalhe { fill: var(--tom-detalhe); } .s-papel { fill: var(--papel-selo); } .s-nada { fill: none; }
+@keyframes selo { from { opacity: 0; scale: .6; rotate: 0deg; } }
+
+/* Ilustrações: o arquivo vem do CSS, pela cena e pelo tema; trocar o desenho é trocar o arquivo de mesmo nome. Tamanho reservado
+   (a tela não pula) e carga em segundo plano (nunca na tela Estudar nem na folha da questão). */
+.ilustracao { display: block; flex-shrink: 0; width: 7.5rem; height: 7.5rem; background: center / contain no-repeat; }
+.ilustracao.grande { width: 10rem; height: 10rem; }
+[data-cena=inicio-do-dia] { background-image: url("ilustracoes/inicio-do-dia.webp"); }
+[data-cena=meta-cumprida] { background-image: url("ilustracoes/meta-cumprida.webp"); }
+[data-cena=revisao] { background-image: url("ilustracoes/revisao.webp"); }
+[data-cena=simulado] { background-image: url("ilustracoes/simulado.webp"); }
+[data-cena=progresso-vazio] { background-image: url("ilustracoes/progresso-vazio.webp"); }
+[data-cena=espera] { background-image: url("ilustracoes/espera.webp"); }
+[data-cena=configuracoes] { background-image: url("ilustracoes/configuracoes.webp"); }
+[data-cena=encerrar-por-hoje] { background-image: url("ilustracoes/encerrar-por-hoje.webp"); }
+html[data-tema=noturno] [data-cena=inicio-do-dia] { background-image: url("ilustracoes/inicio-do-dia-noite.webp"); }
+html[data-tema=noturno] [data-cena=meta-cumprida] { background-image: url("ilustracoes/meta-cumprida-noite.webp"); }
+html[data-tema=noturno] [data-cena=revisao] { background-image: url("ilustracoes/revisao-noite.webp"); }
+html[data-tema=noturno] [data-cena=simulado] { background-image: url("ilustracoes/simulado-noite.webp"); }
+html[data-tema=noturno] [data-cena=progresso-vazio] { background-image: url("ilustracoes/progresso-vazio-noite.webp"); }
+html[data-tema=noturno] [data-cena=espera] { background-image: url("ilustracoes/espera-noite.webp"); }
+html[data-tema=noturno] [data-cena=configuracoes] { background-image: url("ilustracoes/configuracoes-noite.webp"); }
+html[data-tema=noturno] [data-cena=encerrar-por-hoje] { background-image: url("ilustracoes/encerrar-por-hoje-noite.webp"); }
+/* Seção com a ilustração ao lado (tema, na conta). */
+.com-cena { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+.com-cena > div { min-width: 0; flex: 1; }
+/* Telas de espera e de falta de conexão: o logo ao abrir, a ilustração quando demora ou falha. */
+.abrindo { display: grid; justify-items: center; gap: 1rem; padding-top: 3rem; }
+.abrindo .espera { padding: 0; }
+.abrindo + .acoes { justify-content: center; }
+.logo-tela { width: 3rem; height: 3rem; color: var(--marca); }
+html[data-tema=noturno] .logo-tela { color: var(--marca-noite); }
+.marco .ilustracao { margin: 0 0 1rem; }
+
+/* Faixa do ritmo em Estudar: areia neutra na largura toda, com fio embaixo, sem cor de decoração. */
+:is(#conteudo > .ritmo, #conteudo > .ritmo + .modos) { position: relative; isolation: isolate; }
+:is(#conteudo > .ritmo, #conteudo > .ritmo + .modos)::before { content: ""; position: absolute; z-index: -1; inset: 0 calc(50% - 50vw); background: var(--suave); pointer-events: none; }
+:is(#conteudo > .ritmo:not(:has(+ .modos)), #conteudo > .ritmo + .modos)::before { border-bottom: 1px solid var(--texto); }
 #conteudo > .ritmo { margin: -1rem 0 0; padding: .875rem 0 .75rem; }
 #conteudo > .ritmo:not(:has(+ .modos)) { margin-bottom: 1rem; }
 #conteudo > .ritmo + .modos { margin: 0 0 1.25rem; padding: .25rem 0 1rem; }
-/* Um selo por tela, encostado no título, como na entrada; assenta em 0,4 s na mola. */
-:is(#conteudo > h1:not(.oculto), .simulador > h1, .marco:has(#mais-cinco) h2)::after {
-  content: ""; display: inline-block; width: .85em; height: .85em; margin-left: .2em; vertical-align: -.1em;
-  background: var(--selo, var(--selo-livro)) center / contain no-repeat; rotate: -6deg; animation: selo 400ms var(--mola) both;
-}
-body:has(#menu a[href="#progresso"][aria-current]) { --selo: var(--selo-alvo); }
-body:has(#menu a[href="#simulado"][aria-current]) { --selo: var(--selo-visto); }
-body:has(#menu a[href="#conta"][aria-current]) { --selo: var(--selo-calendario); }
-.marco:has(#mais-cinco) h2::after { background-image: var(--selo-visto); rotate: 8deg; }
-@keyframes selo { from { opacity: 0; scale: .6; rotate: 0deg; } }
-/* Contorno de 1 px: barras, dias, selos de texto, painel de foco e listas. */
+
+/* Números das telas de passagem em Bricolage; o primeiro do progresso vira número de cartaz num disco claro. */
+.indicador strong, .media-nota strong { font-family: var(--fonte-cartaz); font-weight: 800; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--tinta); }
+.indicador strong { font-size: 2.5rem; }
+.indicador.disco strong { display: grid; place-items: center; width: 4.5rem; height: 4.5rem; margin-bottom: .375rem; border: 1px solid var(--tinta); border-radius: 50%; background: var(--tom-faixa); font-size: 2.25rem; }
+/* Pegadas da semana no progresso: dia estudado com a pata do logo cheia, dia sem estudo com um traço curto; o nome vai para o leitor de tela. */
+.pegadas-semana { display: flex; justify-content: space-between; max-width: 22rem; margin: 0 0 2rem; padding: 0; list-style: none; }
+.pegadas-semana li { display: grid; justify-items: center; gap: .375rem; min-width: 1.75rem; }
+.pegadas-semana .pe { display: block; width: 24px; height: 24px; }
+.pegadas-semana [data-feito] .pe { background: var(--tom); -webkit-mask: var(--forma-pata) center / contain no-repeat; mask: var(--forma-pata) center / contain no-repeat; rotate: -12deg; }
+.pegadas-semana li:nth-child(even)[data-feito] .pe { rotate: 12deg; }
+.pegadas-semana li:nth-child(even) .pe { translate: 0 6px; }
+.pegadas-semana li:not([data-feito]) .pe::before { content: ""; display: block; width: 12px; height: 2px; margin: 11px auto 0; background: var(--fio); }
+.pegadas-semana .dia { font-size: .8125rem; font-weight: 700; color: var(--secundario); line-height: 1; padding-top: .25rem; }
+.pegadas-semana [data-hoje] .dia { color: var(--texto); text-decoration: underline 2px; text-underline-offset: 4px; }
+
+/* Cartões e listas com contorno de 1 px. */
 progress, progress.largo { height: 10px; border: 1px solid var(--texto); background: var(--cartao); }
 progress::-webkit-progress-bar { background: var(--cartao); }
 .semana li { border-color: var(--fio); background: var(--cartao); color: var(--texto); }
 .selo { border: 1px solid currentColor; }
 .painel-foco { border-color: var(--texto); background: var(--cartao); }
 .passo { background: var(--azul-fundo); }
+/* Nas telas com cor própria, o cartão do próximo passo usa a faixa da tela: um azul-claro ao lado da faixa roxa do dia encerrado juntava azul-mar e roxo-ipê. */
+#conteudo[data-tom] .passo { background: var(--tom-faixa); }
+#conteudo[data-tom] .passo :is(.rotulo, .secundario) { color: var(--texto); } /* o cinza secundário não chega a 4,5:1 nas faixas claras */
 .indicador { border-left-color: var(--texto); }
-.indicador strong { line-height: 1; letter-spacing: -.04em; }
 .materia, .materia:last-of-type, .resultado-opcao, .opcao-nota { border-color: var(--texto); }
 .assunto { border-top-color: var(--fio); }
 .dispositivo, .linha-resultado, .simulador details, .metas-nota > div, .parcelas-nota > div { border-color: var(--fio); }
 .nota { border-left: 1px solid var(--texto); }
-.media-nota strong { font-family: var(--serifada); line-height: 1; letter-spacing: -.04em; }
 .barra-acao { border-top-color: var(--texto); }
+/* Meta cumprida: o único cartão com cor de decoração dentro de Estudar (Goiaba), com a ilustração da comemoração. */
+.marco[data-tom] { background: var(--tom-faixa); border-color: var(--tinta); }
+@media (min-width: 40rem) {
+  .marco:has(> .ilustracao) { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 1.5rem; }
+  .marco:has(> .ilustracao) > * { grid-column: 1; }
+  .marco > .ilustracao { grid-column: 2; grid-row: 1 / span 6; margin: 0; }
+}
+.marco[data-tom] .secundario { color: var(--texto); }
+/* Dentro de Estudar, só o cartão da meta cumprida (tela de passagem) leva o título de cartaz; os outros avisos ficam na Atkinson. */
+.marco[data-tom] h2 { font-weight: 800; font-size: clamp(1.75rem, 6vw, 2.25rem); line-height: 1; letter-spacing: -.02em; }
+.marco:not([data-tom]) h2 { font-family: var(--fonte-texto); font-weight: 700; font-size: 1.375rem; line-height: 1.25; letter-spacing: 0; }
+
+/* Folha da questão: Atkinson de leitura (17 px no celular, 18 no computador, entrelinha 1,6, linha de até 68 caracteres).
+   Acerto e erro não dependem só da cor: acerto com borda sólida de 2 px e visto na letra; erro com borda tracejada de 2 px e X na letra. */
+.enunciado { font-size: 1.0625rem; line-height: 1.6; }
+.enunciado, .questao fieldset { max-width: 68ch; }
+.alternativa .letra { font-variant-numeric: tabular-nums; font-weight: 700; }
+.alternativa[data-correcao] { border-width: 2px; padding: calc(.875rem - 1px) calc(.75rem - 1px); }
+.alternativa[data-correcao=errada], .alternativa[data-correcao=errada]:has(input:checked) { border-style: dashed; }
+.alternativa[data-correcao] .letra { width: auto; min-width: 1.75rem; gap: .125rem; padding: 0 .3125rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; }
+.alternativa[data-correcao] .letra::after { content: ""; width: .75rem; height: .75rem; background: currentColor; -webkit-mask: var(--forma-visto) center / contain no-repeat; mask: var(--forma-visto) center / contain no-repeat; }
+.alternativa[data-correcao=errada] .letra::after { -webkit-mask-image: var(--forma-x); mask-image: var(--forma-x); }
+
 
 /* Telas largas: menu no cabeçalho, como no site da Ginga; folha com mais respiro. */
 @media (min-width: 56rem) {
@@ -569,9 +688,13 @@ progress::-webkit-progress-bar { background: var(--cartao); }
   .ficha .corte { max-width: 24rem; }
   /* Item ativo do menu como a ficha marcada: pílula na cor do texto. */
   .menu a[aria-current=page] { background: var(--texto); color: var(--texto-invertido); }
-  :is(#conteudo > h1:not(.oculto), .simulador > h1) { margin-top: -2.5rem; padding: 3rem 0 2.25rem; margin-bottom: 2.25rem; }
+  :is(#conteudo > .cabeca, .simulador > h1) { margin-top: -2.5rem; padding: 2.5rem 0 3rem; margin-bottom: 2.25rem; }
+  #conteudo > .cabeca { align-items: center; } /* no computador o título fica na altura do meio da ilustração, sem faixa vazia em cima */
+  .ilustracao { width: 10rem; height: 10rem; }
+  .enunciado { font-size: 1.125rem; }
   #conteudo > .ritmo { margin-top: -2.5rem; padding-top: 1.5rem; }
   .indicador strong { font-size: 3.5rem; }
+  .indicador.disco strong { width: 6.5rem; height: 6.5rem; font-size: 3rem; }
 }
 @media (hover:hover) and (pointer:fine) and (min-width: 56rem) {
   .menu a:not([aria-current=page]):hover { background: var(--suave); color: var(--texto); }
@@ -595,31 +718,32 @@ progress::-webkit-progress-bar { background: var(--cartao); }
 @media (forced-colors: active) { button, .botao, input, select, .alternativa, .formulario, .ficha, .menu a[aria-current=page] { border: 1px solid ButtonText; } .questao, .experimente { background-image: none; } .alternativa:has(input:checked), .alternativa[data-correcao] { outline: 3px solid Highlight; } }
 
 /* ========== Temas das telas de dentro: automático, diurno e noturno (pedido de Dominique, 14/11/2026) ==========
-   O app.js põe data-tema="diurno" ou "noturno" no <html> só com a conta aberta: a página de entrada fica sem tema.
-   Variáveis abaixo, além das do :root: --barra (topo e menu), --folha (folha da questão e barra de ação), --cartao (alternativa,
-   campo, barra de progresso), --divisa (fio dentro da folha), --texto-invertido (texto sobre --destaque e sobre --texto),
-   --texto-sobre-cor (letra sobre verde e vermelho), --destaque-passar, --esperando, --texto-acerto, --texto-engano, --texto-dica,
-   --texto-revisao, --esqueleto-a, --esqueleto-b e --fundo-imagem. Os valores do noturno são provisórios, com contraste AA
-   (4,5:1) medido no teste de navegador; a frente de visual refina aqui, sem reescrever o :root. */
+   O app.js (e o tema-inicial.js, antes do primeiro quadro) põe data-tema="diurno" ou "noturno" no <html> só com a conta aberta:
+   a página de entrada fica sem tema. Variáveis abaixo, além das do :root: --barra (topo e menu), --folha (folha da questão e barra
+   de ação), --cartao (alternativa, campo, barra de progresso), --divisa (fio dentro da folha), --texto-invertido (texto sobre
+   --destaque e sobre --texto), --texto-sobre-cor (letra sobre acerto e erro), --destaque-passar, --esperando, --texto-acerto,
+   --texto-engano, --texto-dica, --texto-revisao, --esqueleto-a, --esqueleto-b e --fundo-imagem.
+   Paleta final de 14/11/2026 (frente dentro): os valores da tabela "Papéis" da nota de identidade, nos dois temas, com contraste
+   AA (4,5:1) medido no teste de navegador em todo par de texto e fundo e em todo texto visível de cada tela. */
 :root {
   --barra: #FFFFFF; --folha: #FBFBFA; --cartao: #FFFFFF; --divisa: #C9C8C4;
   --texto-invertido: #FFFFFF; --texto-sobre-cor: #FFFFFF; --destaque-passar: #333333; --esperando: #55595C;
-  --texto-acerto: #274D2B; --texto-engano: #7D2422; --texto-dica: #17547C; --texto-revisao: #7A5200;
+  --texto-acerto: #00695F; --texto-engano: #B3261E; --texto-dica: #1F5FA0; --texto-revisao: #8A5A00;
   --esqueleto-a: #EFEEEB; --esqueleto-b: #F7F6F3; --fundo-imagem: #FFFFFF;
 }
 /* Diurno: fundo branco; o resto segue a paleta do :root. */
 html[data-tema=diurno] { --fundo: #FFFFFF; --barra: #FFFFFF; color-scheme: light; }
-/* Noturno: fundo preto. */
+/* Noturno: fundo preto; título de cartaz e contorno forte em --marca-noite. */
 html[data-tema=noturno] {
   color-scheme: dark;
   --fundo: #000000; --barra: #000000; --painel: #111111; --cartao: #141414; --folha: #0B0B0B; --suave: #1C1B19;
   --texto: #EDECE9; --secundario: #ABAAA5; --linha: #7A7975; --fio: #8F8E89; --divisa: #7A7975;
   --destaque: #EDECE9; --destaque-passar: #CFCEC9; --texto-invertido: #000000; --texto-sobre-cor: #000000; --esperando: #9A9995;
-  --foco: #8FD694;
-  --verde: #86C98B; --verde-fundo: #0E2611; --texto-acerto: #B5E3B8;
-  --vermelho: #F2938F; --vermelho-fundo: #3B1413; --texto-engano: #F8C1BE;
-  --amarelo: #E3B655; --amarelo-fundo: #2D2309; --texto-revisao: #EBC872;
-  --azul: #85C2EE; --azul-fundo: #0C2433; --texto-dica: #B2DAF6;
+  --foco: #8FA2FF; --tinta: var(--marca-noite);
+  --verde: #3CCFC0; --verde-fundo: #062A28; --texto-acerto: #3CCFC0;
+  --vermelho: #FF7B72; --vermelho-fundo: #3D1408; --texto-engano: #FF7B72;
+  --amarelo: #F2C04B; --amarelo-fundo: #2E2300; --texto-revisao: #F2C04B;
+  --azul: #7CC0F5; --azul-fundo: #0B2236; --texto-dica: #7CC0F5;
   --esqueleto-a: #1A1A19; --esqueleto-b: #262624; --fundo-imagem: #FFFFFF;
 }
 /* Figuras vêm da prova impressa, com fundo branco: no noturno ficam num cartão claro, sem inverter as cores. */

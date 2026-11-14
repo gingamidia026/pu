@@ -82,6 +82,7 @@ const idAtual = () => p.avaliar('Number(document.querySelector(".questao")?.data
 const questaoPronta = () => p.esperar('document.querySelector(".questao:not(.esqueleto) #conferir, .questao:not(.esqueleto) #proxima")', 8000, 'questão pronta');
 const marcar = (id, alternativa) => p.clicar(`input[name="alternativa-${id}"][value="${alternativa}"]`);
 const errada = id => (q(id).correta + 1) % 5;
+const letraDe = id => String.fromCharCode(65 + q(id).correta);
 const hoje = async () => (await p.texto('.ritmo-hoje strong')).trim();
 async function responder({acertar = true, chute = false} = {}) {
   await questaoPronta(); const id = await idAtual(); const ids = q(id).grupo ? q(id).grupoIds : [id];
@@ -266,6 +267,8 @@ await item('erro: marca a escolhida, deixa tentar de novo e só então mostra a 
   await p.esperar('document.querySelector("#proxima")');
   certo((await p.texto('.correcao')).includes('Agora sim'), 'segunda tentativa certa');
   igual(await p.avaliar(`[...document.querySelectorAll('.alternativa[data-correcao]')].map(a => a.dataset.correcao).sort()`), ['correta', 'errada'], 'escolhida e certa marcadas');
+  // Erro não depende só da cor: borda tracejada de 2 px e X dentro da letra.
+  igual(await p.avaliar('(() => { const a = document.querySelector(".alternativa[data-correcao=errada]"), c = getComputedStyle(a); return [c.borderTopStyle, c.borderTopWidth, getComputedStyle(a.querySelector(".letra"), "::after").maskImage.includes("data:image/svg")]; })()'), ['dashed', '2px', true], 'borda tracejada e X');
   certo((await p.texto('.correcao')).includes('volta na sua revisão amanhã'), 'aviso de revisão');
   igual(await hoje(), '1 de 5', 'ritmo');
   igual(sql('SELECT COUNT(*) FROM respostas')[0][0], 1, 'segunda tentativa não é registrada');
@@ -275,7 +278,9 @@ await item('acerto mostra Certa e a próxima questão já vem pronta', async () 
   await seguinte(); const id = await responder();
   certo((await p.texto('.correcao')).includes('Certa!'), 'acerto'); igual(await hoje(), '2 de 5', 'ritmo');
   await dormir(350);
-  igual(await p.avaliar('getComputedStyle(document.querySelector(".alternativa[data-correcao=correta]")).backgroundColor'), 'rgb(237, 243, 236)', 'alternativa certa em verde, mesmo marcada');
+  igual(await p.avaliar('getComputedStyle(document.querySelector(".alternativa[data-correcao=correta]")).backgroundColor'), 'rgb(210, 239, 234)', 'alternativa certa em verde-alga, mesmo marcada');
+  // Acerto não depende só da cor: borda sólida de 2 px e visto dentro da letra, que continua escrita.
+  igual(await p.avaliar('(() => { const a = document.querySelector(".alternativa[data-correcao=correta]"), c = getComputedStyle(a), l = a.querySelector(".letra"); return [c.borderTopStyle, c.borderTopWidth, l.textContent, getComputedStyle(l, "::after").maskImage.includes("data:image/svg")]; })()'), ['solid', '2px', 'C', true].map((v, i) => i === 2 ? letraDe(id) : v), 'borda sólida, letra e visto');
   certo((await p.texto('#anuncio')).includes('Certa'), 'resultado anunciado ao leitor de tela');
   certo(id !== 0, 'id');
 });
@@ -458,37 +463,69 @@ await item('telas de estudo sem faixa que corre e sem movimento acima de 0,4 s',
   certo(Math.max(...tempos) <= 0.4, 'movimento mais longo: ' + Math.max(...tempos) + ' s');
   igual(await p.avaliar('Boolean(document.querySelector(".questao .vira"))'), false, 'rótulo que vira fora da folha da questão');
 });
-// Identidade da entrada levada às telas de dentro (12/11/2026): mesmas duas fontes, contorno de 1 px na cor do texto,
-// faixa de areia na largura toda no topo de cada tela, um selo só nas telas de passagem, nada na folha da questão.
-await item('telas de dentro com a identidade da entrada: fontes, contorno, faixa, selo e movimento', async () => {
-  const TEXTO = 'rgb(47, 52, 55)'; const AREIA = 'rgb(247, 246, 243)';
+// Telas de dentro na direção de 14/11/2026 (frente dentro): passagem com faixa da cor da tela, onda, título de cartaz em Bricolage,
+// selo e ilustração; Estudar e a folha da questão contidas, só com a Atkinson. Substitui o item de 12/11 (areia, serifada e selo em imagem).
+const TONS = {'#progresso': 'mar', '#simulado': 'boia', '#nota': 'sol', '#conta': 'ipe', '#privacidade': 'mar'};
+const leituraDaTela = () => p.avaliar(`(() => {
+  const c = (e, pseudo) => getComputedStyle(e, pseudo);
+  const visiveis = [...document.querySelectorAll('body *')].filter(e => e.getClientRects().length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()));
+  const familias = new Set(visiveis.map(e => c(e).fontFamily.split(',')[0].trim().replace(/"/g, '')));
+  const faixa = document.querySelector('#conteudo > .cabeca, .simulador > h1'); const f = faixa && c(faixa, '::before');
+  const titulo = document.querySelector('#conteudo > .cabeca h1, .simulador > h1');
+  const selo = document.querySelector('.cabeca .selo-tela');
+  const cena = document.querySelector('#conteudo .ilustracao');
+  return {familias: [...familias].sort(), tom: document.querySelector('#conteudo').dataset.tom || null, topo: c(document.querySelector('.topo')).borderBottomColor,
+    faixa: f && f.backgroundColor, larguraFaixa: Boolean(f) && parseFloat(f.width) >= innerWidth - 20, onda: Boolean(f) && f.maskImage.includes('data:image/svg'),
+    titulo: titulo && [c(titulo).fontFamily.split(',')[0].replace(/"/g, ''), c(titulo).fontWeight],
+    selo: selo ? [selo.getAttribute('aria-hidden'), parseFloat(c(selo).animationDuration) <= 0.4] : titulo && c(titulo, '::after').backgroundImage.startsWith('url("data:image/svg') ? ['css', true] : null,
+    cena: cena && {nome: cena.dataset.cena, imagem: c(cena).backgroundImage.split('/ilustracoes/')[1].split('"')[0], largura: Math.round(cena.getBoundingClientRect().width), altura: Math.round(cena.getBoundingClientRect().height),
+      leitura: cena.getAttribute('role') === 'img' ? cena.getAttribute('aria-label') : cena.getAttribute('aria-hidden') === 'true' ? 'escondida' : 'sem regra'},
+    naQuestao: [...document.querySelectorAll('.questao .selo-tela, .questao .ilustracao, .questao [data-tom], .questao .cabeca')].length + (document.querySelector('.questao')?.closest('[data-tom]') ? 1 : 0),
+    corre: Boolean(document.querySelector('.faixa-corre')), lateral: document.documentElement.scrollWidth <= document.documentElement.clientWidth};
+})()`);
+await item('telas de dentro de 14/11: faixa da cor de cada tela com onda, título de cartaz, selo e ilustração; Estudar e a folha contidas', async () => {
+  const TEXTO = 'rgb(47, 52, 55)'; const FAIXAS = {mar: 'rgb(227, 233, 255)', boia: 'rgb(255, 233, 222)', sol: 'rgb(255, 243, 204)', ipe: 'rgb(238, 231, 255)'};
   for (const largura of [390, 1280]) {
     await p.tamanho(largura, 900); await dormir(120);
     for (const destino of ['#estudar', '#progresso', '#simulado', '#nota', '#conta', '#privacidade']) {
       await p.avaliar(`location.hash = "${destino}"`); await dormir(450);
-      const m = await p.avaliar(`(() => {
-        const c = (e, pseudo) => getComputedStyle(e, pseudo);
-        const familias = new Set([...document.querySelectorAll('body *')].filter(e => e.getClientRects().length).map(e => c(e).fontFamily.split(',')[0].trim().replace(/"/g, '')));
-        const topo = document.querySelector('#conteudo > h1:not(.oculto), .simulador > h1, #conteudo > .ritmo');
-        const fundo = topo ? c(topo, '::before') : null; const titulo = document.querySelector('#conteudo > h1:not(.oculto), .simulador > h1');
-        return {familias: [...familias].sort(), topo: c(document.querySelector('.topo')).borderBottomColor,
-          faixa: fundo && fundo.backgroundColor, larguraFaixa: Boolean(fundo) && parseFloat(fundo.width) >= innerWidth - 20,
-          selo: titulo ? c(titulo, '::after').backgroundImage.startsWith('url("data:image/svg') : null, seloTempo: titulo ? parseFloat(c(titulo, '::after').animationDuration) : 0,
-          seloNaQuestao: [...document.querySelectorAll('.questao, .questao *')].some(e => c(e, '::after').backgroundImage.includes('data:image/svg')),
-          corre: Boolean(document.querySelector('.faixa-corre')), lateral: document.documentElement.scrollWidth <= document.documentElement.clientWidth};
-      })()`);
-      igual(m.familias, ['Iowan Old Style', 'SF Pro Display'], `duas fontes da entrada em ${destino} a ${largura}`);
-      igual(m.topo, TEXTO, `contorno do topo em ${destino}`);
-      igual(m.faixa, AREIA, `faixa de areia no topo de ${destino}`); igual(m.larguraFaixa, true, `faixa na largura toda em ${destino} a ${largura}`);
-      igual(m.selo, destino === '#estudar' ? null : true, `selo só nas telas de passagem (${destino})`);
-      certo(m.seloTempo <= 0.4, `selo assenta em até 0,4 s em ${destino}`);
-      igual(m.seloNaQuestao, false, `folha da questão sem selo em ${destino}`); igual(m.corre, false, `sem faixa que corre em ${destino}`);
-      igual(m.lateral, true, `sem rolagem lateral em ${destino} a ${largura}`);
+      if (destino === '#estudar') await questaoPronta();
+      const m = await leituraDaTela();
+      igual(m.topo, TEXTO, `contorno do topo em ${destino}`); igual(m.corre, false, `sem faixa que corre em ${destino}`); igual(m.lateral, true, `sem rolagem lateral em ${destino} a ${largura}`);
+      if (destino === '#estudar') {
+        igual(m.familias, ['Atkinson Hyperlegible Next'], `Estudar só com a Atkinson a ${largura}`);
+        igual([m.tom, m.faixa, m.selo, m.cena], [null, null, null, null], 'Estudar sem cor de decoração, selo nem ilustração'); igual(m.naQuestao, 0, 'folha da questão sem decoração');
+        continue;
+      }
+      igual(m.familias, ['Atkinson Hyperlegible Next', 'Bricolage Grotesque'], `duas fontes em ${destino} a ${largura}`);
+      igual(m.tom, TONS[destino] === 'mar' && destino === '#progresso' ? m.tom : TONS[destino], `cor da tela ${destino}`);
+      igual(m.faixa, FAIXAS[m.tom], `faixa clara da cor da tela em ${destino}`); igual([m.larguraFaixa, m.onda], [true, true], `faixa na largura toda com base em onda em ${destino} a ${largura}`);
+      igual(m.titulo, ['Bricolage Grotesque', '800'], `título de cartaz em ${destino}`);
+      igual(m.selo, destino === '#nota' ? ['css', true] : ['true', true], `selo fora da leitura, assentando em até 0,4 s, em ${destino}`);
+      if (m.cena) {
+        igual(m.cena.imagem, m.cena.nome + '.webp', `versão diurna da ilustração em ${destino}`);
+        igual([m.cena.largura, m.cena.altura], largura < 800 ? [120, 120] : [160, 160], `tamanho reservado da ilustração em ${destino} a ${largura}`);
+        certo(m.cena.leitura !== 'sem regra', `ilustração com texto ou escondida do leitor de tela em ${destino}`);
+      }
     }
   }
-  igual(await p.avaliar('getComputedStyle(document.querySelector("#menu")).borderTopColor'), TEXTO, 'contorno do menu');
+  // As cenas que cada tela deve ter (o progresso escolhe pelo momento do dia).
+  await p.avaliar('location.hash = "#conta"'); await dormir(400); igual((await leituraDaTela()).cena.nome, 'configuracoes', 'lanterna na conta, perto do tema');
+  await p.avaliar('location.hash = "#simulado"'); await dormir(400); igual((await leituraDaTela()).cena.nome, 'simulado', 'cronômetro no simulado');
+  await p.avaliar('location.hash = "#progresso"'); await dormir(400);
+  const progresso = await leituraDaTela(); igual(progresso.cena.leitura, 'escondida', 'ilustração do progresso só acompanha: fora da leitura de tela');
+  igual(progresso.cena.nome, await p.avaliar('painel.progresso.total ? (painel.estudo.hoje.respostas ? (prefs.alvo && prefs.alvo.bloco === false && painel.estudo.hoje.respostas >= prefs.meta ? "encerrar-por-hoje" : "revisao") : "inicio-do-dia") : "progresso-vazio"'), 'cena do progresso pelo momento do dia');
+  // Pegadas da semana: sete dias, pata cheia no dia estudado, traço no dia sem estudo, nome do dia para o leitor de tela.
+  const pegadas = await p.avaliar(`[...document.querySelectorAll('.pegadas-semana li')].map(li => [li.hasAttribute('data-feito'), getComputedStyle(li.querySelector('.pe')).maskImage.includes('data:image/svg'), getComputedStyle(li.querySelector('.pe'), '::before').content !== 'none', li.querySelector('.oculto').textContent.split(': ')[1]])`);
+  igual(pegadas.length, 7, 'sete dias');
+  for (const [feito, pata, traco, texto] of pegadas) igual([pata, traco, texto], feito ? [true, false, 'estudado'] : [false, true, 'sem estudo'], 'pegada ou traço por dia');
+  igual(await p.avaliar('painel.estudo.semana.filter(n => n > 0).length'), pegadas.filter(([feito]) => feito).length, 'pegadas iguais aos dias estudados');
+  // Arquivo servido pelo próprio servidor, como imagem.
+  const arquivo = await p.avaliar('fetch("ilustracoes/revisao-noite.webp").then(r => [r.status, r.headers.get("content-type")])');
+  igual(arquivo, [200, 'image/webp'], 'ilustração servida pelo servidor da aplicação');
+  // Movimento reduzido: o selo não anima.
   await p.s('Emulation.setEmulatedMedia', {features: [{name: 'prefers-reduced-motion', value: 'reduce'}]});
-  try { await dormir(100); igual(await p.avaliar('getComputedStyle(document.querySelector("#conteudo > h1:not(.oculto)"), "::after").animationName'), 'none', 'selo parado com movimento reduzido'); }
+  try { await dormir(100); igual(await p.avaliar('getComputedStyle(document.querySelector(".cabeca .selo-tela")).animationName'), 'none', 'selo parado com movimento reduzido'); }
   finally { await p.s('Emulation.setEmulatedMedia', {features: []}); }
   await p.tamanho(390, 844); await p.avaliar('location.hash = "#estudar"'); await questaoPronta();
 });
@@ -748,6 +785,65 @@ await item('capturas da conta e da questão corrigida em diurno e noturno, em 39
   certo(await p.avaliar('!document.querySelector("#bloco-fuso").hidden'), 'fuso no automático');
   if (CAPTURAS) await p.captura(path.join(CAPTURAS, 'tema-conta-automatico-390.png'));
 });
+// Paleta final de 14/11/2026 (frente dentro): os mesmos pares nos dois temas, mais o texto e as formas sobre a cor de cada tela,
+// a varredura de todo texto visível nas telas de passagem, na meta cumprida, na revisão vazia e na espera, e as capturas de cada tela.
+// Texto: 4,5:1. Contorno de controle, foco e as pegadas (só nas telas Mar e Ipê): 3:1. Divisórias decorativas (--linha, --divisa) ficam fora.
+// Os selos têm contorno de tinta sobre a faixa (o par tinta sobre --tom-faixa): o preenchimento não precisa de contraste próprio.
+const PARES_TEXTO = PARES_NOTURNO.filter(([a, b]) => !['--linha', '--divisa'].includes(a) && !(a === '--secundario' && /-fundo$/.test(b)))
+  .map(([a, b]) => [a, b, ['--fio', '--foco'].includes(a) ? 3 : 4.5]);
+const PARES_TOM = ['mar', 'boia', 'ipe', 'goiaba', 'sol'].flatMap(tom => [[tom, '--tinta', '--tom-faixa', 4.5], [tom, '--texto', '--tom-faixa', 4.5], ...(['mar', 'ipe'].includes(tom) ? [[tom, '--tom', '--fundo', 3]] : [])]);
+const TELAS_DE_DENTRO = [
+  ['progresso', 'location.hash = "#progresso"'], ['simulado', 'location.hash = "#simulado"'], ['nota', 'location.hash = "#nota"'], ['conta', 'location.hash = "#conta"'], ['dados', 'location.hash = "#privacidade"'],
+  ['meta-cumprida', '(() => { location.hash = "#estudar"; prefs.alvo = {valor: 0, bloco: false}; verEstudo(); })()'],
+  ['revisao-vazia', '(() => { prefs.alvo = null; estado.modo = "revisao"; painel.estudo.revisao.vencidas = []; verEstudo(); })()'],
+  ['progresso-vazio', '(() => { location.hash = "#progresso"; painel.progresso.total = 0; verProgresso(); })()'],
+  ['progresso-encerrado', '(async () => { await atualizar(); prefs.meta = 3; prefs.alvo = {valor: 3, bloco: false}; verProgresso(); })()'],
+  ['corrigindo', `tela(cabecaHtml("Corrigindo seu simulado…", {cena: "simulado", textoDaCena: false}) + '<p class="espera" role="status">Conferindo as respostas no servidor.</p>', "boia")`],
+  ['espera', 'tela(esperaHtml("Abrindo o PU…"))'],
+  ['sem-conexao', '(() => { verEstudo(); const area = document.querySelector("#area-questao"); estado.vez++; area.innerHTML = `<section class="marco">${ilustracaoHtml("espera", {texto: false})}<h2>Não foi possível abrir a questão.</h2><p>Sem conexão.</p></section>`; })()'],
+  ['estudar', '(async () => { estado.modo = "misturado"; prefs.meta = 5; await atualizar(); prefs.alvo = {valor: 999, bloco: true}; salvarPrefs(); location.hash = "#estudar"; verEstudo(); })()']
+];
+await item('paleta final nos dois temas: contraste AA em todo par e em todo texto das telas de dentro, cor de cada tela e ilustração do tema', async () => {
+  for (const tema of ['diurno', 'noturno']) {
+    await abrirConta(); await escolherTema(tema); await p.tamanho(390, 844);
+    const medidas = await p.avaliar(`(() => { ${CONTA_CONTRASTE}
+      const sonda = document.createElement('span'); document.body.append(sonda);
+      const rgb = v => { sonda.style.color = 'var(' + v + ')'; return cor(getComputedStyle(sonda).color).slice(0, 3); };
+      const gerais = ${JSON.stringify(PARES_TEXTO)}.map(([a, b, minimo]) => [a, b, razao(rgb(a), rgb(b)), minimo]);
+      const tons = ${JSON.stringify(PARES_TOM)}.map(([tom, a, b, minimo]) => { sonda.dataset.tom = tom; return [tom + ' ' + a, b, razao(rgb(a), rgb(b)), minimo]; });
+      sonda.remove(); return [...gerais, ...tons]; })()`);
+    igual(medidas.filter(([, , v, minimo]) => v < minimo).map(([a, b, v]) => `${a} sobre ${b}: ${v}`), [], `pares abaixo do mínimo no ${tema}`);
+    for (const [nome, abrirTela] of TELAS_DE_DENTRO) {
+      await p.avaliar(abrirTela); await dormir(650);
+      if (nome === 'estudar') await questaoPronta();
+      igual(await varrerContraste(), [], `texto abaixo de 4,5:1 em ${nome} no ${tema}`);
+      const cenas = await p.avaliar('[...document.querySelectorAll("#conteudo .ilustracao")].map(e => [e.dataset.cena, (getComputedStyle(e).backgroundImage.split("/ilustracoes/")[1] || "").split(String.fromCharCode(34))[0]])');
+      for (const [cena, arquivo] of cenas) igual(arquivo, cena + (tema === 'noturno' ? '-noite' : '') + '.webp', `ilustração da versão ${tema} em ${nome}`);
+      if (nome === 'meta-cumprida') igual([await p.avaliar('document.querySelector(".marco").dataset.tom'), cenas.map(c => c[0])], ['goiaba', ['meta-cumprida']], 'meta cumprida em goiaba com a comemoração');
+      if (nome === 'revisao-vazia') igual(cenas.map(c => c[0]), ['revisao'], 'revisão vazia com o caderno');
+      if (nome === 'progresso-vazio') igual(cenas.map(c => c[0]), ['progresso-vazio'], 'progresso vazio com o barco');
+      if (nome === 'progresso-encerrado') igual([await p.avaliar('document.querySelector("#conteudo").dataset.tom'), cenas.map(c => c[0])], ['ipe', ['encerrar-por-hoje']], 'dia encerrado em ipê, com o cochilo');
+      if (['revisao-vazia', 'sem-conexao'].includes(nome)) igual(await p.avaliar('getComputedStyle(document.querySelector(".marco h2")).fontFamily.split(",")[0].replace(/"/g, "")'), 'Atkinson Hyperlegible Next', 'aviso dentro de Estudar só com a Atkinson');
+      if (nome === 'espera') igual(await p.avaliar('getComputedStyle(document.querySelector(".logo-tela")).color'), tema === 'noturno' ? 'rgb(242, 240, 235)' : PRETO, 'logo da pata na versão do tema');
+      if (nome === 'estudar') igual(cenas, [], 'Estudar sem ilustração');
+      certo(await p.semRolagemLateral(), `sem rolagem lateral em ${nome}`);
+      // Celular estreito (320 px): nada rola para o lado e o título de cartaz cabe na faixa, ao lado da ilustração.
+      await p.tamanho(320, 700); await dormir(250); certo(await p.semRolagemLateral(), `sem rolagem lateral em ${nome} a 320`);
+      certo(await p.avaliar('[...document.querySelectorAll(".cabeca h1, .marco h2")].every(t => { const r = document.createRange(); r.selectNodeContents(t); const c = r.getBoundingClientRect(); return c.left >= 0 && c.right <= innerWidth && [...t.querySelectorAll(".sem-quebra")].every(q => q.getBoundingClientRect().right <= t.getBoundingClientRect().right + 1); })'), `título inteiro na tela em ${nome} a 320`);
+      if (CAPTURAS) await p.captura(path.join(CAPTURAS, `dentro-${nome}-${tema}-320.png`));
+      await p.tamanho(390, 844); await dormir(200);
+      if (CAPTURAS) {
+        await p.captura(path.join(CAPTURAS, `dentro-${nome}-${tema}-390.png`));
+        if (['progresso', 'simulado', 'conta', 'meta-cumprida', 'estudar'].includes(nome)) for (const largura of [768, 1440]) {
+          await p.tamanho(largura, largura < 800 ? 1024 : 900); await dormir(350); certo(await p.semRolagemLateral(), `sem rolagem lateral em ${nome} a ${largura}`);
+          await p.captura(path.join(CAPTURAS, `dentro-${nome}-${tema}-${largura}.png`)); await p.tamanho(390, 844); await dormir(200);
+        }
+      }
+    }
+  }
+  await abrirConta(); await escolherTema('automatico'); igual(await temaNaPagina(), 'diurno', 'de volta ao automático de dia');
+  await p.avaliar('location.hash = "#estudar"'); await questaoPronta();
+});
 const errosLocais = p.erros.filter(e => !/favicon|401 \(Unauthorized\)|ERR_INTERNET_DISCONNECTED|ERR_BLOCKED_BY_CLIENT|Failed to fetch/.test(e));
 await item('nenhum erro de JavaScript nem recurso bloqueado pela política de conteúdo', async () => { igual(errosLocais, [], 'erros'); });
 // Depois da conta de erros: os pedidos recusados de propósito abaixo deixam aviso de 404 no console.
@@ -832,7 +928,8 @@ await item('entrada pública: logo da pata no topo, ícones do manifesto e as qu
   const m = await p.avaliar(`(async () => {
     for (const f of ['16px "Atkinson Hyperlegible Next"', 'italic 16px "Atkinson Hyperlegible Next"', '700 40px "Bricolage Grotesque"', '20px "Newsreader"', '16px "JetBrains Mono"']) await document.fonts.load(f);
     return {favicon: document.querySelector('link[rel=icon]').getAttribute('href'), apple: document.querySelector('link[rel=apple-touch-icon]').getAttribute('href'),
-      carregadas: [...new Set([...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/"/g, '')))].sort(),
+      // "Bricolage reserva" é a Arial do próprio aparelho (local()), reserva das telas de dentro: não vem de arquivo.
+      carregadas: [...new Set([...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/"/g, '')).filter(f => f !== 'Bricolage reserva'))].sort(),
       logo: Boolean(document.querySelector('.topo .simbolo svg path[fill-rule=evenodd]'))};
   })()`);
   igual(m.logo, true, 'logo da pata no topo'); igual([await pedir(m.favicon), await pedir(m.apple)], [200, 200], 'favicon e ícone da tela inicial');
