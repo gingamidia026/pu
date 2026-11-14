@@ -536,7 +536,10 @@ body:not(.sem-sessao) .topo { background: var(--barra); border-bottom-color: var
 body:not(.sem-sessao) footer { border-top-color: var(--texto); }
 /* Antes de o app.js decidir a primeira tela, o rodapé ficava no fim da casca vazia e era empurrado quando a tela chegava
    (era todo o deslocamento de layout medido ao abrir). Fica invisível, no mesmo lugar, até o molde da entrada sair. */
-body:has(#conteudo > .entrada[data-estatica]) footer { visibility: hidden; }
+body:has(#conteudo > .entrada[data-estatica]) footer { visibility: hidden; animation: mostrar-rodape 0s 4s forwards; }
+/* Se o app.js falhar, o rodapé (com "Dados e segurança") volta depois de 4 s; não é movimento, vale também com movimento reduzido. */
+@keyframes mostrar-rodape { to { visibility: visible; } }
+@media (prefers-reduced-motion: reduce) { body:has(#conteudo > .entrada[data-estatica]) footer { animation: mostrar-rodape 0s 4s forwards !important; } }
 .menu { background: var(--barra); border-top-color: var(--texto); }
 .menu a[aria-current=page] { color: var(--texto); border-top-color: var(--texto); background: var(--suave); font-weight: 700; }
 
@@ -646,7 +649,10 @@ progress::-webkit-progress-bar { background: var(--cartao); }
   .marco:has(> .ilustracao) > * { grid-column: 1; }
   .marco > .ilustracao { grid-column: 2; grid-row: 1 / span 6; margin: 0; }
 }
-.marco h2 { font-weight: 800; font-size: clamp(1.75rem, 6vw, 2.25rem); line-height: 1; letter-spacing: -.02em; }
+.marco[data-tom] .secundario { color: var(--texto); }
+/* Dentro de Estudar, só o cartão da meta cumprida (tela de passagem) leva o título de cartaz; os outros avisos ficam na Atkinson. */
+.marco[data-tom] h2 { font-weight: 800; font-size: clamp(1.75rem, 6vw, 2.25rem); line-height: 1; letter-spacing: -.02em; }
+.marco:not([data-tom]) h2 { font-family: var(--fonte-texto); font-weight: 700; font-size: 1.375rem; line-height: 1.25; letter-spacing: 0; }
 
 /* Folha da questão: Atkinson de leitura (17 px no celular, 18 no computador, entrelinha 1,6, linha de até 68 caracteres).
    Acerto e erro não dependem só da cor: acerto com borda sólida de 2 px e visto na letra; erro com borda tracejada de 2 px e X na letra. */
@@ -679,7 +685,6 @@ progress::-webkit-progress-bar { background: var(--cartao); }
   .menu a[aria-current=page] { background: var(--texto); color: var(--texto-invertido); }
   :is(#conteudo > .cabeca, .simulador > h1) { margin-top: -2.5rem; padding: 2.5rem 0 3rem; margin-bottom: 2.25rem; }
   .ilustracao { width: 10rem; height: 10rem; }
-  .ilustracao.grande { width: 13rem; height: 13rem; }
   .enunciado { font-size: 1.125rem; }
   #conteudo > .ritmo { margin-top: -2.5rem; padding-top: 1.5rem; }
   .indicador strong { font-size: 3.5rem; }

@@ -513,7 +513,7 @@ await item('telas de dentro de 14/11: faixa da cor de cada tela com onda, títul
   await p.avaliar('location.hash = "#conta"'); await dormir(400); igual((await leituraDaTela()).cena.nome, 'configuracoes', 'lanterna na conta, perto do tema');
   await p.avaliar('location.hash = "#simulado"'); await dormir(400); igual((await leituraDaTela()).cena.nome, 'simulado', 'cronômetro no simulado');
   await p.avaliar('location.hash = "#progresso"'); await dormir(400);
-  const progresso = await leituraDaTela(); igual(progresso.cena.leitura.startsWith('Pinguim'), true, 'ilustração do progresso com texto alternativo');
+  const progresso = await leituraDaTela(); igual(progresso.cena.leitura, 'escondida', 'ilustração do progresso só acompanha: fora da leitura de tela');
   igual(progresso.cena.nome, await p.avaliar('painel.progresso.total ? (painel.estudo.hoje.respostas ? (prefs.alvo && prefs.alvo.bloco === false && painel.estudo.hoje.respostas >= prefs.meta ? "encerrar-por-hoje" : "revisao") : "inicio-do-dia") : "progresso-vazio"'), 'cena do progresso pelo momento do dia');
   // Pegadas da semana: sete dias, pata cheia no dia estudado, traço no dia sem estudo, nome do dia para o leitor de tela.
   const pegadas = await p.avaliar(`[...document.querySelectorAll('.pegadas-semana li')].map(li => [li.hasAttribute('data-feito'), getComputedStyle(li.querySelector('.pe')).maskImage.includes('data:image/svg'), getComputedStyle(li.querySelector('.pe'), '::before').content !== 'none', li.querySelector('.oculto').textContent.split(': ')[1]])`);
@@ -796,9 +796,12 @@ const TELAS_DE_DENTRO = [
   ['progresso', 'location.hash = "#progresso"'], ['simulado', 'location.hash = "#simulado"'], ['nota', 'location.hash = "#nota"'], ['conta', 'location.hash = "#conta"'], ['dados', 'location.hash = "#privacidade"'],
   ['meta-cumprida', '(() => { location.hash = "#estudar"; prefs.alvo = {valor: 0, bloco: false}; verEstudo(); })()'],
   ['revisao-vazia', '(() => { prefs.alvo = null; estado.modo = "revisao"; painel.estudo.revisao.vencidas = []; verEstudo(); })()'],
+  ['progresso-vazio', '(() => { location.hash = "#progresso"; painel.progresso.total = 0; verProgresso(); })()'],
+  ['progresso-encerrado', '(async () => { await atualizar(); prefs.meta = 3; prefs.alvo = {valor: 3, bloco: false}; verProgresso(); })()'],
+  ['corrigindo', `tela(cabecaHtml("Corrigindo seu simulado…", {cena: "espera", textoDaCena: false}) + '<p class="espera" role="status">Conferindo as respostas no servidor.</p>', "mar")`],
   ['espera', 'tela(esperaHtml("Abrindo o PU…"))'],
   ['sem-conexao', '(() => { verEstudo(); const area = document.querySelector("#area-questao"); estado.vez++; area.innerHTML = `<section class="marco">${ilustracaoHtml("espera", {texto: false})}<h2>Não foi possível abrir a questão.</h2><p>Sem conexão.</p></section>`; })()'],
-  ['estudar', '(async () => { estado.modo = "misturado"; prefs.alvo = null; await atualizar(); location.hash = "#estudar"; verEstudo(); })()']
+  ['estudar', '(async () => { estado.modo = "misturado"; prefs.meta = 5; await atualizar(); prefs.alvo = {valor: 999, bloco: true}; salvarPrefs(); location.hash = "#estudar"; verEstudo(); })()']
 ];
 await item('paleta final nos dois temas: contraste AA em todo par e em todo texto das telas de dentro, cor de cada tela e ilustração do tema', async () => {
   for (const tema of ['diurno', 'noturno']) {
@@ -818,6 +821,9 @@ await item('paleta final nos dois temas: contraste AA em todo par e em todo text
       for (const [cena, arquivo] of cenas) igual(arquivo, cena + (tema === 'noturno' ? '-noite' : '') + '.webp', `ilustração da versão ${tema} em ${nome}`);
       if (nome === 'meta-cumprida') igual([await p.avaliar('document.querySelector(".marco").dataset.tom'), cenas.map(c => c[0])], ['goiaba', ['meta-cumprida']], 'meta cumprida em goiaba com a comemoração');
       if (nome === 'revisao-vazia') igual(cenas.map(c => c[0]), ['revisao'], 'revisão vazia com o caderno');
+      if (nome === 'progresso-vazio') igual(cenas.map(c => c[0]), ['progresso-vazio'], 'progresso vazio com o barco');
+      if (nome === 'progresso-encerrado') igual([await p.avaliar('document.querySelector("#conteudo").dataset.tom'), cenas.map(c => c[0])], ['ipe', ['encerrar-por-hoje']], 'dia encerrado em ipê, com o cochilo');
+      if (['revisao-vazia', 'sem-conexao'].includes(nome)) igual(await p.avaliar('getComputedStyle(document.querySelector(".marco h2")).fontFamily.split(",")[0].replace(/"/g, "")'), 'Atkinson Hyperlegible Next', 'aviso dentro de Estudar só com a Atkinson');
       if (nome === 'espera') igual(await p.avaliar('getComputedStyle(document.querySelector(".logo-tela")).color'), tema === 'noturno' ? 'rgb(242, 240, 235)' : PRETO, 'logo da pata na versão do tema');
       if (nome === 'estudar') igual(cenas, [], 'Estudar sem ilustração');
       certo(await p.semRolagemLateral(), `sem rolagem lateral em ${nome}`);

@@ -950,7 +950,7 @@ async function questaoSimulado() {
     if (simulado.ids[indice + 1] !== undefined) adiantar(simulado.ids[indice + 1]);
   } catch (e) {
     if (vez !== estado.vez) return;
-    area.innerHTML = `<section class="marco">${ilustracaoHtml('espera', {texto: false})}<h2>Não foi possível abrir a questão.</h2><p>${escapar(mensagemErro(e))}</p><div class="acoes"><button type="button" id="tentar">Tentar novamente</button></div></section>`;
+    area.innerHTML = `<section class="marco"><h2>Não foi possível abrir a questão.</h2><p>${escapar(mensagemErro(e))}</p><div class="acoes"><button type="button" id="tentar">Tentar novamente</button></div></section>`;
     $('#tentar').onclick = questaoSimulado;
   }
 }
@@ -1008,7 +1008,7 @@ function verProgresso() {
   // Ilustração pelo momento: banco ainda vazio, dia encerrado depois da meta, dia ainda sem resposta, ou a revisão.
   const encerrou = Boolean(prefs.alvo) && prefs.alvo.bloco === false && e.hoje.respostas >= prefs.meta;
   const cena = !total ? 'progresso-vazio' : encerrou ? 'encerrar-por-hoje' : e.hoje.respostas === 0 ? 'inicio-do-dia' : 'revisao';
-  tela(`${cabecaHtml('Seu progresso', {selo: encerrou ? 'livro' : 'alvo', cena})}
+  tela(`${cabecaHtml('Seu progresso', {selo: encerrou ? 'livro' : 'alvo', cena, textoDaCena: false})}
 <section class="passo"><p class="rotulo">Próximo passo</p><h2>${escapar(passo.titulo)}</h2><p>${escapar(passo.texto)}</p><button type="button" id="passo">${escapar(passo.botao)}</button></section>
 <div class="indicadores"><div class="indicador disco"><strong>${e.hoje.respostas}</strong><span>${e.hoje.respostas === 1 ? 'questão hoje' : 'questões hoje'} (meta: ${prefs.meta})</span></div><div class="indicador"><strong>${dias}</strong><span>${dias === 1 ? 'dia de estudo' : 'dias de estudo'} nesta semana, ${plural(semana, 'questão', 'questões')}</span></div><div class="indicador"><strong>${total ? Math.round(acertos / total * 100) + '%' : '—'}</strong><span>de acerto em ${plural(total, 'resposta', 'respostas')}</span></div></div>
 <ol class="pegadas-semana" aria-label="Dias desta semana">${e.semana.map((n, i) => `<li${n > 0 ? ' data-feito' : ''}${i === e.diaDaSemana ? ' data-hoje' : ''}><span class="pe" aria-hidden="true"></span><span class="dia" aria-hidden="true">${DIAS[i]}</span><span class="oculto">${NOMES_DIAS[i]}${i === e.diaDaSemana ? ', hoje' : ''}: ${n > 0 ? 'estudado' : 'sem estudo'}</span></li>`).join('')}</ol>
