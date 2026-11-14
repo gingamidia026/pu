@@ -438,12 +438,44 @@ function aquecimento() {
 }
 
 // ---------- Tela ----------
-function tela(html) {
+// tom: a cor de decoração que conduz a tela de passagem (mar, boia, ipe, goiaba, sol); sem tom, a tela fica neutra (Estudar).
+function tela(html, tom = '') {
   pararRelogio(); estado.aoTeclar = null; estado.atual = null; estado.vez++;
   informar(''); conteudo.innerHTML = html;
+  if (tom) conteudo.dataset.tom = tom; else delete conteudo.dataset.tom;
   conteudo.classList.remove('entrou'); void conteudo.offsetWidth; conteudo.classList.add('entrou');
 }
 function subir() { window.scrollTo(0, 0); }
+
+// ---------- Elementos gráficos das telas de dentro (direção de 14/11/2026, frente dentro) ----------
+// Selos de 64 × 64 com a cor da tela (s-tom), o detalhe (s-detalhe) e o papel; as cores vêm do estilo.css, pelo tema. Fora da leitura de tela.
+const SELOS = {
+  alvo: '<circle class="s-tom" cx="32" cy="32" r="26"/><circle class="s-papel" cx="32" cy="32" r="17"/><circle class="s-detalhe" cx="32" cy="32" r="8"/>',
+  cronometro: '<rect class="s-detalhe" x="27" y="5" width="10" height="7" rx="1.5"/><circle class="s-tom" cx="32" cy="36" r="23"/><circle class="s-papel" cx="32" cy="36" r="15"/><path class="s-nada" d="M32 36V25M32 36l7 5"/>',
+  capelo: '<path class="s-tom" d="M6 26 32 14l26 12-26 12z"/><path class="s-papel" d="M18 32v11c8 6 20 6 28 0V32l-14 6z"/><path class="s-nada" d="M50 29v13"/><circle class="s-detalhe" cx="50" cy="45" r="3.5"/>',
+  livro: '<path class="s-tom" d="M5 17c9-5 18-5 27 1 9-6 18-6 27-1v32c-9-5-18-5-27 1-9-6-18-6-27-1z"/><path class="s-nada" d="M32 18v32M11 26c5-2 10-2 15 0M11 33c5-2 10-2 15 0M38 33c5-2 10-2 15 0"/><path class="s-detalhe" d="M41 15v15l4-3 4 3V14z"/>',
+  peixe: '<path class="s-tom" d="M8 32c10-14 30-14 40 0-10 14-30 14-40 0z"/><path class="s-tom" d="M46 32l12-10v20z"/><path class="s-detalhe" d="m26 21 6-7 5 8z"/><circle class="s-papel" cx="19" cy="30" r="3"/>'
+};
+// O giro de cada selo fica no estilo.css (.selo-<nome>): a política de conteúdo não aceita estilo escrito na marcação.
+const seloHtml = nome => `<svg class="selo-tela selo-${nome}" viewBox="0 0 64 64" aria-hidden="true" focusable="false">${SELOS[nome]}</svg>`;
+// Ilustração de pinguim: o arquivo sai do estilo.css pela cena e pelo tema (ilustracoes/<cena>.webp e <cena>-noite.webp), em segundo plano
+// e com tamanho reservado. Com texto, ela explica a tela; sem texto, só acompanha um título que já diz o mesmo e sai da leitura de tela.
+const CENAS = {
+  'inicio-do-dia': 'Pinguim pescador lança a linha no mar ao nascer do sol.',
+  'meta-cumprida': 'Dois pinguins comemoram: o pescador ergue o peixe do dia na vara.',
+  'revisao': 'Pinguim estudante relê o caderno das questões que voltam.',
+  'simulado': 'Pinguim estudante segura um cronômetro.',
+  'progresso-vazio': 'Pinguim estudante lê um livro sentado num barco.',
+  'espera': 'Pinguim pescador espera sentado numa boia.',
+  'configuracoes': 'Pinguim pescador ergue uma lanterna acesa.',
+  'encerrar-por-hoje': 'Pinguim estudante cochila encostado numa pilha de livros.'
+};
+const ilustracaoHtml = (cena, {texto = true, grande = false} = {}) => `<span class="ilustracao${grande ? ' grande' : ''}" data-cena="${cena}" ${texto ? `role="img" aria-label="${escapar(CENAS[cena])}"` : 'aria-hidden="true"'}></span>`;
+// Faixa do topo das telas de passagem: título de cartaz com o selo, apoio opcional e a ilustração ao lado.
+const cabecaHtml = (titulo, {selo, cena, lide = '', textoDaCena = true} = {}) => `<header class="cabeca"><div class="cabeca-texto"><h1>${titulo}${selo ? seloHtml(selo) : ''}</h1>${lide ? `<p class="lide">${lide}</p>` : ''}</div>${cena ? ilustracaoHtml(cena, {texto: textoDaCena}) : ''}</header>`;
+// Logo da pata nas telas de espera: o mesmo desenho do topo; no noturno, círculo claro com a pata vazada (versão A da identidade).
+const logoHtml = () => { const desenho = document.querySelector('.topo .simbolo svg'); return desenho ? `<span class="logo-tela" aria-hidden="true">${desenho.outerHTML}</span>` : ''; };
+const esperaHtml = texto => `<div class="abrindo">${logoHtml()}<p class="espera" role="status">${texto}</p></div>`;
 // Botão que vira: o rótulo sai girando e uma cópia entra por baixo (só com ponteiro fino ou foco pelo teclado, regras no estilo.css).
 // A cópia tem aria-hidden e fica com visibility: hidden fora do movimento, então nem o nome acessível nem o innerText duplicam.
 // Fica fora da folha da questão e do marco da meta: nas telas de estudo nenhum movimento passa de 0,4 s.
@@ -631,7 +663,7 @@ function verMarco() {
   const area = $('#area-questao'); const e = painel.estudo; const vencidas = e.revisao.vencidas.length;
   const primeira = prefs.alvo.valor <= prefs.meta; const dias = e.semana.filter(n => n > 0).length;
   estado.atual = null;
-  area.innerHTML = `<section class="marco"><h2>${primeira ? 'Meta de hoje cumprida.' : 'Bloco concluído.'}</h2><p>Você respondeu ${plural(e.hoje.respostas, 'questão', 'questões')} hoje e acertou ${e.hoje.acertos}. ${dias > 1 ? `É o seu ${dias}º dia de estudo nesta semana.` : ''}</p><p class="secundario">Parar aqui é uma boa escolha: o que você errou ou chutou volta na revisão nos próximos dias.${primeira && publico && !matchMedia('(display-mode: standalone)').matches ? ' Para voltar amanhã com um toque, use “Adicionar à tela inicial” no menu do navegador.' : ''}</p><div class="acoes"><button type="button" id="mais-cinco">Mais 5 questões</button>${vencidas && estado.modo !== 'revisao' ? `<button type="button" class="discreto" id="ir-revisao">Revisar ${plural(vencidas, 'questão', 'questões')}</button>` : '<a class="botao discreto" id="ir-simulado" href="#simulado">Fazer um simulado curto</a>'}<a class="botao discreto" id="encerrar" href="#progresso">Encerrar por hoje</a></div>${primeira ? '<p class="secundario lembrar">Quer um aviso para amanhã? <a href="#conta">Crie um lembrete diário</a> no calendário do celular.</p>' : ''}</section>`;
+  area.innerHTML = `<section class="marco" data-tom="goiaba">${ilustracaoHtml('meta-cumprida', {texto: false, grande: true})}<h2>${primeira ? 'Meta de hoje cumprida.' : 'Bloco concluído.'}${seloHtml('peixe')}</h2><p>Você respondeu ${plural(e.hoje.respostas, 'questão', 'questões')} hoje e acertou ${e.hoje.acertos}. ${dias > 1 ? `É o seu ${dias}º dia de estudo nesta semana.` : ''}</p><p class="secundario">Parar aqui é uma boa escolha: o que você errou ou chutou volta na revisão nos próximos dias.${primeira && publico && !matchMedia('(display-mode: standalone)').matches ? ' Para voltar amanhã com um toque, use “Adicionar à tela inicial” no menu do navegador.' : ''}</p><div class="acoes"><button type="button" id="mais-cinco">Mais 5 questões</button>${vencidas && estado.modo !== 'revisao' ? `<button type="button" class="discreto" id="ir-revisao">Revisar ${plural(vencidas, 'questão', 'questões')}</button>` : '<a class="botao discreto" id="ir-simulado" href="#simulado">Fazer um simulado curto</a>'}<a class="botao discreto" id="encerrar" href="#progresso">Encerrar por hoje</a></div>${primeira ? '<p class="secundario lembrar">Quer um aviso para amanhã? <a href="#conta">Crie um lembrete diário</a> no calendário do celular.</p>' : ''}</section>`;
   const seguir = bloco => { prefs.alvo.valor = painel.estudo.hoje.respostas + 5; prefs.alvo.bloco = bloco; salvarPrefs(); };
   $('#mais-cinco').onclick = () => { seguir(true); verEstudo(); };
   if ($('#ir-revisao')) $('#ir-revisao').onclick = () => { seguir(true); estado.modo = 'revisao'; prefs.foco = null; salvarPrefs(); verEstudo(); };
@@ -643,7 +675,7 @@ function verMarco() {
 function semQuestoes() {
   const area = $('#area-questao'); const revisao = painel.estudo.revisao; estado.atual = null;
   if (estado.modo === 'revisao') {
-    area.innerHTML = `<section class="marco"><h2>Nenhuma revisão vence agora.</h2><p>${revisao.caderno ? `Há ${plural(revisao.caderno, 'questão', 'questões')} no seu caderno de revisão. Elas voltam 1, 3 e 7 dias depois de cada tentativa.` : 'Seu caderno de revisão está vazio. Ele recebe as questões que você errar ou marcar como chute.'}</p><div class="acoes"><button type="button" id="voltar-misturado">Continuar com questões novas</button></div></section>`;
+    area.innerHTML = `<section class="marco">${ilustracaoHtml('revisao', {texto: false})}<h2>Nenhuma revisão vence agora.</h2><p>${revisao.caderno ? `Há ${plural(revisao.caderno, 'questão', 'questões')} no seu caderno de revisão. Elas voltam 1, 3 e 7 dias depois de cada tentativa.` : 'Seu caderno de revisão está vazio. Ele recebe as questões que você errar ou marcar como chute.'}</p><div class="acoes"><button type="button" id="voltar-misturado">Continuar com questões novas</button></div></section>`;
     $('#voltar-misturado').onclick = () => { estado.modo = 'misturado'; verEstudo(); };
     return;
   }
@@ -666,7 +698,7 @@ async function abrirProxima() {
     if (seguinte !== undefined) adiantar(seguinte);
   } catch (e) {
     if (vez !== estado.vez || !area.isConnected) return;
-    area.innerHTML = `<section class="marco"><h2>Não foi possível abrir a questão.</h2><p>${escapar(mensagemErro(e))}</p><div class="acoes"><button type="button" id="tentar">Tentar novamente</button></div></section>`;
+    area.innerHTML = `<section class="marco">${ilustracaoHtml('espera', {texto: false})}<h2>Não foi possível abrir a questão.</h2><p>${escapar(mensagemErro(e))}</p><div class="acoes"><button type="button" id="tentar">Tentar novamente</button></div></section>`;
     $('#tentar').onclick = abrirProxima;
   }
 }
@@ -876,11 +908,11 @@ function verSimulado() {
 }
 function introSimulado() {
   const total = Math.min(TAMANHO_SIMULADO, sortearSimulado().length);
-  tela(`<h1>Simulado curto</h1><p class="lide">${total} questões das quatro áreas, com cronômetro e correção só no fim, como na prova.</p><ul class="lista-simples"><li>Cada resposta entra no seu histórico e na densidade.</li><li>Você pode sair e continuar depois: a rodada fica guardada neste aparelho.</li><li>O tempo aparece no alto; toque nele para esconder, se preferir.</li><li>As erradas entram na revisão a partir de amanhã.</li></ul><div class="acoes"><button type="button" id="comecar" ${total ? '' : 'disabled'}>Começar simulado</button></div><p class="nota">Prática sem cálculo de nota TRI. No Enem, a média é de cerca de 3 minutos por questão.</p>`);
+  tela(`${cabecaHtml('Simulado curto', {selo: 'cronometro', cena: 'simulado', textoDaCena: false, lide: `${total} questões das quatro áreas, com cronômetro e correção só no fim, como na prova.`})}<ul class="lista-simples"><li>Cada resposta entra no seu histórico e na densidade.</li><li>Você pode sair e continuar depois: a rodada fica guardada neste aparelho.</li><li>O tempo aparece no alto; toque nele para esconder, se preferir.</li><li>As erradas entram na revisão a partir de amanhã.</li></ul><div class="acoes"><button type="button" id="comecar" ${total ? '' : 'disabled'}>Começar simulado</button></div><p class="nota">Prática sem cálculo de nota TRI. No Enem, a média é de cerca de 3 minutos por questão.</p>`, 'boia');
   $('#comecar').onclick = () => { simulado = {conta: painel.conta.id, ids: sortearSimulado(), respostas: {}, atual: 0, gasto: 0, criado: Date.now(), fim: null}; salvarSimulado(); questaoSimulado(); };
 }
 function retomarSimulado() {
-  tela(`<h1>Simulado em andamento</h1><p class="lide">Você parou na questão ${simulado.atual + 1} de ${simulado.ids.length}, com ${tempo(simulado.gasto)} no cronômetro.</p><div class="acoes"><button type="button" id="continuar">Continuar de onde parei</button><button type="button" class="discreto" id="descartar">Encerrar esta rodada</button></div><p class="nota">Encerrar mostra o resultado só das questões já respondidas.</p>`);
+  tela(`${cabecaHtml('Simulado em andamento', {selo: 'cronometro', cena: 'simulado', textoDaCena: false, lide: `Você parou na questão ${simulado.atual + 1} de ${simulado.ids.length}, com ${tempo(simulado.gasto)} no cronômetro.`})}<div class="acoes"><button type="button" id="continuar">Continuar de onde parei</button><button type="button" class="discreto" id="descartar">Encerrar esta rodada</button></div><p class="nota">Encerrar mostra o resultado só das questões já respondidas.</p>`, 'boia');
   $('#continuar').onclick = questaoSimulado;
   $('#descartar').onclick = () => { simulado.ids = simulado.ids.filter(id => simulado.respostas[id]); if (!simulado.ids.length) { simulado = null; salvarSimulado(); return introSimulado(); } simulado.fim = Date.now(); salvarSimulado(); resultadoSimulado(); };
 }
@@ -918,7 +950,7 @@ async function questaoSimulado() {
     if (simulado.ids[indice + 1] !== undefined) adiantar(simulado.ids[indice + 1]);
   } catch (e) {
     if (vez !== estado.vez) return;
-    area.innerHTML = `<section class="marco"><h2>Não foi possível abrir a questão.</h2><p>${escapar(mensagemErro(e))}</p><div class="acoes"><button type="button" id="tentar">Tentar novamente</button></div></section>`;
+    area.innerHTML = `<section class="marco">${ilustracaoHtml('espera', {texto: false})}<h2>Não foi possível abrir a questão.</h2><p>${escapar(mensagemErro(e))}</p><div class="acoes"><button type="button" id="tentar">Tentar novamente</button></div></section>`;
     $('#tentar').onclick = questaoSimulado;
   }
 }
@@ -926,20 +958,20 @@ async function resultadoSimulado() {
   const s = simulado; const respondidas = s.ids.filter(id => s.respostas[id]);
   const pendentes = () => respondidas.filter(id => !s.respostas[id].resultado);
   if (pendentes().length) {
-    tela('<h1>Corrigindo seu simulado…</h1><p class="espera" role="status">Conferindo as respostas no servidor.</p>');
+    tela(`${cabecaHtml('Corrigindo seu simulado…', {cena: 'espera', textoDaCena: false})}<p class="espera" role="status">Conferindo as respostas no servidor.</p>`, 'mar');
     const vez = estado.vez;
     // Espera os envios que já estavam a caminho (a fila pública pode demorar) e repete só o que falhou.
     for (let tentativa = 0; tentativa < 3 && pendentes().length && painel; tentativa++) { await Promise.all(pendentes().map(enviarSimulado)); if (pendentes().length && painel) await new Promise(r => setTimeout(r, 1500)); }
     if (!painel || vez !== estado.vez || simulado !== s) return;
     if (pendentes().length) {
-      tela(`<h1>Faltou conferir ${plural(pendentes().length, 'resposta', 'respostas')}.</h1><p>Suas respostas estão guardadas neste aparelho. Verifique a conexão e tente de novo.</p><div class="acoes"><button type="button" id="tentar">Tentar novamente</button></div>`);
+      tela(`${cabecaHtml(`Faltou conferir ${plural(pendentes().length, 'resposta', 'respostas')}.`, {cena: 'espera', textoDaCena: false})}<p>Suas respostas estão guardadas neste aparelho. Verifique a conexão e tente de novo.</p><div class="acoes"><button type="button" id="tentar">Tentar novamente</button></div>`, 'mar');
       $('#tentar').onclick = resultadoSimulado; return;
     }
   }
   const acertos = respondidas.filter(id => s.respostas[id].resultado.acerto).length;
   const media = respondidas.length ? Math.round(s.gasto / respondidas.length) : 0;
   const linhas = respondidas.map((id, n) => { const q = questoes.get(id); const r = s.respostas[id]; return `<li class="linha-resultado" data-acerto="${r.resultado.acerto}"><span class="marca-resultado" aria-hidden="true">${r.resultado.acerto ? '✓' : '✗'}</span><div><strong>${n + 1}. ${escapar(q ? `${q.materia || q.area} · ${q.titulo}` : 'Questão ' + id)}</strong><span class="secundario">${r.resultado.acerto ? `Certa: ${letra(r.resultado.correta)}` : `Você marcou ${letra(r.alternativa)}; a certa é a ${letra(r.resultado.correta)}`}</span></div><button type="button" class="texto-botao" data-rever="${id}">Rever</button></li>`; }).join('');
-  tela(`<h1>Você acertou ${acertos} de ${respondidas.length}.</h1><div class="indicadores"><div class="indicador"><strong>${respondidas.length ? Math.round(acertos / respondidas.length * 100) : 0}%</strong><span>de acerto nesta rodada</span></div><div class="indicador"><strong>${tempo(s.gasto)}</strong><span>tempo total</span></div><div class="indicador"><strong>${tempo(media)}</strong><span>por questão (no Enem, cerca de 03:00)</span></div></div><h2>Questão por questão</h2><ol class="resultado-simulado">${linhas}</ol><p class="secundario">${acertos < respondidas.length ? 'As erradas entram na sua revisão a partir de amanhã.' : 'Nenhuma errada nesta rodada.'} Esta contagem é de prática e não equivale à nota TRI.</p><div class="acoes"><button type="button" id="novo-simulado">Fazer outro simulado</button><a class="botao discreto" href="#progresso">Ver meu progresso</a></div>`);
+  tela(`${cabecaHtml(`Você acertou ${acertos} de ${respondidas.length}.`, {selo: 'cronometro', cena: 'simulado', textoDaCena: false})}<div class="indicadores"><div class="indicador"><strong>${respondidas.length ? Math.round(acertos / respondidas.length * 100) : 0}%</strong><span>de acerto nesta rodada</span></div><div class="indicador"><strong>${tempo(s.gasto)}</strong><span>tempo total</span></div><div class="indicador"><strong>${tempo(media)}</strong><span>por questão (no Enem, cerca de 03:00)</span></div></div><h2>Questão por questão</h2><ol class="resultado-simulado">${linhas}</ol><p class="secundario">${acertos < respondidas.length ? 'As erradas entram na sua revisão a partir de amanhã.' : 'Nenhuma errada nesta rodada.'} Esta contagem é de prática e não equivale à nota TRI.</p><div class="acoes"><button type="button" id="novo-simulado">Fazer outro simulado</button><a class="botao discreto" href="#progresso">Ver meu progresso</a></div>`, 'boia');
   $('#novo-simulado').onclick = () => { simulado = null; salvarSimulado(); introSimulado(); };
   $$('[data-rever]').forEach(b => b.onclick = async () => {
     const id = Number(b.dataset.rever); b.disabled = true;
@@ -973,13 +1005,17 @@ function verProgresso() {
   const {total, acertos} = painel.progresso; const e = painel.estudo; const d = painel.densidade; const p = painel.perfil;
   const passo = proximoPasso(); const dias = e.semana.filter(n => n > 0).length; const semana = e.semana.reduce((a, b) => a + b, 0);
   const materias = porMateria();
-  tela(`<h1>Seu progresso</h1>
+  // Ilustração pelo momento: banco ainda vazio, dia encerrado depois da meta, dia ainda sem resposta, ou a revisão.
+  const encerrou = Boolean(prefs.alvo) && prefs.alvo.bloco === false && e.hoje.respostas >= prefs.meta;
+  const cena = !total ? 'progresso-vazio' : encerrou ? 'encerrar-por-hoje' : e.hoje.respostas === 0 ? 'inicio-do-dia' : 'revisao';
+  tela(`${cabecaHtml('Seu progresso', {selo: encerrou ? 'livro' : 'alvo', cena})}
 <section class="passo"><p class="rotulo">Próximo passo</p><h2>${escapar(passo.titulo)}</h2><p>${escapar(passo.texto)}</p><button type="button" id="passo">${escapar(passo.botao)}</button></section>
-<div class="indicadores"><div class="indicador"><strong>${e.hoje.respostas}</strong><span>${e.hoje.respostas === 1 ? 'questão hoje' : 'questões hoje'} (meta: ${prefs.meta})</span></div><div class="indicador"><strong>${dias}</strong><span>${dias === 1 ? 'dia de estudo' : 'dias de estudo'} nesta semana, ${plural(semana, 'questão', 'questões')}</span></div><div class="indicador"><strong>${total ? Math.round(acertos / total * 100) + '%' : '—'}</strong><span>de acerto em ${plural(total, 'resposta', 'respostas')}</span></div></div>
+<div class="indicadores"><div class="indicador disco"><strong>${e.hoje.respostas}</strong><span>${e.hoje.respostas === 1 ? 'questão hoje' : 'questões hoje'} (meta: ${prefs.meta})</span></div><div class="indicador"><strong>${dias}</strong><span>${dias === 1 ? 'dia de estudo' : 'dias de estudo'} nesta semana, ${plural(semana, 'questão', 'questões')}</span></div><div class="indicador"><strong>${total ? Math.round(acertos / total * 100) + '%' : '—'}</strong><span>de acerto em ${plural(total, 'resposta', 'respostas')}</span></div></div>
+<ol class="pegadas-semana" aria-label="Dias desta semana">${e.semana.map((n, i) => `<li${n > 0 ? ' data-feito' : ''}${i === e.diaDaSemana ? ' data-hoje' : ''}><span class="pe" aria-hidden="true"></span><span class="dia" aria-hidden="true">${DIAS[i]}</span><span class="oculto">${NOMES_DIAS[i]}${i === e.diaDaSemana ? ', hoje' : ''}: ${n > 0 ? 'estudado' : 'sem estudo'}</span></li>`).join('')}</ol>
 <h2>Revisão</h2><p>${e.revisao.caderno ? `${plural(e.revisao.caderno, 'questão está', 'questões estão')} no seu caderno de revisão; ${e.revisao.vencidas.length ? plural(e.revisao.vencidas.length, 'vence hoje', 'vencem hoje') : 'nenhuma vence hoje'}.` : 'Seu caderno de revisão está vazio.'} Uma questão errada ou chutada volta depois de 1, 3 e 7 dias e sai do caderno quando você acerta com segurança nas três voltas.</p>
 <h2>Por matéria</h2>${materias.length ? `<p class="secundario">Da que mais precisa de treino para a que você mais acerta. Toque para ver os assuntos.</p>${materias.map(m => `<details class="materia"><summary><span class="nome">${escapar(m.materia)}</span><span class="numero">${m.percentual}% <small>${m.acertos} de ${m.tentativas}</small></span><progress max="${m.tentativas}" value="${m.acertos}" aria-label="Acertos em ${escapar(m.materia)}"></progress></summary>${m.assuntos.map(a => `<div class="assunto"><div><strong>${escapar(a.assunto)}</strong><span class="secundario">${plural(a.acertos, 'acerto', 'acertos')} e ${plural(a.erros, 'erro', 'erros')} em ${plural(a.tentativas, 'tentativa', 'tentativas')} (${num(a.percentual)}%). ${a.media === null ? 'Comparação disponível quando houver respostas de pelo menos cinco usuários nesse assunto.' : `Média dos usuários: ${num(a.media)}%. Sua diferença: ${num(a.percentual - a.media)} pontos percentuais.`}</span></div><button type="button" class="texto-botao" data-treinar-materia="${escapar(a.materia)}" data-treinar-topico="${escapar(a.assunto)}">Treinar</button></div>`).join('')}</details>`).join('')}` : '<p>Responda uma questão para começar seu perfil.</p>'}
 <details class="materia densidade"><summary><span class="nome">Volta completa pelo banco (densidade)</span><span class="numero">${d.feitas} <small>de ${d.total}</small></span>${d.total ? `<progress aria-label="Questões feitas na densidade" value="${d.feitas}" max="${d.total}"></progress>` : ''}</summary><p><strong>${plural(d.concluidas, 'densidade completa', 'densidades completas')}</strong> · ${d.feitas} de ${d.total} questões na densidade atual.</p><p class="secundario">Uma densidade é uma volta completa pelo banco: todas as questões, de todas as matérias, na proporção em que aparecem nas provas guardadas. Acertos e erros contam como prática. Não é meta de prazo: ela anda sozinha enquanto você cumpre a meta do dia. ${escapar(d.base || '')}</p>${d.materias.length ? `<ul class="lista-densidade">${d.materias.map(m => `<li><span>${escapar(m.materia)}</span><span>${m.feitas} de ${m.total}</span></li>`).join('')}</ul>` : ''}</details>${d.bloqueada ? '<p role="status">Uma questão desta volta saiu do banco. Seu progresso está guardado; avise quem mantém o PU.</p>' : ''}
-<p class="nota">Média geral dos usuários: ${p.mediaGeral === null || p.mediaGeral === undefined ? 'amostra insuficiente' : num(p.mediaGeral) + '%'}. ${p.atualizada ? `Atualização semanal: ${escapar(p.atualizada.slice(0, 10))}. ` : ''}${escapar(p.periodo || '')} Questões retiradas do catálogo não entram na classificação por assunto. Esses números representam tentativas e acertos nesta plataforma; não são nota TRI nem previsão de desempenho no Enem.</p>`);
+<p class="nota">Média geral dos usuários: ${p.mediaGeral === null || p.mediaGeral === undefined ? 'amostra insuficiente' : num(p.mediaGeral) + '%'}. ${p.atualizada ? `Atualização semanal: ${escapar(p.atualizada.slice(0, 10))}. ` : ''}${escapar(p.periodo || '')} Questões retiradas do catálogo não entram na classificação por assunto. Esses números representam tentativas e acertos nesta plataforma; não são nota TRI nem previsão de desempenho no Enem.</p>`, encerrou ? 'ipe' : 'mar');
   const ir = () => { salvarPrefs(); if (location.hash === '#estudar') navegar(); else location.hash = '#estudar'; };
   $('#passo').onclick = () => { passo.acao(); ir(); };
   $$('[data-treinar-materia]').forEach(b => b.onclick = () => { estado.modo = 'misturado'; prefs.foco = {materia: b.dataset.treinarMateria, topico: b.dataset.treinarTopico}; ir(); });
@@ -1002,16 +1038,16 @@ function baixarLembrete(hora) {
 
 // ---------- Conta, dispositivos e dados ----------
 async function verConta() {
-  tela(`<h1>Sua conta</h1><p class="lide">${escapar(painel.conta.nome)}</p>
+  tela(`${cabecaHtml('Sua conta', {selo: 'capelo', lide: escapar(painel.conta.nome)})}
 <h2>Meta do dia</h2><p class="secundario">Quantas questões contam como o dia feito. Comece pequeno: dá para fazer mais quando quiser.</p><div class="modos" role="group" aria-label="Meta diária de questões">${[3, 5, 10, 20].map(n => `<button type="button" class="ficha" data-meta="${n}" aria-pressed="${prefs.meta === n}">${n} questões</button>`).join('')}</div>
-<h2>Tema</h2><p class="secundario">Vale para as telas de estudo neste navegador. No automático, o PU fica diurno, com fundo branco, das 6h às 18h e noturno, com fundo preto, das 18h às 6h.</p><fieldset class="escolha-tema"><legend class="oculto">Tema</legend>${Object.entries(TEMAS).map(([valor, nome]) => `<label class="opcao-tema"><input type="radio" name="tema" value="${valor}"${prefs.tema === valor ? ' checked' : ''}><span>${nome}</span></label>`).join('')}</fieldset>
+<div class="com-cena"><div><h2>Tema</h2><p class="secundario">Vale para as telas de estudo neste navegador. No automático, o PU fica diurno, com fundo branco, das 6h às 18h e noturno, com fundo preto, das 18h às 6h.</p></div>${ilustracaoHtml('configuracoes', {texto: false})}</div><fieldset class="escolha-tema"><legend class="oculto">Tema</legend>${Object.entries(TEMAS).map(([valor, nome]) => `<label class="opcao-tema"><input type="radio" name="tema" value="${valor}"${prefs.tema === valor ? ' checked' : ''}><span>${nome}</span></label>`).join('')}</fieldset>
 <div class="bloco-fuso" id="bloco-fuso"${prefs.tema === 'automatico' ? '' : ' hidden'}><label for="fuso">Fuso horário</label><select id="fuso" aria-describedby="hora-fuso">${opcoesDeFuso()}</select><p class="secundario" id="hora-fuso"></p></div>
 <h2>Sons</h2><p class="secundario">Um som curto quando a correção aparece logo depois de responder, um para acerto e outro para erro. O simulado não tem som.</p><div class="modos"><button type="button" class="ficha" role="switch" id="sons" aria-checked="${prefs.sons !== false}">Sons de acerto e erro</button></div>
 ${publico && !matchMedia('(display-mode: standalone)').matches ? '<h2>PU a um toque</h2><p class="secundario">No celular, abra o menu do navegador e escolha “Adicionar à tela inicial”. O PU vira um ícone e abre direto na questão do dia.</p>' : ''}
 <h2>Lembrete diário</h2><p class="secundario">O PU não envia notificações. Escolha um horário e baixe um evento que se repete todo dia; ao abrir o arquivo, ele entra no calendário do seu celular ou computador, com o aviso na hora marcada.</p><div class="lembrete"><label for="hora-lembrete">Horário</label><input id="hora-lembrete" type="time" value="${escapar(prefs.lembrete || '19:00')}"><button type="button" class="discreto" id="criar-lembrete">Baixar lembrete</button></div>
 <h2>Atalhos do teclado</h2><p class="secundario">No computador, as teclas A a E marcam a alternativa e Enter confere.</p><div class="modos" role="group" aria-label="Atalhos do teclado"><button type="button" class="ficha" id="atalhos" aria-pressed="${prefs.atalhos !== false}">Letras A a E ${prefs.atalhos !== false ? 'ligadas' : 'desligadas'}</button></div>
 <h2>Dispositivos autorizados</h2><p class="secundario">Um novo navegador é registrado quando você entra com a senha. Você pode manter até cinco. Revogar encerra as sessões daquele dispositivo.</p><div id="dispositivos"><p class="espera" role="status">Carregando dispositivos…</p></div>
-<h2>Dados e saída</h2><div class="acoes"><a class="botao discreto" href="#privacidade">Dados e segurança</a><button type="button" class="discreto" id="sair">Sair da conta</button></div>`);
+<h2>Dados e saída</h2><div class="acoes"><a class="botao discreto" href="#privacidade">Dados e segurança</a><button type="button" class="discreto" id="sair">Sair da conta</button></div>`, 'ipe');
   $$('[data-meta]').forEach(b => b.onclick = () => { prefs.meta = Number(b.dataset.meta); prefs.alvo = null; acertarAlvo(); $$('[data-meta]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); informar(`Meta do dia: ${prefs.meta} questões.`); });
   $('#criar-lembrete').onclick = () => { const hora = $('#hora-lembrete').value; if (!/^\d{2}:\d{2}$/.test(hora)) { informar('Escolha um horário para o lembrete.', true); return; } prefs.lembrete = hora; salvarPrefs(); baixarLembrete(hora); informar(`Lembrete das ${hora} baixado. Abra o arquivo para colocá-lo no calendário.`); };
   $$('input[name="tema"]').forEach(entrada => entrada.onchange = () => {
@@ -1052,7 +1088,7 @@ ${publico && !matchMedia('(display-mode: standalone)').matches ? '<h2>PU a um to
   void listar();
 }
 function verPrivacidade() {
-  tela(`<h1>Seus dados e sua segurança</h1>
+  tela(`${cabecaHtml('Seus dados e sua segurança', {selo: 'livro'})}
 <h2>O que o PU guarda e para quê</h2><p>Na sua conta ficam o nome, o e-mail, a senha guardada só como resumo protegido (scrypt, com sal próprio de cada conta), as sessões abertas, os navegadores autorizados com a data do primeiro e do último uso, e cada resposta com data e hora, inclusive quando você marca “Chutei”. Com isso o PU abre a sua conta, mostra o histórico, monta a revisão, calcula o seu desempenho por matéria e assunto e faz a comparação semanal. O desempenho por assunto não mede capacidade e não é diagnóstico.</p>
 <p>No banco do PU, a senha não fica escrita: quem administra o PU vê só o resumo, que não se desfaz de volta em senha. Uma senha curta ou comum ainda pode ser adivinhada a partir do resumo, por isso o PU pede pelo menos 12 caracteres.</p>
 <h2>Por onde os seus dados passam</h2><p>No endereço público, o navegador não fala direto com o PU. Cada pedido vai por HTTPS a um intermediário hospedado num serviço de terceiros, numa conta que não é da Ginga Mídia, e fica numa fila até o conector do PU buscá-lo, o que costuma levar poucos segundos. Pedido que ninguém buscou vence em 35 segundos. Nesse caminho passam o e-mail e a senha quando você entra ou cria a conta, a sessão em todo pedido e, na volta, o seu nome e o resumo de estudo. Enquanto estão na fila, quem administra o intermediário consegue ler esses dados, a senha também. O PU não controla os registros nem as cópias que esse serviço faz. Por isso, crie para o PU uma senha que você não usa em nenhum outro lugar.</p>
@@ -1064,9 +1100,9 @@ function verPrivacidade() {
 <h2>Crianças e adolescentes</h2><p>Muitos estudantes de vestibular têm menos de 18 anos. O PU ainda não pergunta a idade nem pede a ciência de um responsável. As regras para esse público, que precisam seguir a LGPD e o melhor interesse de crianças e adolescentes, ainda estão em definição. Até lá, use só dados de teste nesta versão.</p>
 <h2>Seus direitos</h2><p>A LGPD garante a você saber quais dados o PU tem e pedir acesso, correção e exclusão. Ainda não há canal definido nem responsável nomeado para receber esses pedidos, e a exclusão de conta ainda não existe no PU. Esta página descreve como o PU funciona hoje e não atesta conformidade com a LGPD.</p>
 <p><a href="https://www.gov.br/anpd/pt-br/assuntos/noticias/anpd-divulga-enunciado-sobre-o-tratamento-de-dados-pessoais-de-criancas-e-adolescentes" target="_blank" rel="noopener noreferrer">Orientação da ANPD sobre crianças e adolescentes</a></p>
-<div class="acoes"><a class="botao" href="#estudar">${painel ? 'Voltar ao estudo' : 'Voltar à entrada'}</a></div>`);
+<div class="acoes"><a class="botao" href="#estudar">${painel ? 'Voltar ao estudo' : 'Voltar à entrada'}</a></div>`, 'mar');
 }
-function verNota() { tela(''); PUSimulador.mostrar(conteudo); }
+function verNota() { tela('', 'sol'); PUSimulador.mostrar(conteudo); }
 
 // ---------- Navegação ----------
 const ROTAS = {'#estudar': verEstudo, '#progresso': verProgresso, '#simulado': verSimulado, '#nota': verNota, '#conta': verConta, '#privacidade': verPrivacidade};
@@ -1124,12 +1160,12 @@ document.addEventListener('visibilitychange', () => {
   if (publico) {
     if (conexao.habilitado && sessao) {
       menu.hidden = true; document.body.classList.add('sem-sessao');
-      tela('<p class="espera" role="status">Retomando seus estudos…</p>');
-      const retomar = () => atualizar().then(navegar).catch(e => { if (sessao) { tela('<p>Não foi possível retomar agora.</p><div class="acoes"><button type="button" id="retomar">Tentar novamente</button></div>'); $('#retomar').onclick = retomar; erro(e); } });
+      tela(esperaHtml('Retomando seus estudos…'));
+      const retomar = () => atualizar().then(navegar).catch(e => { if (sessao) { tela(`<div class="abrindo">${ilustracaoHtml('espera', {texto: false})}<p>Não foi possível retomar agora.</p></div><div class="acoes"><button type="button" id="retomar">Tentar novamente</button></div>`); $('#retomar').onclick = retomar; erro(e); } });
       retomar();
     } else navegar();
     return;
   }
-  tela('<p class="espera" role="status">Abrindo o PU…</p>');
+  tela(esperaHtml('Abrindo o PU…'));
   atualizar().then(navegar).catch(e => { if (!painel) navegar(); if (e.status !== 401) erro(e); });
 })();
