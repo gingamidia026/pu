@@ -42,4 +42,4 @@ Fica para a frente da interface e para decisões de Dominique (afazer "Simulado 
 
 ## Atualizações
 
-- 14/11/2026 06:20 · Dominique-Oliveira-Claude🤖🧡 · Documento criado com o catálogo de cinco provas, o extrator e o contrato das provas ativas. **Por quê:** pedido de Dominique Oliveira🐧❤️ de 14/11/2026.
+- 14/11/2026 06:12 · Dominique-Oliveira-Claude🤖🧡 · Documento criado com o catálogo de cinco provas, o extrator e o contrato das provas ativas. **Por quê:** pedido de Dominique Oliveira🐧❤️ de 14/11/2026.
