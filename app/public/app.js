@@ -472,7 +472,7 @@ const CENAS = {
 };
 const ilustracaoHtml = (cena, {texto = true, grande = false} = {}) => `<span class="ilustracao${grande ? ' grande' : ''}" data-cena="${cena}" ${texto ? `role="img" aria-label="${escapar(CENAS[cena])}"` : 'aria-hidden="true"'}></span>`;
 // Faixa do topo das telas de passagem: título de cartaz com o selo, apoio opcional e a ilustração ao lado.
-const cabecaHtml = (titulo, {selo, cena, lide = '', textoDaCena = true} = {}) => `<header class="cabeca"><div class="cabeca-texto"><h1>${titulo}${selo ? seloHtml(selo) : ''}</h1>${lide ? `<p class="lide">${lide}</p>` : ''}</div>${cena ? ilustracaoHtml(cena, {texto: textoDaCena}) : ''}</header>`;
+const cabecaHtml = (titulo, {selo, cena, lide = '', textoDaCena = true} = {}) => `<header class="cabeca"><div class="cabeca-texto"><h1>${selo ? titulo.replace(/(\S+)$/, `<span class="sem-quebra">$1${seloHtml(selo)}</span>`) : titulo}</h1>${lide ? `<p class="lide">${lide}</p>` : ''}</div>${cena ? ilustracaoHtml(cena, {texto: textoDaCena}) : ''}</header>`;
 // Logo da pata nas telas de espera: o mesmo desenho do topo; no noturno, círculo claro com a pata vazada (versão A da identidade).
 const logoHtml = () => { const desenho = document.querySelector('.topo .simbolo svg'); return desenho ? `<span class="logo-tela" aria-hidden="true">${desenho.outerHTML}</span>` : ''; };
 const esperaHtml = texto => `<div class="abrindo">${logoHtml()}<p class="espera" role="status">${texto}</p></div>`;
@@ -958,13 +958,13 @@ async function resultadoSimulado() {
   const s = simulado; const respondidas = s.ids.filter(id => s.respostas[id]);
   const pendentes = () => respondidas.filter(id => !s.respostas[id].resultado);
   if (pendentes().length) {
-    tela(`${cabecaHtml('Corrigindo seu simulado…', {cena: 'espera', textoDaCena: false})}<p class="espera" role="status">Conferindo as respostas no servidor.</p>`, 'mar');
+    tela(`${cabecaHtml('Corrigindo seu simulado…', {cena: 'simulado', textoDaCena: false})}<p class="espera" role="status">Conferindo as respostas no servidor.</p>`, 'boia');
     const vez = estado.vez;
     // Espera os envios que já estavam a caminho (a fila pública pode demorar) e repete só o que falhou.
     for (let tentativa = 0; tentativa < 3 && pendentes().length && painel; tentativa++) { await Promise.all(pendentes().map(enviarSimulado)); if (pendentes().length && painel) await new Promise(r => setTimeout(r, 1500)); }
     if (!painel || vez !== estado.vez || simulado !== s) return;
     if (pendentes().length) {
-      tela(`${cabecaHtml(`Faltou conferir ${plural(pendentes().length, 'resposta', 'respostas')}.`, {cena: 'espera', textoDaCena: false})}<p>Suas respostas estão guardadas neste aparelho. Verifique a conexão e tente de novo.</p><div class="acoes"><button type="button" id="tentar">Tentar novamente</button></div>`, 'mar');
+      tela(`${cabecaHtml(`Faltou conferir ${plural(pendentes().length, 'resposta', 'respostas')}.`, {cena: 'simulado', textoDaCena: false})}<p>Suas respostas estão guardadas neste aparelho. Verifique a conexão e tente de novo.</p><div class="acoes"><button type="button" id="tentar">Tentar novamente</button></div>`, 'boia');
       $('#tentar').onclick = resultadoSimulado; return;
     }
   }

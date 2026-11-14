@@ -798,7 +798,7 @@ const TELAS_DE_DENTRO = [
   ['revisao-vazia', '(() => { prefs.alvo = null; estado.modo = "revisao"; painel.estudo.revisao.vencidas = []; verEstudo(); })()'],
   ['progresso-vazio', '(() => { location.hash = "#progresso"; painel.progresso.total = 0; verProgresso(); })()'],
   ['progresso-encerrado', '(async () => { await atualizar(); prefs.meta = 3; prefs.alvo = {valor: 3, bloco: false}; verProgresso(); })()'],
-  ['corrigindo', `tela(cabecaHtml("Corrigindo seu simulado…", {cena: "espera", textoDaCena: false}) + '<p class="espera" role="status">Conferindo as respostas no servidor.</p>', "mar")`],
+  ['corrigindo', `tela(cabecaHtml("Corrigindo seu simulado…", {cena: "simulado", textoDaCena: false}) + '<p class="espera" role="status">Conferindo as respostas no servidor.</p>', "boia")`],
   ['espera', 'tela(esperaHtml("Abrindo o PU…"))'],
   ['sem-conexao', '(() => { verEstudo(); const area = document.querySelector("#area-questao"); estado.vez++; area.innerHTML = `<section class="marco">${ilustracaoHtml("espera", {texto: false})}<h2>Não foi possível abrir a questão.</h2><p>Sem conexão.</p></section>`; })()'],
   ['estudar', '(async () => { estado.modo = "misturado"; prefs.meta = 5; await atualizar(); prefs.alvo = {valor: 999, bloco: true}; salvarPrefs(); location.hash = "#estudar"; verEstudo(); })()']
@@ -827,6 +827,11 @@ await item('paleta final nos dois temas: contraste AA em todo par e em todo text
       if (nome === 'espera') igual(await p.avaliar('getComputedStyle(document.querySelector(".logo-tela")).color'), tema === 'noturno' ? 'rgb(242, 240, 235)' : PRETO, 'logo da pata na versão do tema');
       if (nome === 'estudar') igual(cenas, [], 'Estudar sem ilustração');
       certo(await p.semRolagemLateral(), `sem rolagem lateral em ${nome}`);
+      // Celular estreito (320 px): nada rola para o lado e o título de cartaz cabe na faixa, ao lado da ilustração.
+      await p.tamanho(320, 700); await dormir(250); certo(await p.semRolagemLateral(), `sem rolagem lateral em ${nome} a 320`);
+      certo(await p.avaliar('[...document.querySelectorAll(".cabeca h1, .marco h2")].every(t => { const r = document.createRange(); r.selectNodeContents(t); const c = r.getBoundingClientRect(); return c.left >= 0 && c.right <= innerWidth && [...t.querySelectorAll(".sem-quebra")].every(q => q.getBoundingClientRect().right <= t.getBoundingClientRect().right + 1); })'), `título inteiro na tela em ${nome} a 320`);
+      if (CAPTURAS) await p.captura(path.join(CAPTURAS, `dentro-${nome}-${tema}-320.png`));
+      await p.tamanho(390, 844); await dormir(200);
       if (CAPTURAS) {
         await p.captura(path.join(CAPTURAS, `dentro-${nome}-${tema}-390.png`));
         if (['progresso', 'simulado', 'conta', 'meta-cumprida', 'estudar'].includes(nome)) for (const largura of [768, 1440]) {

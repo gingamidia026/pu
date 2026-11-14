@@ -557,6 +557,8 @@ h1.oculto { font-family: inherit; }
 .cabeca-texto { min-width: 0; flex: 1; }
 .cabeca h1 { margin: 0; }
 .cabeca .lide { margin: .875rem 0 0; color: var(--texto); }
+.cabeca :is(.secundario, .rotulo) { color: var(--texto); } /* o cinza secundário fica abaixo de 4,5:1 sobre a faixa azul-mar-clara */
+.cabeca h1 .sem-quebra { white-space: nowrap; } /* a última palavra não se separa do selo */
 :is(#conteudo > .cabeca, .simulador > h1)::before {
   content: ""; position: absolute; z-index: -1; inset: 0 calc(50% - 50vw); background: var(--tom-faixa, var(--suave)); pointer-events: none;
   -webkit-mask: linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 15px) no-repeat, var(--forma-onda-base) 0 100% / 48px 16px repeat-x;
@@ -636,6 +638,9 @@ progress::-webkit-progress-bar { background: var(--cartao); }
 .selo { border: 1px solid currentColor; }
 .painel-foco { border-color: var(--texto); background: var(--cartao); }
 .passo { background: var(--azul-fundo); }
+/* Nas telas com cor própria, o cartão do próximo passo usa a faixa da tela: um azul-claro ao lado da faixa roxa do dia encerrado juntava azul-mar e roxo-ipê. */
+#conteudo[data-tom] .passo { background: var(--tom-faixa); }
+#conteudo[data-tom] .passo :is(.rotulo, .secundario) { color: var(--texto); } /* o cinza secundário não chega a 4,5:1 nas faixas claras */
 .indicador { border-left-color: var(--texto); }
 .materia, .materia:last-of-type, .resultado-opcao, .opcao-nota { border-color: var(--texto); }
 .assunto { border-top-color: var(--fio); }
@@ -684,6 +689,7 @@ progress::-webkit-progress-bar { background: var(--cartao); }
   /* Item ativo do menu como a ficha marcada: pílula na cor do texto. */
   .menu a[aria-current=page] { background: var(--texto); color: var(--texto-invertido); }
   :is(#conteudo > .cabeca, .simulador > h1) { margin-top: -2.5rem; padding: 2.5rem 0 3rem; margin-bottom: 2.25rem; }
+  #conteudo > .cabeca { align-items: center; } /* no computador o título fica na altura do meio da ilustração, sem faixa vazia em cima */
   .ilustracao { width: 10rem; height: 10rem; }
   .enunciado { font-size: 1.125rem; }
   #conteudo > .ritmo { margin-top: -2.5rem; padding-top: 1.5rem; }
