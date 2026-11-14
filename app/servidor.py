@@ -38,6 +38,11 @@ LIMITE_ORIGEM = max(30, int(os.environ.get('LIMITE_ENTRADAS_ORIGEM', '30')))
 if PRODUCAO and (not SEGURO or PERFIL_TESTE or not ORIGEM.startswith('https://')):
     raise RuntimeError('Produção exige HTTPS, cookie seguro e perfil de teste desligado.')
 PUBLICO = Path(__file__).parent / 'public'
+# Fontes (woff2) e ilustrações (webp, png) da identidade: nome simples, sem subpasta e sem "..". SVG fica de fora: no mesmo
+# domínio ele pode levar script. A mesma expressão está em ambiente/servidor.py e gerenciador/servidor.py (processos separados);
+# tests/fluida-navegador.mjs confere que as três são iguais.
+RECURSO_ESTATICO = re.compile(r'/(?:fontes/[a-z0-9][a-z0-9-]{0,60}\.woff2|ilustracoes/[a-z0-9][a-z0-9-]{0,60}\.(?:webp|png))')
+TIPOS_ESTATICOS = {'woff2': 'font/woff2', 'webp': 'image/webp', 'png': 'image/png'}
 MAPA = {q['id']: q for q in QUESTOES}
 # Recorte do catálogo pelas provas ativas de cada conta (Enem, Fuvest, Unesp, Unicamp, Famerp).
 RECORTE = provas.Recorte(QUESTOES)
@@ -242,10 +247,12 @@ class API(BaseHTTPRequestHandler):
         caminho = self.path.split('?')[0]
         if caminho.startswith('/api/') and '?' in self.path:
             raise Erro(400, 'Parâmetros de consulta não permitidos.')
-        if metodo == 'GET' and caminho in ['/', '/app.js', '/simulador.js', '/estilo.css', '/textura.svg']:
-            arquivo = PUBLICO / {'/': 'index.html', '/app.js': 'app.js', '/simulador.js': 'simulador.js', '/estilo.css': 'estilo.css', '/textura.svg': 'textura.svg'}[caminho]
-            tipo = {'/': 'text/html; charset=utf-8', '/app.js': 'text/javascript; charset=utf-8', '/simulador.js': 'text/javascript; charset=utf-8', '/estilo.css': 'text/css; charset=utf-8', '/textura.svg': 'image/svg+xml'}[caminho]
+        if metodo == 'GET' and caminho in ['/', '/app.js', '/tema-inicial.js', '/simulador.js', '/estilo.css', '/textura.svg']:
+            arquivo = PUBLICO / {'/': 'index.html', '/app.js': 'app.js', '/tema-inicial.js': 'tema-inicial.js', '/simulador.js': 'simulador.js', '/estilo.css': 'estilo.css', '/textura.svg': 'textura.svg'}[caminho]
+            tipo = {'/': 'text/html; charset=utf-8', '/app.js': 'text/javascript; charset=utf-8', '/tema-inicial.js': 'text/javascript; charset=utf-8', '/simulador.js': 'text/javascript; charset=utf-8', '/estilo.css': 'text/css; charset=utf-8', '/textura.svg': 'image/svg+xml'}[caminho]
             return self.enviar(200, arquivo.read_bytes(), tipo)
+        if metodo == 'GET' and RECURSO_ESTATICO.fullmatch(caminho) and (PUBLICO / caminho[1:]).is_file():
+            return self.enviar(200, (PUBLICO / caminho[1:]).read_bytes(), TIPOS_ESTATICOS[caminho.rsplit('.', 1)[1]])
         if metodo == 'GET' and caminho == '/api/saude':
             return self.enviar(200, {'estado': 'ok'})
         if metodo == 'GET' and caminho == '/api/configuracao':
@@ -279,7 +286,16 @@ class API(BaseHTTPRequestHandler):
                     raise Erro(400, 'Informe sua senha.')
                 if not eh_teste and (not re.fullmatch(r'[^\s@]{1,100}@[^\s@]{1,100}\.[^\s@]{2,30}', email) or not 12 <= len(senha) <= 128):
                     raise Erro(400, 'Informe e-mail válido e senha com 12 a 128 caracteres.')
-                self.limitar(con, 'entrada_conta_origem:' + digest(email) + ':' + cliente, 10)
+                # Pela fila pública todos chegam do conector: só a cota por conta e origem deixaria quem sabe o e-mail
+                # travar a dona da conta com 10 senhas erradas. Navegador já autorizado da conta tem cota própria,
+                # que quem não conhece o identificador dele não alcança. Revisão de segurança de 14/11/2026.
+                balde = 'entrada_conta_origem:' + digest(email) + ':' + cliente
+                aparelho = dados.get('dispositivo', '')
+                if isinstance(aparelho, str) and re.fullmatch(r'[A-Za-z0-9_-]{32,100}', aparelho):
+                    dona = con.execute('SELECT id FROM contas WHERE email=?', (email,)).fetchone()
+                    if dona and con.execute('SELECT 1 FROM dispositivos WHERE id=? AND conta=? AND revogado=0', (digest(str(dona['id']) + ':' + aparelho), dona['id'])).fetchone():
+                        balde = 'entrada_conta_dispositivo:' + digest(email) + ':' + digest(aparelho)
+                self.limitar(con, balde, 10)
                 if caminho == '/api/cadastro':
                     nome = dados.get('nome', '')
                     if not isinstance(nome, str):
@@ -327,7 +343,7 @@ class API(BaseHTTPRequestHandler):
             conta = self.conta(con)
             if INDIVIDUAIS and metodo=='GET' and caminho.startswith('/site/'):
                 recurso=caminho[len('/site'):]
-                if recurso not in ['/','/app.js','/simulador.js','/estilo.css','/textura.svg']:raise Erro(404,'Página não encontrada.')
+                if recurso not in ['/','/app.js','/tema-inicial.js','/simulador.js','/estilo.css','/textura.svg'] and not RECURSO_ESTATICO.fullmatch(recurso):raise Erro(404,'Página não encontrada.')
                 resposta=ambiente(conta['id'],'site',caminho=recurso)
                 return self.enviar(200,base64.b64decode(resposta['corpo']),resposta['tipo'])
             if caminho == '/api/dispositivos':

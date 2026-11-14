@@ -35,12 +35,17 @@ if (publico) {
   else guardarSessao('');
 }
 // Preferências ficam separadas por conta, para não passarem de uma pessoa a outra no mesmo aparelho.
-const PREFS_PADRAO = {meta: 5, foco: null, alvo: null, dicaChute: false, atalhos: true, semCronometro: false};
+// tema: automatico, diurno ou noturno; fuso: vazio segue o do navegador; sons: acerto e erro na correção imediata.
+const PREFS_PADRAO = {meta: 5, foco: null, alvo: null, dicaChute: false, atalhos: true, semCronometro: false, tema: 'automatico', fuso: '', sons: true};
 let prefs = {...PREFS_PADRAO};
 const chavePrefs = () => `${CHAVES.prefs}.${painel?.conta?.id ?? 0}`;
 function carregarPrefs() {
   prefs = {...PREFS_PADRAO, ...(guarda.ler(chavePrefs()) || {})};
   if (![3, 5, 10, 20].includes(prefs.meta)) prefs.meta = 5;
+  if (!Object.hasOwn(TEMAS, prefs.tema)) prefs.tema = 'automatico';
+  if (prefs.fuso && !fusoValido(prefs.fuso)) prefs.fuso = '';
+  // O tema entra aqui, antes de qualquer tela de dentro ser desenhada.
+  aplicarTema();
 }
 const salvarPrefs = () => { if (painel?.conta) guarda.gravar(chavePrefs(), prefs); };
 
@@ -53,6 +58,139 @@ const estado = {modo: 'misturado', primeira: null, puladas: new Set(), feitasSes
 let simulado = guarda.ler(CHAVES.simulado);
 const enviosSimulado = new Map();   // id → envio em andamento; só na memória, nunca gravado
 let relogio = null;
+
+// ---------- Tema das telas de dentro: automático, diurno ou noturno (pedido de Dominique, 14/11/2026) ----------
+// Só com a conta aberta: a página de entrada não muda. O tema vai em data-tema no <html> e as cores saem das variáveis
+// do bloco de temas no fim do estilo.css. No automático, diurno das 6h às 18h e noturno das 18h às 6h no fuso escolhido.
+// Fuso padrão: o do navegador; sem ele, o relógio do aparelho. O horário de verão fica por conta do Intl.
+const TEMAS = {automatico: 'Automático', diurno: 'Diurno', noturno: 'Noturno'};
+const COR_DA_BARRA = {diurno: '#FFFFFF', noturno: '#000000'};
+const corDaBarra = document.querySelector('meta[name="theme-color"]');
+const corDaEntrada = corDaBarra?.getAttribute('content') || '';
+let relogioTema = null;
+function fusoValido(fuso) {
+  if (!fuso || typeof fuso !== 'string') return false;
+  try { new Intl.DateTimeFormat('en-US', {timeZone: fuso}); return true; } catch { return false; }
+}
+function fusoDoNavegador() {
+  try { const fuso = Intl.DateTimeFormat().resolvedOptions().timeZone; return fusoValido(fuso) ? fuso : ''; } catch { return ''; }
+}
+// Fuso em vigor: o escolhido nas configurações; senão o do navegador. Vazio quer dizer o relógio do aparelho.
+const fusoEmVigor = () => fusoValido(prefs.fuso) ? prefs.fuso : fusoDoNavegador();
+function horaNoFuso(fuso, agora = new Date()) {
+  if (fuso) {
+    try {
+      const partes = new Intl.DateTimeFormat('en-US', {timeZone: fuso, hour: 'numeric', minute: 'numeric', hourCycle: 'h23'}).formatToParts(agora);
+      const valor = tipo => Number(partes.find(p => p.type === tipo)?.value);
+      if (Number.isFinite(valor('hour'))) return {hora: valor('hour') % 24, minuto: valor('minute')};
+    } catch { /* cai no relógio do aparelho */ }
+  }
+  return {hora: agora.getHours(), minuto: agora.getMinutes()};
+}
+function temaEmVigor(agora = new Date()) {
+  if (prefs.tema === 'diurno' || prefs.tema === 'noturno') return prefs.tema;
+  const {hora} = horaNoFuso(fusoEmVigor(), agora);
+  return hora >= 6 && hora < 18 ? 'diurno' : 'noturno';
+}
+// Deslocamento do fuso em relação ao UTC, para conferir na tela ("UTC−3").
+function deslocamento(fuso, agora = new Date()) {
+  let minutos = -agora.getTimezoneOffset();
+  if (fuso) {
+    try {
+      const nome = new Intl.DateTimeFormat('en-US', {timeZone: fuso, timeZoneName: 'shortOffset'}).formatToParts(agora).find(p => p.type === 'timeZoneName')?.value || '';
+      const achado = nome.match(/^GMT(?:([+-])(\d{1,2})(?::(\d{2}))?)?$/);
+      if (achado) minutos = achado[1] ? (achado[1] === '-' ? -1 : 1) * (Number(achado[2]) * 60 + Number(achado[3] || 0)) : 0;
+    } catch { /* fica o do aparelho */ }
+  }
+  const h = Math.floor(Math.abs(minutos) / 60); const m = Math.abs(minutos) % 60;
+  return `UTC${minutos < 0 ? '−' : '+'}${h}${m ? ':' + String(m).padStart(2, '0') : ''}`;
+}
+const nomeDoFuso = fuso => fuso.replace(/_/g, ' ');
+function aplicarTema() {
+  clearTimeout(relogioTema); relogioTema = null;
+  const raiz = document.documentElement;
+  if (!painel?.conta) { delete raiz.dataset.tema; if (corDaBarra) corDaBarra.setAttribute('content', corDaEntrada); return; }
+  const efetivo = temaEmVigor();
+  if (raiz.dataset.tema !== efetivo) raiz.dataset.tema = efetivo;
+  if (corDaBarra) corDaBarra.setAttribute('content', COR_DA_BARRA[efetivo]);
+  // No automático, confere de novo na virada de cada minuto: a troca das 6h e das 18h acontece sem recarregar.
+  // Todo fuso é múltiplo de 15 min, então a virada do minuto é a mesma em qualquer um.
+  if (prefs.tema === 'automatico' || $('#hora-fuso')) relogioTema = setTimeout(() => { aplicarTema(); mostrarHoraDoFuso(); }, 60000 - Date.now() % 60000 + 25);
+}
+function mostrarHoraDoFuso() {
+  const destino = $('#hora-fuso'); if (!destino) return;
+  const fuso = fusoEmVigor(); const {hora, minuto} = horaNoFuso(fuso);
+  const agora = `${String(hora).padStart(2, '0')}:${String(minuto).padStart(2, '0')}`;
+  const proximo = temaEmVigor() === 'diurno' ? 'Fica no diurno até as 18h.' : 'Fica no noturno até as 6h.';
+  destino.textContent = `Agora são ${agora} ${fuso ? `em ${nomeDoFuso(fuso)} (${deslocamento(fuso)})` : `no relógio deste aparelho (${deslocamento('')})`}. ${proximo}`;
+}
+// Fusos do Brasil primeiro; depois todos os que o navegador conhece. A lista completa (perto de 420 fusos, uns 70 ms)
+// entra depois de a tela aparecer e fica guardada para as próximas vezes.
+const FUSOS_DO_BRASIL = ['America/Sao_Paulo', 'America/Noronha', 'America/Bahia', 'America/Fortaleza', 'America/Recife', 'America/Maceio', 'America/Araguaina', 'America/Belem', 'America/Santarem', 'America/Campo_Grande', 'America/Cuiaba', 'America/Porto_Velho', 'America/Boa_Vista', 'America/Manaus', 'America/Eirunepe', 'America/Rio_Branco'];
+const opcaoDeFuso = fuso => `<option value="${escapar(fuso)}">${escapar(nomeDoFuso(fuso))} (${deslocamento(fuso)})</option>`;
+let outrosFusos = null;
+function opcoesDeFuso() {
+  const detectado = fusoDoNavegador();
+  const brasil = FUSOS_DO_BRASIL.filter(fusoValido);
+  const escolhido = prefs.fuso && !brasil.includes(prefs.fuso) ? `<optgroup label="Escolhido">${opcaoDeFuso(prefs.fuso)}</optgroup>` : '';
+  const primeira = `<option value="">${detectado ? `Do navegador: ${escapar(nomeDoFuso(detectado))} (${deslocamento(detectado)})` : `Relógio deste aparelho (${deslocamento('')})`}</option>`;
+  return `${primeira}<optgroup label="Brasil">${brasil.map(opcaoDeFuso).join('')}</optgroup>${escolhido}`;
+}
+function completarFusos(seletor) {
+  if (!seletor?.isConnected || seletor.querySelector('optgroup[data-outros]')) return;
+  if (outrosFusos === null) {
+    let todos = []; try { todos = Intl.supportedValuesOf('timeZone'); } catch { /* navegador antigo: só o Brasil e o UTC */ }
+    outrosFusos = [...new Set([...todos, 'UTC'])].filter(f => !FUSOS_DO_BRASIL.includes(f)).sort().map(opcaoDeFuso).join('');
+  }
+  seletor.insertAdjacentHTML('beforeend', `<optgroup label="Outros fusos" data-outros>${outrosFusos}</optgroup>`);
+  // O fuso escolhido fora do Brasil só sai do grupo próprio se estiver na lista completa (nomes antigos não estão).
+  if ([...seletor.querySelectorAll('optgroup[data-outros] option')].some(o => o.value === prefs.fuso)) $('optgroup[label="Escolhido"]', seletor)?.remove();
+  seletor.value = prefs.fuso;
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { aplicarTema(); mostrarHoraDoFuso(); } });
+
+// ---------- Sons de acerto e erro (Web Audio, sem arquivo de áudio e sem código de terceiros) ----------
+// Tocam só quando a correção aparece na hora, no estudo. O simulado, a revisão do simulado e a questão já corrigida ficam
+// sem som. O contexto de áudio nasce ou é retomado no gesto de responder: o navegador só libera áudio depois de um gesto,
+// e a correção chega segundos depois, pela rede. Navegador sem Web Audio fica em silêncio, sem erro.
+const SONS = {
+  // Cada nota: [frequência em Hz, início em s, duração em s]. Acerto: mi5 e si5, subindo. Erro: ré4 e si3, mais grave e suave.
+  acerto: {forma: 'sine', volume: 0.16, corte: 6000, notas: [[659.25, 0, 0.14], [987.77, 0.08, 0.26]]},
+  erro: {forma: 'triangle', volume: 0.15, corte: 1400, notas: [[293.66, 0, 0.16], [246.94, 0.1, 0.24]]}
+};
+const som = {
+  contexto: null, saida: null,
+  preparar() {
+    if (prefs.sons === false) return;
+    try {
+      const Contexto = window.AudioContext || window.webkitAudioContext; if (!Contexto) return;
+      if (!som.contexto) { som.contexto = new Contexto(); som.saida = som.contexto.createGain(); som.saida.gain.value = 0.7; som.saida.connect(som.contexto.destination); }
+      if (som.contexto.state === 'suspended') som.contexto.resume().catch(() => {});
+    } catch { som.contexto = null; som.saida = null; }
+  },
+  // Desenha o som num contexto qualquer (o do navegador ou um OfflineAudioContext do teste). Devolve quando termina.
+  desenhar(contexto, tipo, destino, inicio) {
+    const {forma, volume, corte, notas} = SONS[tipo];
+    const filtro = contexto.createBiquadFilter(); filtro.type = 'lowpass'; filtro.frequency.value = corte; filtro.connect(destino);
+    let fim = inicio;
+    for (const [frequencia, atraso, duracao] of notas) {
+      const t = inicio + atraso; const oscilador = contexto.createOscillator(); const ganho = contexto.createGain();
+      oscilador.type = forma; oscilador.frequency.setValueAtTime(frequencia, t);
+      ganho.gain.setValueAtTime(0.0001, t); ganho.gain.linearRampToValueAtTime(volume, t + 0.012); ganho.gain.exponentialRampToValueAtTime(0.0001, t + duracao);
+      oscilador.connect(ganho); ganho.connect(filtro); oscilador.start(t); oscilador.stop(t + duracao + 0.01);
+      fim = Math.max(fim, t + duracao + 0.01);
+    }
+    return fim;
+  },
+  tocar(tipo) {
+    if (prefs.sons === false || !SONS[tipo] || !som.contexto) return false;
+    try {
+      if (som.contexto.state === 'suspended') som.contexto.resume().catch(() => {});
+      som.desenhar(som.contexto, tipo, som.saida, som.contexto.currentTime + 0.01);
+      return true;
+    } catch { return false; }
+  }
+};
 
 // ---------- Transporte ----------
 function mensagemErro(e) {
@@ -104,7 +242,7 @@ function encerrarLocal(saida = false) {
   guardarSessao('');
   [CHAVES.painel, CHAVES.questoes].forEach(guarda.apagar);
   if (saida) { simulado = null; guarda.apagar(CHAVES.simulado); enviosSimulado.clear(); }
-  questoes.clear(); imagens.clear(); prefs = {...PREFS_PADRAO};
+  questoes.clear(); imagens.clear(); prefs = {...PREFS_PADRAO}; aplicarTema();
   Object.assign(estado, {modo: 'misturado', primeira: null, puladas: new Set(), feitasSessao: new Set(), marcadas: {}, atual: null, versao: estado.versao + 1});
   if (window.PUSimulador) PUSimulador.limpar();
 }
@@ -340,40 +478,85 @@ const DEMONSTRACAO = {
     'Os raios X ionizam os materiais metálicos normalmente encontrados em bagagens de mão, quando difratados pelos componentes do computador.'
   ]
 };
-// Selos desenhados para o PU (livro, visto, calendário), só na entrada e fora da leitura de tela.
-const SELOS = `<span class="selos-cartaz" aria-hidden="true">
-<svg class="selo-desenho giro-livro" viewBox="0 0 64 64" focusable="false"><path class="f-azul" d="M5 17c9-5 18-5 27 1 9-6 18-6 27-1v32c-9-5-18-5-27 1-9-6-18-6-27-1z"/><path class="f-nada" d="M32 18v32M11 26c5-2 10-2 15 0M11 33c5-2 10-2 15 0M38 33c5-2 10-2 15 0"/><path class="f-amarelo" d="M41 15v15l4-3 4 3V14z"/></svg>
-<svg class="selo-desenho giro-visto" viewBox="0 0 64 64" focusable="false"><circle class="f-azul" cx="32" cy="32" r="26"/><path class="f-amarelo" d="M16 33l6-6 7 7 13-15 6 6-19 21z"/></svg>
-<svg class="selo-desenho giro-calendario" viewBox="0 0 64 64" focusable="false"><rect class="f-azul" x="8" y="13" width="48" height="43" rx="4"/><path class="f-nada" d="M8 25h48M20 8v10M44 8v10"/><rect class="f-nada" x="15" y="32" width="8" height="7"/><rect class="f-amarelo" x="28" y="32" width="8" height="7"/><rect class="f-nada" x="41" y="32" width="8" height="7"/><rect class="f-nada" x="15" y="44" width="8" height="7"/><rect class="f-nada" x="28" y="44" width="8" height="7"/></svg>
-</span>`;
-// Faixa que corre: frases que a entrada já diz. A cópia fica fora da leitura de tela; parada com movimento reduzido.
-const FRASES_FAIXA = ['Questões oficiais do Enem', 'Uma questão por vez', 'O que você erra volta em 1, 3 e 7 dias', 'Meta pequena por dia', 'Gratuito'];
+// Página de entrada (direção de 14/11/2026). O texto da apresentação mora no index.html, num bloco igual nos dois arquivos
+// (o teste confere), para a busca ler sem JavaScript. O bloco fica escondido até aqui: com sessão guardada, a questão abre
+// sem mostrar a apresentação antes. O molde é lido uma vez, antes de qualquer tela; os lugares com data-lugar são
+// preenchidos abaixo (faixa que corre, questão de demonstração, provas no ar e formulário).
+const MOLDE_ENTRADA = (() => {
+  const bloco = conteudo.querySelector('.entrada[data-estatica]'); if (!bloco) return '';
+  const copia = bloco.cloneNode(true); copia.removeAttribute('data-estatica'); return copia.outerHTML;
+})();
+// Sem o bloco (index.html antigo), a entrada fica só com o título, a demonstração e o formulário.
+const MOLDE_RESERVA = `<div class="entrada"><div class="faixa faixa-papel"><section class="apresentacao" id="apresentacao"><h1>Estude para o Enem uma questão por vez.</h1></section></div>
+<div data-lugar="faixa-que-corre"></div><div class="faixa faixa-areia"><section class="experimente" id="experimente"><h2 id="titulo-experimente">Experimente uma questão</h2><div data-lugar="demonstracao"></div></section></div>
+<div class="faixa faixa-sol-claro"><section class="chamada" id="entrar"><div class="formulario" data-lugar="formulario"></div></section></div></div>`;
+// Provas no ar: fonte única da lista "Provas no PU" da entrada. Conferido em 14/11/2026 no catálogo publicado (.catalogo/atual.json):
+// 356 questões, Enem 2024 (179) e Enem 2025 (177). Uma edição só entra aqui depois de publicada no catálogo.
+const PROVAS_NO_AR = [{prova: 'Enem', edicao: 2024, questoes: 179}, {prova: 'Enem', edicao: 2025, questoes: 177}];
+function provasHtml() {
+  const total = PROVAS_NO_AR.reduce((soma, p) => soma + p.questoes, 0);
+  return `<p class="numero-cartaz"><strong>${total.toLocaleString('pt-BR')}</strong><span>questões oficiais no banco</span></p>
+<ul class="provas-lista">${PROVAS_NO_AR.map(p => `<li><strong>${escapar(p.prova)} ${p.edicao}</strong><span>${plural(p.questoes, 'questão', 'questões')}</span></li>`).join('')}</ul>`;
+}
+// Faixa que corre: frases que a entrada já diz, em caixa alta com até três palavras (identidade de 14/11/2026).
+// A cópia fica fora da leitura de tela; parada com movimento reduzido.
+const FRASES_FAIXA = ['Questões oficiais', 'Uma por vez', 'Revisão espaçada', 'Meta pequena', 'Simulado curto', 'Progresso por matéria'];
 function faixaQueCorre() {
   const lista = copia => `<ul class="frases"${copia ? ' aria-hidden="true"' : ' aria-label="O que o PU oferece"'}>${[...FRASES_FAIXA, ...FRASES_FAIXA].map(f => `<li>${f}</li>`).join('')}</ul>`;
-  return `<div class="faixa-corre"><div class="trilho">${lista(false)}${lista(true)}</div></div>`;
+  // Botão de pausa: no celular não há ponteiro para parar a faixa (WCAG 2.2.2).
+  return `<div class="faixa-corre"><div class="trilho">${lista(false)}${lista(true)}</div><button type="button" class="discreto pausar-faixa" aria-pressed="false">Pausar</button></div>`;
 }
 // Cerca de 40 px por segundo, qualquer que seja a largura das frases.
 function ajustarFaixa() { const trilho = $('.trilho'); if (trilho) trilho.style.animationDuration = `${Math.max(20, trilho.firstElementChild.offsetWidth / 40).toFixed(1)}s`; }
 window.addEventListener('resize', ajustarFaixa);
-function verEntrada() {
+function preencherLugar(nome, html, trocar = false) { const lugar = $(`#conteudo [data-lugar="${nome}"]`); if (!lugar) return null; if (trocar) { lugar.outerHTML = html; return null; } lugar.innerHTML = html; return lugar; }
+// Leva ao formulário (link "Entrar" do topo, #entrar, #criar-conta e ?criar-conta) e põe o foco no primeiro campo.
+function irAoFormulario() {
+  // Salto direto: a página é longa e a rolagem suave levaria mais de um segundo.
+  $('#entrar')?.scrollIntoView({block: 'start'});
+  $('#acesso input')?.focus({preventScroll: true});
+}
+function verEntrada({rolar = false} = {}) {
   menu.hidden = true; document.body.classList.add('sem-sessao');
-  const indisponivel = publico && !conexao.habilitado;
+  // Já na entrada, só o formulário muda: a questão de demonstração respondida e a posição da página ficam.
+  if (!$('#conteudo > .entrada:not([data-estatica])')) {
+    tela(MOLDE_ENTRADA || MOLDE_RESERVA);
+    preencherLugar('faixa-que-corre', faixaQueCorre(), true);
+    preencherLugar('provas', provasHtml());
+    desenharDemonstracao();
+    ajustarFaixa(); document.fonts?.ready.then(ajustarFaixa);
+    const pausar = $('.pausar-faixa');
+    if (pausar) pausar.onclick = () => { const parada = pausar.getAttribute('aria-pressed') !== 'true'; pausar.setAttribute('aria-pressed', String(parada)); pausar.textContent = parada ? 'Seguir' : 'Pausar'; $('.faixa-corre').classList.toggle('parada', parada); };
+  }
+  desenharFormulario();
+  if (rolar) irAoFormulario();
+}
+function desenharDemonstracao() {
   const q = DEMONSTRACAO;
-  tela(`<div class="entrada">
-<div class="faixa faixa-papel"><section class="apresentacao">
-<h1>Estude para o Enem uma questão por vez.${SELOS}</h1>
-<p class="lide">Você abre o PU e a questão do dia já está na tela. Responde, confere na hora e para quando quiser.</p>
-<ol class="passos">
-<li><strong>Questões oficiais do Enem</strong><span>Provas de 2024 e 2025, de todas as matérias, misturadas ou da matéria que você escolher.</span></li>
-<li><strong>O que você erra volta</strong><span>As erradas e os chutes reaparecem na revisão depois de 1, 3 e 7 dias.</span></li>
-<li><strong>Meta pequena por dia</strong><span>Cinco questões já contam. Você vê o que fez na semana e onde precisa treinar.</span></li>
-</ol>
-</section></div>
-${faixaQueCorre()}
-<div class="faixa faixa-azul"><section class="formulario" aria-labelledby="titulo-acesso">
-<h2 id="titulo-acesso">${cadastro ? 'Crie sua conta' : 'Entre para estudar'}</h2>
+  const lugar = preencherLugar('demonstracao', `<p class="rotulo">${escapar(q.materia)} · ${escapar(q.titulo)} · demonstração, não fica registrada</p>
+<div class="enunciado">${enunciadoHtml(q.enunciado, q)}</div>
+<fieldset id="demonstracao"><legend>Toque na alternativa que você marcaria</legend>${q.alternativas.map((a, i) => `<label class="alternativa"><input type="radio" name="demonstracao" value="${i}"><span class="letra">${letra(i)}</span><span class="texto">${escapar(a)}</span></label>`).join('')}</fieldset>
+<div id="retorno-demonstracao" class="retorno" aria-live="polite"></div>
+<p class="fonte"><a href="${escapar(q.fonte)}" target="_blank" rel="noopener noreferrer">Prova original no site do Inep</a></p>`);
+  if (!lugar) return;
+  $('#demonstracao').onchange = evento => {
+    const escolhida = Number(evento.target.value); const campo = $('#demonstracao');
+    $$('.alternativa', campo).forEach((alternativa, i) => { if (i === q.correta) alternativa.dataset.correcao = 'correta'; else if (i === escolhida) alternativa.dataset.correcao = 'errada'; });
+    campo.disabled = true;
+    const certa = escolhida === q.correta;
+    $('#retorno-demonstracao').innerHTML = `<p class="${certa ? 'acerto' : 'engano'}"><strong>${certa ? 'Certa!' : `Não foi essa. A certa é a ${letra(q.correta)}.`}</strong> ${certa ? 'No PU, cada resposta entra no seu progresso por matéria e assunto.' : 'No PU, uma questão errada volta na revisão no dia seguinte, até você acertar com segurança.'}</p><button type="button" id="quero-conta">Criar minha conta</button>`;
+    // O rádio com foco ficou desativado: o foco vai para o retorno, que o leitor de tela lê em seguida.
+    $('#retorno-demonstracao').setAttribute('tabindex', '-1'); $('#retorno-demonstracao').focus({preventScroll: true});
+    $('#quero-conta').onclick = () => { cadastro = true; desenharFormulario(); irAoFormulario(); };
+  };
+}
+function desenharFormulario() {
+  const indisponivel = publico && !conexao.habilitado;
+  // Trocar entre entrar e criar conta não apaga o que já foi digitado.
+  const digitado = {nome: $('#nome')?.value || '', email: $('#email')?.value || ''};
+  if (!preencherLugar('formulario', `<h3 id="titulo-acesso">${cadastro ? 'Crie sua conta' : 'Entre para estudar'}</h3>
 ${indisponivel ? '<p class="nota" role="status">O acesso público está em configuração. Ainda não é possível entrar.</p>' : ''}
-<form id="acesso">
+<form id="acesso" aria-labelledby="titulo-acesso">
 ${cadastro ? '<label for="nome">Como você se chama?</label><input id="nome" name="nome" autocomplete="name" minlength="2" maxlength="80" required>' : ''}
 <label for="email">E-mail</label><input id="email" name="email" type="${cadastro ? 'email' : 'text'}" autocomplete="username" maxlength="232" spellcheck="false" autocapitalize="none" required>
 <label for="senha">Senha</label><input id="senha" name="senha" type="password" autocomplete="${cadastro ? 'new-password' : 'current-password'}" minlength="${cadastro ? 12 : 1}" maxlength="128" required>
@@ -381,27 +564,9 @@ ${cadastro ? '<label for="nome">Como você se chama?</label><input id="nome" nam
 <button type="submit" ${indisponivel ? 'disabled' : ''}>${cadastro ? 'Criar conta' : 'Entrar'}</button>
 <p id="erro-acesso" class="erro-campo" role="alert"></p>
 </form>
-<button class="discreto troca" id="trocar" type="button">${cadastro ? 'Já tenho uma conta' : 'Quero criar uma conta'}</button>
-<p class="privacidade"><small>É gratuito. Guardamos seu nome, e-mail e respostas para mostrar seu progresso. Use dados de teste nesta versão inicial. <a href="#privacidade">Dados e segurança</a></small></p>
-</section></div>
-<div class="faixa faixa-areia"><section class="experimente" aria-labelledby="titulo-experimente">
-<h2 id="titulo-experimente">Experimente uma questão</h2>
-<p class="rotulo">${escapar(q.materia)} · ${escapar(q.titulo)} · demonstração, não fica registrada</p>
-<div class="enunciado">${enunciadoHtml(q.enunciado, q)}</div>
-<fieldset id="demonstracao"><legend>Toque na alternativa que você marcaria</legend>${q.alternativas.map((a, i) => `<label class="alternativa"><input type="radio" name="demonstracao" value="${i}"><span class="letra">${letra(i)}</span><span class="texto">${escapar(a)}</span></label>`).join('')}</fieldset>
-<div id="retorno-demonstracao" class="retorno" aria-live="polite"></div>
-<p class="fonte"><a href="${escapar(q.fonte)}" target="_blank" rel="noopener noreferrer">Prova original no site do Inep</a></p>
-</section></div>
-</div>`);
-  ajustarFaixa();
-  $('#trocar').onclick = () => { cadastro = !cadastro; verEntrada(); $('#acesso input').focus(); };
-  $('#demonstracao').onchange = evento => {
-    const escolhida = Number(evento.target.value); const campo = $('#demonstracao');
-    $$('.alternativa', campo).forEach((alternativa, i) => { if (i === q.correta) alternativa.dataset.correcao = 'correta'; else if (i === escolhida) alternativa.dataset.correcao = 'errada'; });
-    campo.disabled = true;
-    $('#retorno-demonstracao').innerHTML = `<p class="${escolhida === q.correta ? 'acerto' : 'engano'}"><strong>${escolhida === q.correta ? 'Certa!' : `Não foi essa. A certa é a ${letra(q.correta)}.`}</strong> No PU, uma questão errada volta na revisão no dia seguinte, até você acertar com segurança.</p><button type="button" id="quero-conta">Criar minha conta</button>`;
-    $('#quero-conta').onclick = () => { cadastro = true; verEntrada(); subir(); $('#acesso input').focus(); };
-  };
+<button class="discreto troca" id="trocar" type="button">${cadastro ? 'Já tenho uma conta' : 'Quero criar uma conta'}</button>`)) return;
+  for (const [campo, valor] of Object.entries(digitado)) { const e = $('#' + campo); if (e && valor) e.value = valor; }
+  $('#trocar').onclick = () => { cadastro = !cadastro; desenharFormulario(); $('#acesso input').focus(); };
   $('#acesso').onsubmit = async evento => {
     evento.preventDefault();
     const form = evento.currentTarget; const botao = $('button', form); const campoErro = $('#erro-acesso');
@@ -582,6 +747,7 @@ ${temImagens ? '<div class="originais"><p id="estado-original" class="secundario
   $('#pular', area).onclick = () => { itens.forEach(item => estado.puladas.add(item.id)); if (estado.primeira === q.id) estado.primeira = null; subir(); abrirProxima(); };
   const enviar = async chute => {
     if (enviando || !completo() || !figurasProntas) return;
+    som.preparar();   // ainda dentro do gesto: a correção chega depois, pela rede
     enviando = true; liberar(); conferir.textContent = 'Conferindo…'; conferir.classList.add('esperando'); retorno.textContent = '';
     enviadas ??= itens.map(item => ({id: item.id, alternativa: marcada(item)}));
     // Depois do primeiro envio a alternativa fica travada: se a resposta chegou ao servidor, o reenvio é o mesmo.
@@ -639,12 +805,14 @@ ${temImagens ? '<div class="originais"><p id="estado-original" class="secundario
     retorno.textContent = '';
     if (conjunto) {
       for (const resultado of resultados) { const item = itens.find(x => x.id === resultado.id); revelar(resultado, item, `<p class="${resultado.acerto ? 'acerto' : 'engano'}"><strong>${resultado.acerto ? 'Certa!' : `Não foi essa. A certa é a ${letra(resultado.correta)}.`}</strong></p>`); }
+      som.tocar(resultados.every(r => r.acerto) ? 'acerto' : 'erro');
       anunciar(`Você acertou ${resultados.filter(r => r.acerto).length} de ${resultados.length} perguntas. A correção está abaixo de cada uma.`);
       seguir(); return mostrar($('.correcao', form));
     }
     const resultado = resultados[0]; const item = itens[0]; const secao = $(`[data-questao="${item.id}"]`, form); const campo = $('fieldset', secao);
     if (resultado.acerto) {
       revelar(resultado, item, `<p class="acerto"><strong>Certa!</strong>${chute ? ' Como foi chute, ela ainda passa pela revisão.' : ''}</p>`);
+      som.tocar('acerto');
       anunciar(chute ? 'Certa! Como foi chute, ela ainda passa pela revisão.' : 'Certa!');
       seguir(); return mostrar($('.correcao', secao));
     }
@@ -655,11 +823,14 @@ ${temImagens ? '<div class="originais"><p id="estado-original" class="secundario
     $$('input', campo).forEach((entrada, i) => { entrada.checked = false; entrada.disabled = i === escolhida; });
     $('.correcao', secao).innerHTML = '<p class="engano"><strong>Não foi essa.</strong> Quer tentar outra antes de ver a resposta? Toque numa alternativa (não muda o seu resultado) ou em Ver resposta.</p>';
     barraAcao.innerHTML = '<button type="button" class="primaria" id="ver-resposta">Ver resposta</button>';
+    som.tocar('erro');
     anunciar('Não foi essa. Escolha outra alternativa para tentar mais uma vez, ou veja a resposta.');
     mostrar($('.correcao', secao)); $('input:not(:disabled)', campo)?.focus({preventScroll: true});
     const fechar = segunda => {
       form.onchange = null;
       const agora = segunda === resultado.correta;
+      // Segunda tentativa: a correção também aparece na hora. "Ver resposta" não toca de novo.
+      if (segunda !== null) som.tocar(agora ? 'acerto' : 'erro');
       revelar(resultado, item, agora ? `<p class="acerto"><strong>Agora sim: é a ${letra(resultado.correta)}.</strong></p>` : `<p class="engano"><strong>${segunda === null ? '' : 'Também não. '}A certa é a ${letra(resultado.correta)}.</strong></p>`);
       $$('input', campo).forEach(entrada => { entrada.checked = false; });
       anunciar(agora ? `Agora sim: é a ${letra(resultado.correta)}.` : `A certa é a ${letra(resultado.correta)}. Ela volta na sua revisão amanhã.`);
@@ -833,6 +1004,9 @@ function baixarLembrete(hora) {
 async function verConta() {
   tela(`<h1>Sua conta</h1><p class="lide">${escapar(painel.conta.nome)}</p>
 <h2>Meta do dia</h2><p class="secundario">Quantas questões contam como o dia feito. Comece pequeno: dá para fazer mais quando quiser.</p><div class="modos" role="group" aria-label="Meta diária de questões">${[3, 5, 10, 20].map(n => `<button type="button" class="ficha" data-meta="${n}" aria-pressed="${prefs.meta === n}">${n} questões</button>`).join('')}</div>
+<h2>Tema</h2><p class="secundario">Vale para as telas de estudo neste navegador. No automático, o PU fica diurno, com fundo branco, das 6h às 18h e noturno, com fundo preto, das 18h às 6h.</p><fieldset class="escolha-tema"><legend class="oculto">Tema</legend>${Object.entries(TEMAS).map(([valor, nome]) => `<label class="opcao-tema"><input type="radio" name="tema" value="${valor}"${prefs.tema === valor ? ' checked' : ''}><span>${nome}</span></label>`).join('')}</fieldset>
+<div class="bloco-fuso" id="bloco-fuso"${prefs.tema === 'automatico' ? '' : ' hidden'}><label for="fuso">Fuso horário</label><select id="fuso" aria-describedby="hora-fuso">${opcoesDeFuso()}</select><p class="secundario" id="hora-fuso"></p></div>
+<h2>Sons</h2><p class="secundario">Um som curto quando a correção aparece logo depois de responder, um para acerto e outro para erro. O simulado não tem som.</p><div class="modos"><button type="button" class="ficha" role="switch" id="sons" aria-checked="${prefs.sons !== false}">Sons de acerto e erro</button></div>
 ${publico && !matchMedia('(display-mode: standalone)').matches ? '<h2>PU a um toque</h2><p class="secundario">No celular, abra o menu do navegador e escolha “Adicionar à tela inicial”. O PU vira um ícone e abre direto na questão do dia.</p>' : ''}
 <h2>Lembrete diário</h2><p class="secundario">O PU não envia notificações. Escolha um horário e baixe um evento que se repete todo dia; ao abrir o arquivo, ele entra no calendário do seu celular ou computador, com o aviso na hora marcada.</p><div class="lembrete"><label for="hora-lembrete">Horário</label><input id="hora-lembrete" type="time" value="${escapar(prefs.lembrete || '19:00')}"><button type="button" class="discreto" id="criar-lembrete">Baixar lembrete</button></div>
 <h2>Atalhos do teclado</h2><p class="secundario">No computador, as teclas A a E marcam a alternativa e Enter confere.</p><div class="modos" role="group" aria-label="Atalhos do teclado"><button type="button" class="ficha" id="atalhos" aria-pressed="${prefs.atalhos !== false}">Letras A a E ${prefs.atalhos !== false ? 'ligadas' : 'desligadas'}</button></div>
@@ -840,6 +1014,24 @@ ${publico && !matchMedia('(display-mode: standalone)').matches ? '<h2>PU a um to
 <h2>Dados e saída</h2><div class="acoes"><a class="botao discreto" href="#privacidade">Dados e segurança</a><button type="button" class="discreto" id="sair">Sair da conta</button></div>`);
   $$('[data-meta]').forEach(b => b.onclick = () => { prefs.meta = Number(b.dataset.meta); prefs.alvo = null; acertarAlvo(); $$('[data-meta]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); informar(`Meta do dia: ${prefs.meta} questões.`); });
   $('#criar-lembrete').onclick = () => { const hora = $('#hora-lembrete').value; if (!/^\d{2}:\d{2}$/.test(hora)) { informar('Escolha um horário para o lembrete.', true); return; } prefs.lembrete = hora; salvarPrefs(); baixarLembrete(hora); informar(`Lembrete das ${hora} baixado. Abra o arquivo para colocá-lo no calendário.`); };
+  $$('input[name="tema"]').forEach(entrada => entrada.onchange = () => {
+    if (!entrada.checked) return;
+    prefs.tema = entrada.value; salvarPrefs(); aplicarTema();
+    $('#bloco-fuso').hidden = prefs.tema !== 'automatico'; mostrarHoraDoFuso();
+    informar(`Tema: ${TEMAS[prefs.tema]}${prefs.tema === 'automatico' ? `, agora ${temaEmVigor()}` : ''}.`);
+  });
+  $('#fuso').onchange = evento => {
+    prefs.fuso = fusoValido(evento.target.value) ? evento.target.value : ''; salvarPrefs(); aplicarTema(); mostrarHoraDoFuso();
+    informar(`Fuso: ${prefs.fuso ? nomeDoFuso(prefs.fuso) : 'o do navegador'}.`);
+  };
+  $('#fuso').value = prefs.fuso; setTimeout(() => completarFusos($('#fuso')), 0);
+  mostrarHoraDoFuso(); aplicarTema();
+  $('#sons').onclick = evento => {
+    prefs.sons = prefs.sons === false; salvarPrefs(); evento.currentTarget.setAttribute('aria-checked', String(prefs.sons));
+    // Ao ligar, toca o de acerto: serve de amostra e já libera o áudio neste gesto.
+    if (prefs.sons) { som.preparar(); som.tocar('acerto'); }
+    informar(`Sons de acerto e erro ${prefs.sons ? 'ligados' : 'desligados'}.`);
+  };
   $('#atalhos').onclick = evento => { prefs.atalhos = prefs.atalhos === false; salvarPrefs(); evento.currentTarget.setAttribute('aria-pressed', String(prefs.atalhos)); evento.currentTarget.textContent = `Letras A a E ${prefs.atalhos ? 'ligadas' : 'desligadas'}`; };
   $('#sair').onclick = async () => {
     // Mesmo sem rede, o aparelho é limpo: num celular dividido, nada fica para a próxima pessoa.
@@ -861,12 +1053,16 @@ ${publico && !matchMedia('(display-mode: standalone)').matches ? '<h2>PU a um to
 }
 function verPrivacidade() {
   tela(`<h1>Seus dados e sua segurança</h1>
-<h2>O que guardamos e para quê</h2><p>Nome, e-mail, senha guardada de forma protegida (ninguém consegue ler), sessão e respostas com data, incluindo quando você marca “Chutei”. Usamos esses dados para acesso à conta, histórico, revisão, perfil de aprendizagem e comparação coletiva semanal. O perfil é calculado por matéria e assunto; não determina capacidade ou diagnóstico.</p>
-<h2>Onde passam os dados</h2><p>O navegador conversa com uma conexão HTTPS intermediária. Pedidos e respostas passam temporariamente por uma fila; o conector do PC os leva ao servidor. Contas e histórico ficam no banco da instalação do PU. O PC precisa estar ligado.</p>
-<h2>Proteção e compartilhamento</h2><p>O navegador não recebe banco, senhas protegidas, respostas de outros alunos ou gabaritos antes da correção. A única exceção é a questão de demonstração da página de entrada, que é pública e não fica registrada. O servidor verifica a sessão em cada pedido. A comparação mostra apenas médias agregadas de grupos com pelo menos cinco usuários e exclui a conta de teste. Não há envio das respostas a modelos de IA nesta funcionalidade.</p>
-<h2>Sessão e armazenamento</h2><p>A sessão dura até 30 dias e pode ser encerrada em Sair da conta. Para abrir rápido, este navegador guarda seu resumo de estudo, suas preferências (como a meta do dia), as próximas questões e um simulado em andamento; no acesso público, guarda também a credencial de sessão. Sair da conta apaga do aparelho o resumo, as questões, o simulado e a credencial (as preferências ficam, separadas por conta); o seu histórico continua guardado na conta e volta quando você entrar de novo. Se você divide o celular ou o computador com alguém, use Sair da conta ao terminar. A conta de teste é compartilhada: use somente dados fictícios nela. O histórico fica guardado entre reinícios. Prazos definitivos de retenção, exclusão de cópias e canal de atendimento ainda precisam ser definidos pela administração.</p>
-<h2>Crianças e adolescentes</h2><p>O tratamento deve respeitar o melhor interesse de crianças e adolescentes. A operação para esse público depende de definição da base legal, procedimento adequado à idade e comunicação com responsáveis quando aplicável. Esses procedimentos ainda estão em revisão: use somente dados de teste nesta versão.</p>
-<h2>Seus direitos</h2><p>Você pode solicitar informações, acesso, correção e exclusão, observadas as condições legais. O canal específico e o responsável pelo tratamento ainda estão pendentes de definição. Esta página descreve o funcionamento atual e não certifica conformidade integral com a LGPD.</p>
+<h2>O que o PU guarda e para quê</h2><p>Na sua conta ficam o nome, o e-mail, a senha guardada só como resumo protegido (scrypt, com sal próprio de cada conta), as sessões abertas, os navegadores autorizados com a data do primeiro e do último uso, e cada resposta com data e hora, inclusive quando você marca “Chutei”. Com isso o PU abre a sua conta, mostra o histórico, monta a revisão, calcula o seu desempenho por matéria e assunto e faz a comparação semanal. O desempenho por assunto não mede capacidade e não é diagnóstico.</p>
+<p>No banco do PU, a senha não fica escrita: quem administra o PU vê só o resumo, que não se desfaz de volta em senha. Uma senha curta ou comum ainda pode ser adivinhada a partir do resumo, por isso o PU pede pelo menos 12 caracteres.</p>
+<h2>Por onde os seus dados passam</h2><p>No endereço público, o navegador não fala direto com o PU. Cada pedido vai por HTTPS a um intermediário hospedado num serviço de terceiros, numa conta que não é da Ginga Mídia, e fica numa fila até o conector do PU buscá-lo, o que costuma levar poucos segundos. Pedido que ninguém buscou vence em 35 segundos. Nesse caminho passam o e-mail e a senha quando você entra ou cria a conta, a sessão em todo pedido e, na volta, o seu nome e o resumo de estudo. Enquanto estão na fila, quem administra o intermediário consegue ler esses dados, a senha também. O PU não controla os registros nem as cópias que esse serviço faz. Por isso, crie para o PU uma senha que você não usa em nenhum outro lugar.</p>
+<p>A conta e o histórico ficam no banco do PU, no computador onde ele roda, que precisa estar ligado para atender. Cada conta tem ali também um espaço separado com a última cópia do resumo de estudo, sem senha e sem sessão.</p>
+<h2>O que fica protegido</h2><p>O navegador não recebe o banco, o resumo das senhas, as respostas de outros estudantes nem o gabarito de uma questão antes de você responder. A exceção é a questão de demonstração da página de entrada, que é pública e não fica registrada. O servidor confere a sessão em todo pedido de dados da conta. A comparação semanal mostra só médias de assuntos com pelo menos cinco estudantes e deixa a conta de teste de fora. As respostas não vão para nenhum modelo de IA. Os registros de funcionamento do PU guardam a hora, o tipo do evento e o resultado, sem nome, e-mail, senha, sessão ou endereço de internet.</p>
+<h2>Sessão e o que fica no aparelho</h2><p>Ao entrar, você ganha uma sessão que vale 30 dias. Enquanto você está conectado, este navegador guarda o seu nome e o resumo de estudo, as próximas questões, o simulado em andamento com as correções que já chegaram e, no endereço público, a sessão. A sessão fica no armazenamento comum do navegador, que o código desta página consegue ler; o PU não carrega código de outros sites.</p>
+<p>Sair da conta encerra a sessão no servidor e apaga do aparelho a sessão, o resumo, as questões e o simulado. Continuam no aparelho as suas preferências (como a meta do dia), separadas por conta, e o código que identifica este navegador, que sozinho não abre a conta. O histórico continua na conta e volta quando você entrar de novo. Em Conta, você vê os navegadores autorizados, até cinco, e pode revogar cada um, o que encerra as sessões dele. Se você divide o celular ou o computador, use Sair da conta ao terminar. A conta de teste é compartilhada: nela, use só dados inventados.</p>
+<h2>Por quanto tempo e como apagar</h2><p>Ainda não há prazo definido para guardar os dados. O histórico continua guardado quando o PU reinicia, e uma cópia cifrada do banco é feita a cada hora no mesmo computador; nenhuma cópia é apagada sozinha. Ainda não há botão para apagar a conta, trocar a senha ou recuperar a senha esquecida. A administração do PU vai definir o prazo de guarda, a exclusão das cópias e o canal para esses pedidos.</p>
+<h2>Crianças e adolescentes</h2><p>Muitos estudantes de vestibular têm menos de 18 anos. O PU ainda não pergunta a idade nem pede a ciência de um responsável. As regras para esse público, que precisam seguir a LGPD e o melhor interesse de crianças e adolescentes, ainda estão em definição. Até lá, use só dados de teste nesta versão.</p>
+<h2>Seus direitos</h2><p>A LGPD garante a você saber quais dados o PU tem e pedir acesso, correção e exclusão. Ainda não há canal definido nem responsável nomeado para receber esses pedidos, e a exclusão de conta ainda não existe no PU. Esta página descreve como o PU funciona hoje e não atesta conformidade com a LGPD.</p>
 <p><a href="https://www.gov.br/anpd/pt-br/assuntos/noticias/anpd-divulga-enunciado-sobre-o-tratamento-de-dados-pessoais-de-criancas-e-adolescentes" target="_blank" rel="noopener noreferrer">Orientação da ANPD sobre crianças e adolescentes</a></p>
 <div class="acoes"><a class="botao" href="#estudar">${painel ? 'Voltar ao estudo' : 'Voltar à entrada'}</a></div>`);
 }
@@ -874,14 +1070,21 @@ function verNota() { tela(''); PUSimulador.mostrar(conteudo); }
 
 // ---------- Navegação ----------
 const ROTAS = {'#estudar': verEstudo, '#progresso': verProgresso, '#simulado': verSimulado, '#nota': verNota, '#conta': verConta, '#privacidade': verPrivacidade};
-const APELIDOS = {'': '#estudar', '#inicio': '#estudar', '#questoes': '#estudar', '#dispositivos': '#conta'};
+const APELIDOS = {'': '#estudar', '#inicio': '#estudar', '#questoes': '#estudar', '#dispositivos': '#conta', '#entrar': '#estudar', '#criar-conta': '#estudar'};
+// Endereço para links de outras páginas: /?criar-conta abre a entrada já no cadastro (sem rota nova). Vale uma vez, ao abrir.
+let pedidoDeCadastro = new URLSearchParams(location.search).has('criar-conta');
 function navegar() {
   if (location.hash === '#principal') return;
   let destino = APELIDOS[location.hash] ?? location.hash;
   if (!ROTAS[destino]) destino = '#estudar';
   marcarMenu(destino);
+  const pedido = pedidoDeCadastro; pedidoDeCadastro = false;
   if (destino === '#privacidade') { verPrivacidade(); return subir(); }
-  if (!painel) return verEntrada();
+  if (!painel) {
+    // #entrar e #criar-conta levam ao formulário; ?criar-conta abre no cadastro.
+    if (location.hash === '#criar-conta' || (pedido && location.hash !== '#entrar')) cadastro = true; else if (location.hash === '#entrar') cadastro = false;
+    return verEntrada({rolar: pedido || ['#entrar', '#criar-conta'].includes(location.hash)});
+  }
   ROTAS[destino](); subir();
 }
 window.addEventListener('hashchange', navegar);
@@ -916,6 +1119,8 @@ document.addEventListener('visibilitychange', () => {
     atualizar().then(() => { if (!estado.atual && !relogio && ['', '#estudar', '#inicio', '#questoes'].includes(location.hash)) navegar(); else atualizarCabecalhoEstudo(); }).catch(e => { if (painel) erro(e); });
     return;
   }
+  // Sem conta para retomar: tira o tema que o tema-inicial.js tenha posto (a entrada fica sem tema).
+  aplicarTema();
   if (publico) {
     if (conexao.habilitado && sessao) {
       menu.hidden = true; document.body.classList.add('sem-sessao');
@@ -926,5 +1131,5 @@ document.addEventListener('visibilitychange', () => {
     return;
   }
   tela('<p class="espera" role="status">Abrindo o PU…</p>');
-  atualizar().then(navegar).catch(e => { if (!painel) verEntrada(); if (e.status !== 401) erro(e); });
+  atualizar().then(navegar).catch(e => { if (!painel) navegar(); if (e.status !== 401) erro(e); });
 })();

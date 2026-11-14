@@ -1,0 +1,497 @@
+{
+ "dia": {
+  "cores": {
+   "papel": "#FFFFFF",
+   "areia": "#F7F6F3",
+   "tinta": "#000000",
+   "grafite": "#2F3437",
+   "cinza": "#6B6A67",
+   "fio": "#858480",
+   "linha": "#EAEAEA",
+   "azul-mar": "#2747F5",
+   "laranja-boia": "#FF6A2B",
+   "amarelo-sol": "#FFC93C",
+   "rosa-goiaba": "#FF6F9F",
+   "roxo-ipe": "#7A4DF0",
+   "azul-mar-claro": "#E3E9FF",
+   "amarelo-claro": "#FFF3CC",
+   "rosa-claro": "#FFE5EE",
+   "roxo-claro": "#EEE7FF",
+   "laranja-claro": "#FFE9DE",
+   "acerto": "#00695F",
+   "acerto-fundo": "#D2EFEA",
+   "erro": "#B3261E",
+   "erro-fundo": "#FFF0E8",
+   "marcado": "#8A5A00",
+   "marcado-fundo": "#FBF3DB",
+   "dica": "#1F5FA0",
+   "dica-fundo": "#E1F3FE",
+   "foco": "#2747F5",
+   "destaque": "#111111",
+   "sobre-destaque": "#FFFFFF",
+   "folha": "#FBFBFA"
+  },
+  "decoracao": [
+   "azul-mar",
+   "laranja-boia",
+   "amarelo-sol",
+   "rosa-goiaba",
+   "roxo-ipe"
+  ],
+  "pares": [
+   [
+    "grafite",
+    "papel",
+    4.5,
+    "texto principal"
+   ],
+   [
+    "grafite",
+    "areia",
+    4.5,
+    "texto em faixa de areia"
+   ],
+   [
+    "cinza",
+    "papel",
+    4.5,
+    "texto secundário"
+   ],
+   [
+    "cinza",
+    "areia",
+    4.5,
+    "texto secundário na areia"
+   ],
+   [
+    "tinta",
+    "papel",
+    4.5,
+    "título de cartaz"
+   ],
+   [
+    "sobre-destaque",
+    "destaque",
+    4.5,
+    "botão principal"
+   ],
+   [
+    "papel",
+    "azul-mar",
+    4.5,
+    "texto branco sobre azul-mar (faixa, selo)"
+   ],
+   [
+    "tinta",
+    "amarelo-sol",
+    4.5,
+    "texto preto sobre amarelo-sol"
+   ],
+   [
+    "tinta",
+    "laranja-boia",
+    4.5,
+    "texto preto sobre laranja-boia"
+   ],
+   [
+    "tinta",
+    "rosa-goiaba",
+    4.5,
+    "texto preto sobre rosa-goiaba"
+   ],
+   [
+    "papel",
+    "roxo-ipe",
+    4.5,
+    "texto branco sobre roxo-ipê"
+   ],
+   [
+    "grafite",
+    "azul-mar-claro",
+    4.5,
+    "texto em faixa azul-mar-claro"
+   ],
+   [
+    "grafite",
+    "amarelo-claro",
+    4.5,
+    "texto em faixa amarela"
+   ],
+   [
+    "grafite",
+    "rosa-claro",
+    4.5,
+    "texto em faixa rosa"
+   ],
+   [
+    "grafite",
+    "roxo-claro",
+    4.5,
+    "texto em faixa roxa"
+   ],
+   [
+    "grafite",
+    "laranja-claro",
+    4.5,
+    "texto em faixa laranja"
+   ],
+   [
+    "azul-mar",
+    "papel",
+    4.5,
+    "texto azul-mar (chamada, link) no papel"
+   ],
+   [
+    "roxo-ipe",
+    "papel",
+    4.5,
+    "texto roxo no papel"
+   ],
+   [
+    "acerto",
+    "papel",
+    4.5,
+    "texto de acerto"
+   ],
+   [
+    "acerto",
+    "acerto-fundo",
+    4.5,
+    "rótulo de acerto"
+   ],
+   [
+    "erro",
+    "papel",
+    4.5,
+    "texto de erro"
+   ],
+   [
+    "erro",
+    "erro-fundo",
+    4.5,
+    "rótulo de erro"
+   ],
+   [
+    "marcado",
+    "marcado-fundo",
+    4.5,
+    "marcado"
+   ],
+   [
+    "dica",
+    "dica-fundo",
+    4.5,
+    "dica"
+   ],
+   [
+    "foco",
+    "papel",
+    3.0,
+    "anel de foco (não texto)"
+   ],
+   [
+    "fio",
+    "papel",
+    3.0,
+    "contorno de controle (não texto)"
+   ],
+   [
+    "azul-mar",
+    "papel",
+    3.0,
+    "forma decorativa"
+   ],
+   [
+    "laranja-boia",
+    "papel",
+    2.0,
+    "forma decorativa grande (sem informação)"
+   ],
+   [
+    "papel",
+    "acerto",
+    4.5,
+    "letra branca sobre o acerto"
+   ],
+   [
+    "papel",
+    "erro",
+    4.5,
+    "letra branca sobre o erro"
+   ],
+   [
+    "acerto",
+    "areia",
+    4.5,
+    "acerto na faixa"
+   ],
+   [
+    "erro",
+    "areia",
+    4.5,
+    "erro na faixa"
+   ],
+   [
+    "grafite",
+    "folha",
+    4.5,
+    "texto na folha da questão"
+   ],
+   [
+    "cinza",
+    "folha",
+    4.5,
+    "secundário na folha"
+   ]
+  ]
+ },
+ "noite": {
+  "cores": {
+   "noite": "#000000",
+   "superficie": "#141414",
+   "faixa": "#1C1B19",
+   "texto": "#EDECE9",
+   "cinza": "#ABAAA5",
+   "fio": "#8F8E89",
+   "linha": "#7A7975",
+   "tinta": "#000000",
+   "papel": "#FFFFFF",
+   "azul-mar": "#6E86FF",
+   "laranja-boia": "#FF8A52",
+   "amarelo-sol": "#FFD45C",
+   "rosa-goiaba": "#FF8DB4",
+   "roxo-ipe": "#A78BFF",
+   "azul-mar-escuro": "#101A4D",
+   "amarelo-escuro": "#3A2C00",
+   "rosa-escuro": "#3D0F22",
+   "roxo-escuro": "#221448",
+   "laranja-escuro": "#3D1A08",
+   "acerto": "#3CCFC0",
+   "acerto-fundo": "#062A28",
+   "erro": "#FF7B72",
+   "erro-fundo": "#3D1408",
+   "marcado": "#F2C04B",
+   "marcado-fundo": "#2E2300",
+   "dica": "#7CC0F5",
+   "dica-fundo": "#0B2236",
+   "foco": "#8FA2FF",
+   "destaque": "#EDECE9",
+   "sobre-destaque": "#000000",
+   "painel": "#111111",
+   "folha": "#0B0B0B"
+  },
+  "decoracao": [
+   "azul-mar",
+   "laranja-boia",
+   "amarelo-sol",
+   "rosa-goiaba",
+   "roxo-ipe"
+  ],
+  "pares": [
+   [
+    "texto",
+    "noite",
+    4.5,
+    "texto principal"
+   ],
+   [
+    "texto",
+    "superficie",
+    4.5,
+    "texto em superfície"
+   ],
+   [
+    "texto",
+    "faixa",
+    4.5,
+    "texto em faixa"
+   ],
+   [
+    "cinza",
+    "noite",
+    4.5,
+    "texto secundário"
+   ],
+   [
+    "cinza",
+    "superficie",
+    4.5,
+    "secundário em superfície"
+   ],
+   [
+    "sobre-destaque",
+    "destaque",
+    4.5,
+    "botão principal"
+   ],
+   [
+    "tinta",
+    "azul-mar",
+    4.5,
+    "texto preto sobre azul-mar"
+   ],
+   [
+    "tinta",
+    "amarelo-sol",
+    4.5,
+    "texto preto sobre amarelo"
+   ],
+   [
+    "tinta",
+    "laranja-boia",
+    4.5,
+    "texto preto sobre laranja"
+   ],
+   [
+    "tinta",
+    "rosa-goiaba",
+    4.5,
+    "texto preto sobre rosa"
+   ],
+   [
+    "tinta",
+    "roxo-ipe",
+    4.5,
+    "texto preto sobre roxo"
+   ],
+   [
+    "texto",
+    "azul-mar-escuro",
+    4.5,
+    "texto em faixa azul"
+   ],
+   [
+    "texto",
+    "amarelo-escuro",
+    4.5,
+    "texto em faixa amarela"
+   ],
+   [
+    "texto",
+    "rosa-escuro",
+    4.5,
+    "texto em faixa rosa"
+   ],
+   [
+    "texto",
+    "roxo-escuro",
+    4.5,
+    "texto em faixa roxa"
+   ],
+   [
+    "texto",
+    "laranja-escuro",
+    4.5,
+    "texto em faixa laranja"
+   ],
+   [
+    "azul-mar",
+    "noite",
+    4.5,
+    "texto azul-mar no fundo"
+   ],
+   [
+    "roxo-ipe",
+    "noite",
+    4.5,
+    "texto roxo no fundo"
+   ],
+   [
+    "acerto",
+    "noite",
+    4.5,
+    "texto de acerto"
+   ],
+   [
+    "acerto",
+    "acerto-fundo",
+    4.5,
+    "rótulo de acerto"
+   ],
+   [
+    "erro",
+    "noite",
+    4.5,
+    "texto de erro"
+   ],
+   [
+    "erro",
+    "erro-fundo",
+    4.5,
+    "rótulo de erro"
+   ],
+   [
+    "marcado",
+    "marcado-fundo",
+    4.5,
+    "marcado"
+   ],
+   [
+    "dica",
+    "dica-fundo",
+    4.5,
+    "dica"
+   ],
+   [
+    "foco",
+    "noite",
+    3.0,
+    "anel de foco"
+   ],
+   [
+    "fio",
+    "noite",
+    3.0,
+    "contorno de controle"
+   ],
+   [
+    "texto",
+    "painel",
+    4.5,
+    "texto em painel"
+   ],
+   [
+    "texto",
+    "folha",
+    4.5,
+    "texto na folha da questão"
+   ],
+   [
+    "cinza",
+    "folha",
+    4.5,
+    "secundário na folha"
+   ],
+   [
+    "acerto",
+    "folha",
+    4.5,
+    "acerto na folha"
+   ],
+   [
+    "erro",
+    "folha",
+    4.5,
+    "erro na folha"
+   ],
+   [
+    "tinta",
+    "acerto",
+    4.5,
+    "letra preta sobre o acerto"
+   ],
+   [
+    "tinta",
+    "erro",
+    4.5,
+    "letra preta sobre o erro"
+   ],
+   [
+    "linha",
+    "noite",
+    3.0,
+    "divisória (não texto)"
+   ]
+  ]
+ }
+}
