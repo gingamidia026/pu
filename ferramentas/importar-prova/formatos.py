@@ -120,12 +120,14 @@ class Formato:
         import fitz
         from midias import alternativas_visuais, extrair
         padrao = re.compile(r'^[' + letras + r'](?:\s|$)')
-        candidatas = []  # em ordem de leitura
+        candidatas = []  # em ordem de leitura: trecho, subcoluna das letras (A B C | D E), altura
         for t in trechos:
             ip, x0, y0, x1, y1 = t
-            for l in sorted(paginas[ip]['corpo'], key=lambda l: l[1]):
-                if x0 - 6 <= l[0] < x1 and y0 - 1 <= l[1] < y1 and padrao.match(l[4]):
-                    candidatas.append((l[4][0], (ip, l, t)))
+            achadas = [l for l in paginas[ip]['corpo'] if x0 - 6 <= l[0] < x1 and y0 - 1 <= l[1] < y1 and padrao.match(l[4])]
+            xs = sorted({l[0] for l in achadas})
+            cortes = [b for a, b in zip(xs, xs[1:]) if b - a > 60]
+            for l in sorted(achadas, key=lambda l: (sum(l[0] >= c for c in cortes), l[1])):
+                candidatas.append((l[4][0], (ip, l, t)))
         # A última sequência A, B, C... em ordem: um "A posição..." no quadro depois de E não vira alternativa
         ancoras, limite = {}, len(candidatas)
         for letra in reversed(letras):
