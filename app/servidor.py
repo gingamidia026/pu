@@ -355,7 +355,8 @@ class API(BaseHTTPRequestHandler):
                     try: lista=provas.gravar(con,conta['id'],dados.get('ativas'),RECORTE.siglas)
                     except ValueError as e: raise Erro(400,str(e))
                     con.commit()
-                    return self.enviar(200,{'ok':True,'provas':{'disponiveis':DISPONIVEIS,'ativas':lista}})
+                    # O painel novo vai junto: no endereço público, trocar de prova custa uma viagem só, e não duas.
+                    return self.enviar(200,{'ok':True,'provas':{'disponiveis':DISPONIVEIS,'ativas':lista},'painel':self.painel(con,conta)})
                 alvo=dados.get('id')
                 if dados.get('acao')!='revogar' or not isinstance(alvo,str):raise Erro(400,'Dispositivo inválido.')
                 if not con.execute('SELECT 1 FROM dispositivos WHERE conta=? AND id=? AND revogado=0',(conta['id'],alvo)).fetchone():raise Erro(404,'Dispositivo não encontrado.')

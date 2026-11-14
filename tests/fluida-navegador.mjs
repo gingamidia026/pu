@@ -43,6 +43,14 @@ q(2).explicacao = 'Explicação comentada da questão 2.';
 q(5).enunciado = 'Observe a figura.\n[[midia:0]]\nO que a figura mostra?'; q(5).imagens = [{hash: hashFigura, tipo: 'image/png', partes: 1}];
 q(7).enunciado = 'Texto longo copiado do caderno da prova, com linhas quebradas\npela coluna do PDF, que precisam voltar a ser um parágrafo só\nquando aparecem na tela do celular de quem estuda.\nSOBRENOME, N. Obra de teste. São Paulo: Editora, 2020.\nQual é o comando desta questão?';
 for (const id of [21, 22]) Object.assign(q(id), {grupo: 'grupo-teste', grupoIds: [21, 22], textoComum: 'Texto comum às duas perguntas do conjunto.', materia: 'História', area: 'Ciências Humanas', topico: 'Conjunto de História'});
+// Cinco provas no contrato (docs/PROVAS.md): as 24 acima são do Enem; 25 a 27 da Fuvest e 28 a 30 da Unicamp (quatro alternativas).
+for (const x of questoes) Object.assign(x, {prova: 'enem', edicao: 'Enem 2099', fonteNome: 'Inep'});
+for (let id = 25; id <= 30; id++) {
+  const [materia, area] = MATERIAS[id % 4]; const unicamp = id >= 28; const nome = unicamp ? 'Unicamp 2097' : 'Fuvest 2098';
+  questoes.push({id, chave: 'teste:' + id, prova: unicamp ? 'unicamp' : 'fuvest', edicao: nome, fonteNome: unicamp ? 'Comvest' : 'Fuvest', area, materia, topico: `Assunto ${id % 2 ? 'ímpar' : 'par'} de ${materia}`, titulo: `${nome} · Questão ${String(id).padStart(2, '0')}`, ano: unicamp ? 2097 : 2098, numero: id, oficial: true, extrator: 2,
+    enunciado: `Enunciado curto da questão ${id}.`, alternativas: ['alternativa um', 'alternativa dois', 'alternativa três', 'alternativa quatro', ...(unicamp ? [] : ['alternativa cinco'])], correta: id % (unicamp ? 4 : 5), explicacao: PLACEBO, imagens: [], textoParcial: false, textoComum: '', grupo: '', fonte: 'https://example.com/prova-' + id + '.pdf'});
+}
+const PROVA_DE = id => id >= 28 ? 'unicamp' : id >= 25 ? 'fuvest' : 'enem';
 fs.writeFileSync(path.join(pasta, 'catalogo/atual.json'), JSON.stringify({formato: 1, questoes, anuladas: 0, revisar: 0, versao: 'fluida'}));
 
 // ---------- Servidor do PU e servidor estático da entrada pública ----------
@@ -81,7 +89,7 @@ const trocou = '(id => { const e = document.querySelector(".questao:not(.esquele
 const idAtual = () => p.avaliar('Number(document.querySelector(".questao")?.dataset.id || 0)');
 const questaoPronta = () => p.esperar('document.querySelector(".questao:not(.esqueleto) #conferir, .questao:not(.esqueleto) #proxima")', 8000, 'questão pronta');
 const marcar = (id, alternativa) => p.clicar(`input[name="alternativa-${id}"][value="${alternativa}"]`);
-const errada = id => (q(id).correta + 1) % 5;
+const errada = id => (q(id).correta + 1) % q(id).alternativas.length;
 const letraDe = id => String.fromCharCode(65 + q(id).correta);
 const hoje = async () => (await p.texto('.ritmo-hoje strong')).trim();
 async function responder({acertar = true, chute = false} = {}) {
@@ -179,11 +187,13 @@ await item('entrada de 14/11: texto da apresentação no HTML, seções na ordem
   await p.tamanho(390, 844); await p.ir(URL_LOCAL); await p.esperar('document.querySelector("#acesso")'); await p.avaliar('document.fonts.ready');
   igual(await p.avaliar('[...document.querySelectorAll(".entrada section[id]")].map(s => s.id)'), SECOES_ENTRADA, 'seções na ordem do plano de páginas');
   igual(await p.avaliar('document.querySelectorAll(".entrada[data-estatica], [data-lugar=faixa-que-corre]").length'), 0, 'molde trocado pela página desenhada');
-  const provas = await p.avaliar(`({lista: PROVAS_NO_AR.map(x => x.prova + ' ' + x.edicao), total: PROVAS_NO_AR.reduce((s, x) => s + x.questoes, 0),
+  const provas = await p.avaliar(`({lista: PROVAS_NO_AR.map(x => x.prova), total: PROVAS_NO_AR.reduce((s, x) => s + x.questoes, 0),
     itens: [...document.querySelectorAll('.provas-lista li strong')].map(e => e.textContent), numero: document.querySelector('.numero-cartaz strong').textContent,
-    outras: (document.querySelector('.entrada').innerText.match(/Fuvest|USP|Unesp|Unicamp|Famerp/g) || [])})`);
+    detalhes: [...document.querySelectorAll('.provas-lista li span')].map(e => e.textContent)})`);
   igual(provas.itens, provas.lista, 'provas desenhadas a partir de PROVAS_NO_AR'); igual(provas.numero, provas.total.toLocaleString('pt-BR'), 'total do banco');
-  igual(provas.lista, ['Enem 2024', 'Enem 2025'], 'no ar hoje só o Enem 2024 e o 2025'); igual(provas.outras, [], 'nenhuma prova prometida antes de entrar no banco');
+  // Catálogo da frente provas (dados/catalogo/atual.json, 2.452 questões), que entra no ar com esta versão.
+  igual(provas.lista, ['Enem', 'Fuvest (USP)', 'Unesp', 'Unicamp', 'Famerp'], 'as cinco provas do catálogo novo'); igual(provas.numero, '2.452', 'total do catálogo novo');
+  igual(provas.detalhes[0], '5 edições, 2021 a 2025 · 887 questões', 'edições e questões do Enem'); igual(provas.detalhes[4], '4 edições, 2023 a 2026 · 320 questões', 'edições e questões da Famerp');
   const fontes = await p.avaliar(`({usadas: [...new Set([...document.querySelectorAll('body *')].filter(e => e.getClientRects().length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())).map(e => getComputedStyle(e).fontFamily.split(',')[0].replace(/"/g, '')))].sort(),
     baixadas: [...new Set([...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/"/g, '')))].sort()})`);
   igual(fontes.usadas, ['Atkinson Hyperlegible Next', 'Bricolage Grotesque'], 'só Bricolage e Atkinson na entrada'); igual(fontes.baixadas, ['Atkinson Hyperlegible Next', 'Bricolage Grotesque'], 'Newsreader e JetBrains Mono não baixam');
@@ -784,6 +794,103 @@ await item('capturas da conta e da questão corrigida em diurno e noturno, em 39
   await p.tamanho(390, 844); await abrirConta(); await escolherTema('automatico'); await dormir(300);
   certo(await p.avaliar('!document.querySelector("#bloco-fuso").hidden'), 'fuso no automático');
   if (CAPTURAS) await p.captura(path.join(CAPTURAS, 'tema-conta-automatico-390.png'));
+});
+// ---------- Provas que a pessoa vai prestar (frente provas-interface, 14/11/2026) ----------
+// Contrato da frente provas (docs/PROVAS.md). No catálogo do teste: Enem 1–24, Fuvest 25–27, Unicamp 28–30.
+const marcadasNaTela = () => p.avaliar('[...document.querySelectorAll(".opcao-prova input")].filter(c => c.checked).map(c => c.value)');
+const estadoProvas = () => p.avaliar('document.querySelector("#estado-provas")?.dataset.estado');
+const provasNoBanco = () => sql(`SELECT ativas FROM provas_ativas WHERE conta=(SELECT id FROM contas WHERE nome='Provas')`).map(l => JSON.parse(l[0]))[0] || 'todas';
+const idsDoPainel = expressao => p.avaliar(`(() => { const p = ${expressao}; return [...new Set([...p.densidade.pendentes, ...p.estudo.revisao.vencidas, ...p.indice.curtas, ...p.indice.materias.flatMap(m => m.topicos.flatMap(t => t.ids))])].sort((a, b) => a - b); })()`);
+await item('provas: conta nova com todas marcadas, cada prova com edições e questões, contraste AA e sem rolagem lateral', async () => {
+  await abrirConta(); await p.clicar('#sair'); await p.esperar('document.querySelector("#acesso")'); await cadastrar('Provas');
+  await abrirConta(); await p.esperar('document.querySelector(".opcao-prova")');
+  igual(await p.avaliar('[...document.querySelectorAll(".opcao-prova")].map(e => e.dataset.prova)'), ['enem', 'fuvest', 'unicamp'], 'provas do catálogo, na ordem do contrato');
+  igual(await marcadasNaTela(), ['enem', 'fuvest', 'unicamp'], 'todas marcadas por padrão'); igual(provasNoBanco(), 'todas', 'sem escolha gravada: padrão do servidor');
+  igual(await p.avaliar('[...document.querySelectorAll(".opcao-prova .nome")].map(e => e.textContent)'), ['Enem', 'Fuvest (USP)', 'Unicamp'], 'nomes');
+  igual(await p.avaliar('document.querySelector("[data-prova=unicamp] .detalhe").textContent'), '1 edição, 2097 · 3 questões', 'edições e questões');
+  certo((await p.texto('#estado-provas')).startsWith('Todas as 3 provas marcadas: 30 questões'), 'resumo da escolha');
+  // Caixa de marcar de verdade, com nome acessível vindo do cartão.
+  igual(await nomeAcessivel('[data-prova=fuvest] input'), 'Fuvest (USP)', 'nome acessível da caixa');
+  igual(await p.avaliar('[...new Set([...document.querySelectorAll(".escolha-provas *")].filter(e => e.getClientRects().length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())).map(e => getComputedStyle(e).fontFamily.split(",")[0].replace(/"/g, "")))].sort()'), ['Atkinson Hyperlegible Next', 'Bricolage Grotesque'], 'só Bricolage e Atkinson');
+  for (const tema of ['diurno', 'noturno']) {
+    await escolherTema(tema);
+    for (const largura of [320, 390, 768, 1440]) {
+      await p.tamanho(largura, largura < 800 ? 844 : 900); await dormir(300);
+      certo(await p.semRolagemLateral(), `conta sem rolagem lateral em ${largura} no ${tema}`);
+      igual(await varrerContraste(), [], `texto abaixo de 4,5:1 na conta em ${largura} no ${tema}`);
+      // Captura do alto da conta (faixa da tela e a escolha de provas), numa janela alta o bastante para a seção inteira.
+      if (CAPTURAS) { await p.tamanho(largura, largura < 800 ? 1500 : 1000); await p.avaliar('scrollTo(0, 0)'); await dormir(250); await p.captura(path.join(CAPTURAS, `provas-conta-${tema}-${largura}.png`), false); }
+    }
+  }
+  await p.tamanho(390, 844); await escolherTema('automatico');
+});
+await item('provas: desligar a Unicamp tira as questões dela na hora (estudo, revisão, índice, simulado) e o servidor grava', async () => {
+  // Uma rodada de simulado em andamento com questões da Unicamp, e uma da Unicamp esperando na revisão.
+  await p.avaliar('(() => { simulado = {conta: painel.conta.id, ids: [28, 1, 29, 2], respostas: {}, atual: 0, gasto: 0, criado: Date.now(), fim: null}; salvarSimulado(); painel.estudo.revisao.vencidas.push(30); })()');
+  const antes = await p.avaliar('sortearSimulado()');
+  await p.clicar('[data-prova=unicamp] input');
+  // Na hora, antes do servidor: nada da Unicamp no painel do aparelho.
+  igual((await idsDoPainel('painel')).filter(i => PROVA_DE(i) === 'unicamp'), [], 'painel do aparelho sem a Unicamp na hora');
+  igual(await p.avaliar('simulado.ids'), [1, 2], 'simulado em andamento sem as que faltavam da Unicamp');
+  igual(await p.avaliar('sortearSimulado().filter(i => i >= 28)'), [], 'sorteio do simulado sem a Unicamp');
+  certo(JSON.stringify(antes) !== JSON.stringify(await p.avaliar('sortearSimulado()')) || !antes.some(i => i >= 28), 'sorteio mudou');
+  igual(await estadoProvas(), 'salvando', 'salvando'); igual(await marcadasNaTela(), ['enem', 'fuvest'], 'caixa desmarcada');
+  await p.esperar('document.querySelector("#estado-provas")?.dataset.estado === "salvo"', 8000, 'servidor confirmou');
+  igual(provasNoBanco(), ['enem', 'fuvest'], 'escolha gravada no servidor');
+  igual((await idsDoPainel('painel')).filter(i => PROVA_DE(i) === 'unicamp'), [], 'painel novo do servidor sem a Unicamp');
+  igual(await p.avaliar('JSON.parse(localStorage.getItem("pu.painel.v2")).provas.ativas'), ['enem', 'fuvest'], 'painel guardado no aparelho');
+  certo((await p.texto('#estado-provas')).startsWith('2 de 3 provas marcadas: 27 questões'), 'resumo atualizado');
+  if (CAPTURAS) for (const tema of ['diurno', 'noturno']) { await escolherTema(tema); await p.tamanho(390, 1500); await p.avaliar('scrollTo(0, 0)'); await dormir(250); await p.captura(path.join(CAPTURAS, `provas-conta-desligada-${tema}-390.png`), false); }
+  await p.tamanho(390, 844); await escolherTema('automatico');
+  await p.avaliar('(() => { simulado = null; salvarSimulado(); })()');
+  // Estudo: dez trocas de questão (Pular) sem nenhuma da Unicamp.
+  await p.avaliar('(() => { prefs.alvo.valor = 999; prefs.foco = null; estado.puladas.clear(); location.hash = "#estudar"; })()');
+  const vistas = [];
+  for (let i = 0; i < 10; i++) { await questaoPronta(); const id = await idAtual(); vistas.push(id); await p.clicar('#pular'); await p.esperar(`document.querySelector(".marco") || Number(document.querySelector(".questao:not(.esqueleto)")?.dataset.id) !== ${id}`, 8000, 'troca'); }
+  igual(vistas.filter(i => PROVA_DE(i) === 'unicamp'), [], 'nenhuma questão da Unicamp no estudo: ' + vistas.join(','));
+  certo(vistas.some(i => PROVA_DE(i) === 'fuvest') || vistas.length === 10, 'estudo seguiu');
+  // Foco por matéria só com o que sobrou.
+  igual(await p.avaliar('[...idsDoFoco({materia: "Português"})].filter(i => i >= 28)'), [], 'foco sem a Unicamp');
+});
+await item('provas: a escolha sobrevive ao recarregamento e a outro aparelho da mesma conta', async () => {
+  await p.recarregar(); await questaoPronta();
+  igual(await p.avaliar('painel.provas.ativas'), ['enem', 'fuvest'], 'painel guardado ao abrir');
+  await p.esperar('!document.querySelector(".esqueleto")'); await dormir(400);
+  await abrirConta(); await p.esperar('document.querySelector(".opcao-prova")');
+  igual(await marcadasNaTela(), ['enem', 'fuvest'], 'caixas depois de recarregar');
+  // Painel pedido do zero (como num aparelho novo): o servidor devolve a mesma escolha.
+  igual(await p.avaliar('fetch("/api/painel").then(r => r.json()).then(d => d.provas.ativas)'), ['enem', 'fuvest'], 'servidor com a escolha');
+});
+await item('provas: não deixa desmarcar todas', async () => {
+  await p.clicar('[data-prova=fuvest] input'); await p.esperar('document.querySelector("#estado-provas")?.dataset.estado === "salvo"', 8000, 'salvo só Enem');
+  igual(provasNoBanco(), ['enem'], 'só o Enem no servidor');
+  await p.clicar('[data-prova=enem] input');
+  igual(await marcadasNaTela(), ['enem'], 'a última continua marcada'); igual(await estadoProvas(), 'aviso', 'aviso na tela');
+  certo((await p.texto('#estado-provas')).includes('Pelo menos uma prova fica marcada'), 'texto do aviso');
+  await dormir(900); igual(provasNoBanco(), ['enem'], 'nada mudou no servidor'); igual(await p.avaliar('painel.provas.ativas'), ['enem'], 'nada mudou no aparelho');
+  // O servidor também recusa a lista vazia.
+  const errosAntes = p.erros.length;
+  igual(await p.avaliar('fetch("/api/dispositivos", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({acao: "provas", ativas: []})}).then(r => r.status)'), 400, 'lista vazia recusada');
+  // O aviso de 400 desse pedido de propósito sai da conta de erros do console; qualquer outro fica.
+  await dormir(200); for (let i = p.erros.length - 1; i >= errosAntes; i--) if (/400 \(Bad Request\).*\/api\/dispositivos/.test(p.erros[i])) p.erros.splice(i, 1);
+});
+await item('provas: ligar de novo traz as questões de volta, e cada questão mostra a prova e a edição, com o caderno oficial', async () => {
+  await p.clicar('[data-prova=unicamp] input'); await p.clicar('[data-prova=fuvest] input');
+  await p.esperar('document.querySelector("#estado-provas")?.dataset.estado === "salvo"', 8000, 'salvo de novo');
+  igual(provasNoBanco(), 'todas', 'lista completa volta ao padrão'); igual(await marcadasNaTela(), ['enem', 'fuvest', 'unicamp'], 'todas marcadas');
+  certo((await idsDoPainel('painel')).filter(i => PROVA_DE(i) === 'unicamp').length === 3, 'questões da Unicamp de volta');
+  await p.avaliar('location.hash = "#estudar"'); await questaoPronta();
+  await abrir(28);
+  certo((await p.texto('.questao-topo .rotulo')).includes('Unicamp 2097 · Questão 28'), 'prova e edição no alto da questão');
+  igual(await p.avaliar('[...document.querySelectorAll(".questao .letra")].map(e => e.textContent)'), ['A', 'B', 'C', 'D'], 'quatro alternativas da Unicamp');
+  await marcar(28, errada(28)); await p.clicar('#conferir'); await p.clicar('#ver-resposta'); await p.esperar('document.querySelector("#proxima")');
+  igual(await p.texto('.correcao .origem'), 'Questão da prova Unicamp 2097. Prova original (Comvest)', 'origem na correção');
+  igual(await p.avaliar('document.querySelector(".correcao .origem a").href'), 'https://example.com/prova-28.pdf', 'caderno oficial');
+  certo(decodeURIComponent(await p.avaliar('document.querySelector(".correcao .apoio a")?.href || ""')).includes('Unicamp 2097 resolução comentada'), 'busca da resolução com a edição certa');
+  // Conjunto também diz de que edição veio.
+  await abrir(21); certo((await p.texto('.questao-topo .rotulo')).includes('Enem 2099 · 2 perguntas'), 'edição no alto do conjunto');
+  // Responde o conjunto (duas respostas): a conta chega a três hoje, como as telas de passagem esperam a seguir.
+  await responder();
 });
 // Paleta final de 14/11/2026 (frente dentro): os mesmos pares nos dois temas, mais o texto e as formas sobre a cor de cada tela,
 // a varredura de todo texto visível nas telas de passagem, na meta cumprida, na revisão vazia e na espera, e as capturas de cada tela.

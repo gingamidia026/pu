@@ -766,3 +766,36 @@ html[data-tema=noturno] .questao img { padding: .5rem; border-radius: 6px; }
 .ficha[role=switch][aria-checked=true]::before { background: radial-gradient(circle at calc(100% - .5rem) 50%, currentColor .3125rem, transparent .34rem); }
 @media (hover:hover) and (pointer:fine) { .opcao-tema:not(:has(input:checked)):hover { background: var(--suave); } .ficha[role=switch][aria-checked=true]:not(:disabled):hover { background: var(--texto); } }
 @media (forced-colors: active) { .opcao-tema { border: 1px solid ButtonText; } .opcao-tema:has(input:checked) { outline: 3px solid Highlight; } }
+
+/* Provas que a pessoa vai prestar (tela da conta, 14/11/2026): um cartão por prova, com caixa de marcar nativa por baixo
+   (teclado, leitor de tela e formulário de sempre). Faixa de cima na cor de decoração da vez; marcado ganha o fundo da cor
+   da tela, borda de 2 px e o visto na caixa. Nome em Bricolage, detalhe em Atkinson; texto sempre em --texto (AA nas faixas). */
+.escolha-provas { margin: 0 0 1rem; }
+.escolha-provas h2 { margin-top: 1.5rem; }
+.lista-provas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: .75rem; margin: 0 0 .75rem; padding: 0; border: 0; min-width: 0; }
+.opcao-prova { --cor-prova: var(--azul-mar); position: relative; display: grid; grid-template-columns: auto 1fr; column-gap: .75rem; row-gap: .125rem; align-items: center;
+  margin: 0; padding: 1.125rem 1rem .875rem; border: 1px solid var(--texto); border-radius: 12px; background: var(--painel); color: var(--texto); cursor: pointer; overflow: hidden;
+  transition: background-color 200ms var(--troca), border-color 200ms var(--troca); }
+.opcao-prova::before { content: ""; position: absolute; inset: 0 0 auto; height: .375rem; background: var(--cor-prova); }
+.opcao-prova:nth-of-type(5n+2) { --cor-prova: var(--laranja-boia); }
+.opcao-prova:nth-of-type(5n+3) { --cor-prova: var(--amarelo-sol); }
+.opcao-prova:nth-of-type(5n+4) { --cor-prova: var(--rosa-goiaba); }
+.opcao-prova:nth-of-type(5n+5) { --cor-prova: var(--roxo-ipe); }
+html[data-tema=noturno] .opcao-prova { --cor-prova: var(--azul-mar-noite); }
+html[data-tema=noturno] .opcao-prova:nth-of-type(5n+2) { --cor-prova: var(--laranja-boia-noite); }
+html[data-tema=noturno] .opcao-prova:nth-of-type(5n+3) { --cor-prova: var(--amarelo-sol-noite); }
+html[data-tema=noturno] .opcao-prova:nth-of-type(5n+4) { --cor-prova: var(--rosa-goiaba-noite); }
+html[data-tema=noturno] .opcao-prova:nth-of-type(5n+5) { --cor-prova: var(--roxo-ipe-noite); }
+.opcao-prova input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.opcao-prova .caixa { grid-row: span 2; position: relative; width: 1.5rem; height: 1.5rem; border: 2px solid var(--texto); border-radius: 6px; background: var(--painel); }
+.opcao-prova .nome { font-family: var(--fonte-cartaz); font-weight: 700; font-size: 1.375rem; line-height: 1.1; letter-spacing: -.01em; color: var(--tinta); overflow-wrap: anywhere; }
+.opcao-prova .detalhe { font-size: .9375rem; line-height: 1.35; color: var(--texto); font-variant-numeric: tabular-nums; }
+.opcao-prova:has(input:checked) { padding: calc(1.125rem - 1px) calc(1rem - 1px) calc(.875rem - 1px); border-width: 2px; background: var(--tom-faixa, var(--suave)); }
+.opcao-prova:has(input:checked) .caixa { background: var(--texto); }
+.opcao-prova:has(input:checked) .caixa::after { content: ""; position: absolute; left: .4375rem; top: .125rem; width: .375rem; height: .75rem; border: solid var(--texto-invertido); border-width: 0 3px 3px 0; rotate: 45deg; }
+.opcao-prova:has(input:focus-visible) { outline: 3px solid var(--foco); outline-offset: 2px; }
+.estado-provas { margin: 0; color: var(--texto); font-variant-numeric: tabular-nums; }
+.estado-provas[data-estado=falha], .estado-provas[data-estado=aviso] { font-weight: 700; }
+@media (hover:hover) and (pointer:fine) { .opcao-prova:not(:has(input:checked)):hover { background: var(--suave); } }
+@media (prefers-reduced-motion: reduce) { .opcao-prova { transition: none; } }
+@media (forced-colors: active) { .opcao-prova { border: 1px solid ButtonText; } .opcao-prova:has(input:checked) { outline: 3px solid Highlight; } .opcao-prova:has(input:checked) .caixa { background: Highlight; } }

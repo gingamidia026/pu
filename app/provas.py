@@ -18,13 +18,18 @@ def prova_de(q):
 def disponiveis(questoes):
     """Provas presentes no catálogo, na ordem fixa, com edições e número de questões."""
     resumo = {}
-    for q in questoes:
-        item = resumo.setdefault(prova_de(q), {'questoes': 0, 'edicoes': set()})
+    for q in sorted(questoes, key=lambda q: q['id']):
+        item = resumo.setdefault(prova_de(q), {'questoes': 0, 'edicoes': set(), 'faixas': []})
         item['questoes'] += 1
         item['edicoes'].add(q.get('ano'))
+        # Faixas de IDs da prova ([primeiro, último]): a interface tira na hora as questões de uma prova desligada,
+        # sem esperar o painel novo. Com o registro de IDs por prova, cada prova cabe em poucas faixas.
+        faixas = item['faixas']
+        if faixas and faixas[-1][1] == q['id'] - 1: faixas[-1][1] = q['id']
+        else: faixas.append([q['id'], q['id']])
     siglas = sorted(resumo, key=lambda s: (ORDEM.index(s) if s in ORDEM else len(ORDEM), s))
     return [{'id': s, 'nome': NOMES.get(s, s.capitalize()), 'questoes': resumo[s]['questoes'],
-             'edicoes': sorted((a for a in resumo[s]['edicoes'] if a), reverse=True)} for s in siglas]
+             'edicoes': sorted((a for a in resumo[s]['edicoes'] if a), reverse=True), 'faixas': resumo[s]['faixas']} for s in siglas]
 
 
 def preparar(con):

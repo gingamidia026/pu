@@ -56,6 +56,8 @@ const questoes = new Map();   // id → questão sem gabarito
 const imagens = new Map();    // hash → promessa do endereço data:
 const estado = {modo: 'misturado', primeira: null, puladas: new Set(), feitasSessao: new Set(), marcadas: {}, vez: 0, versao: 0, atual: null, aoTeclar: null};
 let simulado = guarda.ler(CHAVES.simulado);
+// Escolha de provas a caminho do servidor (seção "Provas que a pessoa vai prestar").
+const gravacaoProvas = {escolha: null, prazo: null, emVoo: false, confirmada: null, falha: null};
 const enviosSimulado = new Map();   // id → envio em andamento; só na memória, nunca gravado
 let relogio = null;
 
@@ -301,8 +303,14 @@ const SEM_SOLUCAO = /Ainda não há solução comentada/;
 // Enquanto o banco não tem solução comentada, oferece a busca da resolução fora do PU, pelo começo do enunciado.
 function buscaResolucao(item) {
   const trecho = String(item.enunciado || '').replace(/\[\[midia:\d+\]\]/g, ' ').replace(/\s+/g, ' ').trim().split(' ').slice(0, 12).join(' ');
-  const consulta = `Enem ${item.ano || ''} resolução comentada ${trecho}`.replace(/\s+/g, ' ').trim();
+  const consulta = `${item.edicao || `Enem ${item.ano || ''}`} resolução comentada ${trecho}`.replace(/\s+/g, ' ').trim();
   return `<p class="apoio"><a href="https://www.google.com/search?q=${encodeURIComponent(consulta)}" target="_blank" rel="noopener noreferrer">Buscar a resolução desta questão</a> <span class="secundario">abre o Google em outra aba; o conteúdo é de terceiros.</span></p>`;
+}
+// De que prova e edição a questão veio, com o caderno oficial da banca (campos prova, edicao, fonteNome e fonte do catálogo).
+function origemHtml(item) {
+  const edicao = item.edicao || (item.ano ? `Enem ${item.ano}` : ''); if (!edicao) return '';
+  const fonte = /^https:\/\//.test(item.fonte || '') ? ` <a href="${escapar(item.fonte)}" target="_blank" rel="noopener noreferrer">Prova original${item.fonteNome ? ` (${escapar(item.fonteNome)})` : ''}</a>` : '';
+  return `<p class="secundario origem">Questão da prova ${escapar(edicao)}.${fonte}</p>`;
 }
 
 // ---------- Painel e ritmo ----------
@@ -332,6 +340,8 @@ function receberPainel(dados) {
   painel = normalizar(dados);
   carregarPrefs();
   if (simulado && simulado.conta !== painel.conta.id) { simulado = null; guarda.apagar(CHAVES.simulado); enviosSimulado.clear(); }
+  // Escolha de provas ainda a caminho do servidor: continua valendo sobre o painel que acabou de chegar.
+  if (gravacaoProvas.escolha && painel.provas) { painel.provas.ativas = gravacaoProvas.escolha; recortarPainel(gravacaoProvas.escolha); } else ajustarAoIndice();
   if (painel.inicial) { lembrarQuestao(painel.inicial); if (!estado.atual) estado.primeira = painel.inicial.id; }
   guardarPainel();
   menu.hidden = false; document.body.classList.remove('sem-sessao');
@@ -522,13 +532,19 @@ const MOLDE_ENTRADA = (() => {
 const MOLDE_RESERVA = `<div class="entrada"><div class="faixa faixa-papel"><section class="apresentacao" id="apresentacao"><h1>Estude para o Enem uma questão por vez.</h1></section></div>
 <div data-lugar="faixa-que-corre"></div><div class="faixa faixa-areia"><section class="experimente" id="experimente"><h2 id="titulo-experimente">Experimente uma questão</h2><div data-lugar="demonstracao"></div></section></div>
 <div class="faixa faixa-sol-claro"><section class="chamada" id="entrar"><div class="formulario" data-lugar="formulario"></div></section></div></div>`;
-// Provas no ar: fonte única da lista "Provas no PU" da entrada. Conferido em 14/11/2026 no catálogo publicado (.catalogo/atual.json):
-// 356 questões, Enem 2024 (179) e Enem 2025 (177). Uma edição só entra aqui depois de publicada no catálogo.
-const PROVAS_NO_AR = [{prova: 'Enem', edicao: 2024, questoes: 179}, {prova: 'Enem', edicao: 2025, questoes: 177}];
+// Provas no ar: fonte única da lista "Provas no PU" da entrada. Conferido em 14/11/2026 no catálogo novo da frente provas
+// (dados/catalogo/atual.json, 2.452 questões objetivas com gabarito oficial, sem anuladas e sem as fora do ar), que entra no ar
+// junto com esta versão (integração 4). Uma edição só entra aqui depois de publicada no catálogo.
+const PROVAS_NO_AR = [
+  {prova: 'Enem', edicoes: [2021, 2022, 2023, 2024, 2025], questoes: 887},
+  {prova: 'Fuvest (USP)', edicoes: [2023, 2024, 2025, 2026, 2027], questoes: 437},
+  {prova: 'Unesp', edicoes: [2022, 2023, 2024, 2025, 2026], questoes: 450},
+  {prova: 'Unicamp', edicoes: [2023, 2024, 2025, 2026, 2027], questoes: 358},
+  {prova: 'Famerp', edicoes: [2023, 2024, 2025, 2026], questoes: 320}];
 function provasHtml() {
   const total = PROVAS_NO_AR.reduce((soma, p) => soma + p.questoes, 0);
   return `<p class="numero-cartaz"><strong>${total.toLocaleString('pt-BR')}</strong><span>questões oficiais no banco</span></p>
-<ul class="provas-lista">${PROVAS_NO_AR.map(p => `<li><strong>${escapar(p.prova)} ${p.edicao}</strong><span>${plural(p.questoes, 'questão', 'questões')}</span></li>`).join('')}</ul>`;
+<ul class="provas-lista">${PROVAS_NO_AR.map(p => `<li><strong>${escapar(p.prova)}</strong><span>${escapar(edicoesTexto(p.edicoes))} · ${p.questoes.toLocaleString('pt-BR')} questões</span></li>`).join('')}</ul>`;
 }
 // Faixa que corre: frases que a entrada já diz, em caixa alta com até três palavras (identidade de 14/11/2026).
 // A cópia fica fora da leitura de tela; parada com movimento reduzido.
@@ -714,7 +730,7 @@ function montarQuestao(area, q, opcoes) {
     : modo === 'simulado' ? `<button type="submit" class="primaria" id="conferir" disabled>${opcoes.ultima ? 'Responder e terminar' : 'Responder e seguir'}</button>`
     : '<button type="button" class="primaria" id="voltar-resultado">Voltar ao resultado</button>';
   area.innerHTML = `<article class="questao" data-id="${q.id}">
-<header class="questao-topo"><p class="rotulo">${escapar(q.materia || q.area)} · ${escapar(conjunto ? `${itens.length} perguntas com o mesmo texto` : q.titulo)}${emRevisao ? ' <span class="selo revisao">revisão</span>' : ''}${opcoes.rotulo ? ` <span class="selo">${escapar(opcoes.rotulo)}</span>` : ''}</p>${modo === 'estudo' ? '<button type="button" class="texto-botao" id="pular">Pular</button>' : ''}</header>
+<header class="questao-topo"><p class="rotulo">${escapar(q.materia || q.area)} · ${escapar(conjunto ? `${q.edicao ? q.edicao + ' · ' : ''}${itens.length} perguntas com o mesmo texto` : q.titulo)}${emRevisao ? ' <span class="selo revisao">revisão</span>' : ''}${opcoes.rotulo ? ` <span class="selo">${escapar(opcoes.rotulo)}</span>` : ''}</p>${modo === 'estudo' ? '<button type="button" class="texto-botao" id="pular">Pular</button>' : ''}</header>
 ${conjunto ? '<p class="secundario">Leia o texto e marque uma resposta em cada pergunta. O envio é conjunto; cada pergunta conta separadamente.</p>' : ''}
 ${q.textoComum ? `<div class="texto-comum enunciado">${enunciadoHtml(q.textoComum, q)}</div>` : ''}
 <form id="responder" novalidate>${itens.map(pergunta).join('')}
@@ -831,7 +847,7 @@ ${temImagens ? '<div class="originais"><p id="estado-original" class="secundario
       marcarCorrecao(area, item.id, {escolhida: enviadas.find(x => x.id === item.id).alternativa, correta: resultado.correta});
       const seguro = resultado.acerto && !chute;
       const comentada = resultado.explicacao && !SEM_SOLUCAO.test(resultado.explicacao);
-      $('.correcao', secao).innerHTML = `${cabecalho}${comentada ? `<p class="explicacao">${escapar(resultado.explicacao)}</p>` : seguro ? '' : `<p>Ainda não há solução comentada para esta questão. Tente dizer, em uma frase, por que a ${letra(resultado.correta)} responde ao que foi pedido. Se não fizer sentido, veja uma resolução:</p>${buscaResolucao(item)}`}${seguro ? '' : '<p class="secundario">Ela volta na sua revisão amanhã.</p>'}${assuntoDe(item)}${seguro ? '' : mais(item)}`;
+      $('.correcao', secao).innerHTML = `${cabecalho}${comentada ? `<p class="explicacao">${escapar(resultado.explicacao)}</p>` : seguro ? '' : `<p>Ainda não há solução comentada para esta questão. Tente dizer, em uma frase, por que a ${letra(resultado.correta)} responde ao que foi pedido. Se não fizer sentido, veja uma resolução:</p>${buscaResolucao(item)}`}${seguro ? '' : '<p class="secundario">Ela volta na sua revisão amanhã.</p>'}${assuntoDe(item)}${origemHtml(item)}${seguro ? '' : mais(item)}`;
       ligarTreino();
     };
     retorno.textContent = '';
@@ -1036,9 +1052,126 @@ function baixarLembrete(hora) {
   setTimeout(() => URL.revokeObjectURL(arquivo), 10000);
 }
 
+// ---------- Provas que a pessoa vai prestar (pedido de Dominique, 14/11/2026) ----------
+// Contrato em docs/PROVAS.md: o painel traz provas.disponiveis (com as faixas de IDs de cada prova) e provas.ativas;
+// a escolha grava por POST /api/dispositivos {acao: 'provas'}, que devolve o painel novo na mesma viagem.
+// Desligar é na hora: as questões da prova saem do painel guardado pelas faixas, antes de o servidor responder.
+// Ligar espera o painel novo, porque as questões da prova religada vêm do servidor.
+const provasDisponiveis = () => painel?.provas?.disponiveis || [];
+const provasAtivas = () => painel?.provas?.ativas || provasDisponiveis().map(p => p.id);
+const milhar = n => Number(n).toLocaleString('pt-BR');
+function edicoesTexto(edicoes) {
+  const anos = [...edicoes].sort((a, b) => a - b);
+  if (!anos.length) return '';
+  const seguidos = anos.every((a, i) => !i || a === anos[i - 1] + 1);
+  const lista = seguidos && anos.length > 2 ? `${anos[0]} a ${anos.at(-1)}` : anos.length > 1 ? `${anos.slice(0, -1).join(', ')} e ${anos.at(-1)}` : String(anos[0]);
+  return `${plural(anos.length, 'edição', 'edições')}, ${lista}`;
+}
+// Tira do painel as questões das provas que não estão na lista: fila do dia, revisão, índice, foco e simulado.
+function recortarPainel(ativas) {
+  const fora = provasDisponiveis().filter(p => !ativas.includes(p.id) && p.faixas);
+  if (fora.length) {
+    const desligada = id => fora.some(p => p.faixas.some(([a, b]) => id >= a && id <= b));
+    const ficar = lista => (lista || []).filter(i => !desligada(i));
+    painel.densidade.pendentes = ficar(painel.densidade.pendentes);
+    painel.estudo.revisao.vencidas = ficar(painel.estudo.revisao.vencidas);
+    painel.indice.curtas = ficar(painel.indice.curtas); painel.indice.conjuntos = ficar(painel.indice.conjuntos);
+    painel.indice.materias = painel.indice.materias.map(m => ({...m, topicos: m.topicos.map(t => ({...t, ids: ficar(t.ids)})).filter(t => t.ids.length)})).filter(m => m.topicos.length);
+    if (painel.inicial && desligada(painel.inicial.id)) painel.inicial = null;
+    if (estado.primeira !== null && desligada(estado.primeira)) estado.primeira = null;
+  }
+  ajustarAoIndice();
+}
+// Depois de qualquer troca de provas: o foco e o simulado em andamento só ficam com o que ainda está no índice.
+function ajustarAoIndice() {
+  const noIndice = new Set(painel.indice.materias.flatMap(m => m.topicos.flatMap(t => t.ids)));
+  if (prefs.foco && !idsDoFoco(prefs.foco).size) { prefs.foco = null; salvarPrefs(); }
+  if (simulado && !simulado.fim && simulado.conta === painel.conta.id) {
+    // As já respondidas ficam (entram no resultado); as que faltam e saíram do índice saem da rodada.
+    const ids = simulado.ids.filter(id => simulado.respostas[id] || noIndice.has(id));
+    if (ids.length !== simulado.ids.length) {
+      simulado.ids = ids; simulado.atual = Math.min(simulado.atual, ids.length);
+      if (!ids.length) simulado = null;
+      salvarSimulado();
+    }
+  }
+}
+function resumoProvas() {
+  const ativas = provasAtivas(); const todas = provasDisponiveis();
+  const questoesAtivas = todas.filter(p => ativas.includes(p.id)).reduce((s, p) => s + p.questoes, 0);
+  return `${ativas.length === todas.length ? `Todas as ${todas.length} provas marcadas` : `${ativas.length} de ${todas.length} provas marcadas`}: ${milhar(questoesAtivas)} ${questoesAtivas === 1 ? 'questão' : 'questões'} no seu estudo.`;
+}
+function escolhaProvasHtml() {
+  const todas = provasDisponiveis(); if (todas.length < 2) return '';
+  const ativas = provasAtivas();
+  return `<section class="escolha-provas" aria-labelledby="titulo-escolha-provas"><h2 id="titulo-escolha-provas">Provas que você vai prestar</h2>
+<p class="secundario">O estudo do dia, a revisão, o simulado e o progresso usam só as provas marcadas. Pelo menos uma fica marcada.</p>
+<fieldset class="lista-provas"><legend class="oculto">Provas que você vai prestar</legend>${todas.map(p => `<label class="opcao-prova" data-prova="${escapar(p.id)}"><input type="checkbox" value="${escapar(p.id)}"${ativas.includes(p.id) ? ' checked' : ''} aria-labelledby="nome-prova-${escapar(p.id)}" aria-describedby="detalhe-prova-${escapar(p.id)}"><span class="caixa" aria-hidden="true"></span><span class="nome" id="nome-prova-${escapar(p.id)}">${escapar(p.nome)}</span><span class="detalhe" id="detalhe-prova-${escapar(p.id)}">${escapar(edicoesTexto(p.edicoes || []))} · ${milhar(p.questoes)} ${p.questoes === 1 ? 'questão' : 'questões'}</span></label>`).join('')}</fieldset>
+<p class="estado-provas" id="estado-provas" role="status" data-estado="salvo">${escapar(resumoProvas())}</p></section>`;
+}
+function mostrarEstadoProvas(situacao, texto) {
+  const lugar = $('#estado-provas'); if (!lugar) return;
+  lugar.dataset.estado = situacao;
+  lugar.innerHTML = escapar(texto || resumoProvas());
+  if (situacao === 'falha') {
+    const tentar = document.createElement('button'); tentar.type = 'button'; tentar.className = 'texto-botao'; tentar.textContent = 'Tentar de novo';
+    tentar.onclick = () => escolherProvas(gravacaoProvas.falha); lugar.append(' ', tentar);
+  }
+}
+function marcarCaixasProvas() { $$('.opcao-prova input').forEach(caixa => { caixa.checked = provasAtivas().includes(caixa.value); }); }
+// Nova escolha: vale na hora neste aparelho e vai ao servidor meio segundo depois (marcar várias seguidas gasta uma viagem só).
+function escolherProvas(ativas) {
+  const ordem = provasDisponiveis().map(p => p.id);
+  ativas = ordem.filter(id => ativas.includes(id));
+  if (!ativas.length) return;
+  gravacaoProvas.confirmada ??= provasAtivas();
+  gravacaoProvas.escolha = ativas; gravacaoProvas.falha = null;
+  painel.provas.ativas = ativas; recortarPainel(ativas); guardarPainel();
+  marcarCaixasProvas(); mostrarEstadoProvas('salvando', `${resumoProvas()} Salvando…`);
+  clearTimeout(gravacaoProvas.prazo); gravacaoProvas.prazo = setTimeout(enviarProvas, 500);
+}
+window.escolherProvas = escolherProvas;
+async function enviarProvas() {
+  if (gravacaoProvas.emVoo) return;   // a que está a caminho chama de novo quando voltar
+  const lista = gravacaoProvas.escolha; if (!lista) return;
+  gravacaoProvas.emVoo = true; const versao = estado.versao;
+  try {
+    const r = await api('/api/dispositivos', {acao: 'provas', ativas: lista});
+    if (!painel) return;
+    gravacaoProvas.confirmada = r.provas.ativas;
+    if (gravacaoProvas.escolha === lista) {
+      gravacaoProvas.escolha = null;
+      // Painel que chegou junto com a escolha; se uma resposta saiu no meio do caminho, pede o painel de novo.
+      if (r.painel && versao === estado.versao) receberPainel(r.painel); else await atualizar();
+      gravacaoProvas.confirmada = null;
+      if (location.hash === '#conta') { marcarCaixasProvas(); mostrarEstadoProvas('salvo', `${resumoProvas()} Salvo.`); }
+    }
+  } catch (e) {
+    if (!painel) return;
+    if (gravacaoProvas.escolha === lista) {
+      // Volta ao que o servidor tem, para a tela não mostrar uma escolha que não foi gravada.
+      gravacaoProvas.escolha = null; gravacaoProvas.falha = lista;
+      painel.provas.ativas = gravacaoProvas.confirmada || provasAtivas(); gravacaoProvas.confirmada = null; guardarPainel();
+      marcarCaixasProvas(); mostrarEstadoProvas('falha', `Não foi possível salvar a escolha das provas. ${mensagemErro(e)}`);
+      atualizar().catch(() => {});
+    }
+  } finally {
+    gravacaoProvas.emVoo = false;
+    if (gravacaoProvas.escolha) enviarProvas();
+  }
+}
+function ligarEscolhaProvas() {
+  $$('.opcao-prova input').forEach(caixa => caixa.onchange = () => {
+    const marcadas = $$('.opcao-prova input').filter(c => c.checked).map(c => c.value);
+    if (!marcadas.length) { caixa.checked = true; mostrarEstadoProvas('aviso', 'Pelo menos uma prova fica marcada. Marque outra antes de desmarcar esta.'); return; }
+    escolherProvas(marcadas);
+  });
+}
+
 // ---------- Conta, dispositivos e dados ----------
 async function verConta() {
   tela(`${cabecaHtml('Sua conta', {selo: 'capelo', lide: escapar(painel.conta.nome)})}
+${escolhaProvasHtml()}
 <h2>Meta do dia</h2><p class="secundario">Quantas questões contam como o dia feito. Comece pequeno: dá para fazer mais quando quiser.</p><div class="modos" role="group" aria-label="Meta diária de questões">${[3, 5, 10, 20].map(n => `<button type="button" class="ficha" data-meta="${n}" aria-pressed="${prefs.meta === n}">${n} questões</button>`).join('')}</div>
 <div class="com-cena"><div><h2>Tema</h2><p class="secundario">Vale para as telas de estudo neste navegador. No automático, o PU fica diurno, com fundo branco, das 6h às 18h e noturno, com fundo preto, das 18h às 6h.</p></div>${ilustracaoHtml('configuracoes', {texto: false})}</div><fieldset class="escolha-tema"><legend class="oculto">Tema</legend>${Object.entries(TEMAS).map(([valor, nome]) => `<label class="opcao-tema"><input type="radio" name="tema" value="${valor}"${prefs.tema === valor ? ' checked' : ''}><span>${nome}</span></label>`).join('')}</fieldset>
 <div class="bloco-fuso" id="bloco-fuso"${prefs.tema === 'automatico' ? '' : ' hidden'}><label for="fuso">Fuso horário</label><select id="fuso" aria-describedby="hora-fuso">${opcoesDeFuso()}</select><p class="secundario" id="hora-fuso"></p></div>
@@ -1048,6 +1181,9 @@ ${publico && !matchMedia('(display-mode: standalone)').matches ? '<h2>PU a um to
 <h2>Atalhos do teclado</h2><p class="secundario">No computador, as teclas A a E marcam a alternativa e Enter confere.</p><div class="modos" role="group" aria-label="Atalhos do teclado"><button type="button" class="ficha" id="atalhos" aria-pressed="${prefs.atalhos !== false}">Letras A a E ${prefs.atalhos !== false ? 'ligadas' : 'desligadas'}</button></div>
 <h2>Dispositivos autorizados</h2><p class="secundario">Um novo navegador é registrado quando você entra com a senha. Você pode manter até cinco. Revogar encerra as sessões daquele dispositivo.</p><div id="dispositivos"><p class="espera" role="status">Carregando dispositivos…</p></div>
 <h2>Dados e saída</h2><div class="acoes"><a class="botao discreto" href="#privacidade">Dados e segurança</a><button type="button" class="discreto" id="sair">Sair da conta</button></div>`, 'ipe');
+  ligarEscolhaProvas();
+  if (gravacaoProvas.escolha) mostrarEstadoProvas('salvando', `${resumoProvas()} Salvando…`);
+  else if (gravacaoProvas.falha) mostrarEstadoProvas('falha', 'Não foi possível salvar a última escolha das provas.');
   $$('[data-meta]').forEach(b => b.onclick = () => { prefs.meta = Number(b.dataset.meta); prefs.alvo = null; acertarAlvo(); $$('[data-meta]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); informar(`Meta do dia: ${prefs.meta} questões.`); });
   $('#criar-lembrete').onclick = () => { const hora = $('#hora-lembrete').value; if (!/^\d{2}:\d{2}$/.test(hora)) { informar('Escolha um horário para o lembrete.', true); return; } prefs.lembrete = hora; salvarPrefs(); baixarLembrete(hora); informar(`Lembrete das ${hora} baixado. Abra o arquivo para colocá-lo no calendário.`); };
   $$('input[name="tema"]').forEach(entrada => entrada.onchange = () => {

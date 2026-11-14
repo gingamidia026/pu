@@ -104,6 +104,13 @@ class ProvasAtivas(unittest.TestCase):
         # Só Fuvest: índice, densidade, revisão, perfil e questão inicial ficam na Fuvest.
         status, r, _ = self.s.pedido(a, '/api/dispositivos', {'acao': 'provas', 'ativas': ['fuvest']})
         self.assertEqual(status, 200, r); self.assertEqual(r['provas']['ativas'], ['fuvest'])
+        # O painel novo vem na própria resposta (uma viagem só no endereço público), já recortado.
+        self.assertEqual(r['painel']['provas']['ativas'], ['fuvest'])
+        self.assertEqual(self.ids_do_indice(r['painel']), [5, 6, 7])
+        # Faixas de IDs por prova, para a interface tirar na hora as questões de uma prova desligada.
+        faixas = {p['id']: p['faixas'] for p in r['provas']['disponiveis']}
+        self.assertTrue(all(any(a <= i <= b for a, b in faixas['fuvest']) for i in [5, 6, 7]))
+        self.assertFalse(any(a <= i <= b for a, b in faixas['fuvest'] for i in [1, 2, 3, 4, 8, 9]))
         status, p, _ = self.s.pedido(a, '/api/painel')
         self.assertEqual(p['provas']['ativas'], ['fuvest'])
         self.assertEqual(self.ids_do_indice(p), [5, 6, 7])
@@ -180,6 +187,11 @@ class CatalogoGrande(unittest.TestCase):
             self.assertEqual(status, 200); self.assertLess(tamanho, 100_000)
             status, r, tamanho = s.pedido(c, '/api/questoes/1', {'alternativa': 1, 'proxima': 2})
             self.assertEqual(status, 200); self.assertLess(tamanho, 100_000, f'resposta com {tamanho} bytes')
+            # Trocar de provas devolve o painel junto: também abaixo de 100 KB, e de volta ao padrão com todas.
+            for lista in (['enem', 'fuvest', 'unesp', 'unicamp'], ['enem', 'fuvest', 'unesp', 'unicamp', 'famerp']):
+                status, r, tamanho = s.pedido(c, '/api/dispositivos', {'acao': 'provas', 'ativas': lista})
+                self.assertEqual(status, 200); self.assertLess(tamanho, 100_000, f'troca de provas com {tamanho} bytes')
+                self.assertEqual(r['painel']['provas']['ativas'], lista)
         finally:
             s.fechar()
 

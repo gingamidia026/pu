@@ -30,8 +30,8 @@ O mesmo `ferramentas/importar-prova` importa e corrige (regra **extrator-unico-e
 
 Sem rota nova: o intermediário público não muda.
 
-- **Ler:** `GET /api/painel` traz `provas: {disponiveis: [{id, nome, questoes, edicoes: [2027, 2026, ...]}], ativas: ["enem", ...]}` e `catalogo.ativas` (questões das provas ativas). `disponiveis` vem na ordem Enem, Fuvest (USP), Unesp, Unicamp, Famerp, só com as que existem no catálogo.
-- **Gravar:** `POST /api/dispositivos` com `{"acao": "provas", "ativas": ["enem", "fuvest"]}`. Resposta `{"ok": true, "provas": {disponiveis, ativas}}`. Lista vazia, sigla desconhecida, valor que não é lista ou mais de 20 itens: 400, nada gravado. Sem sessão: 401. Depois de gravar, a interface pede `/api/painel` de novo (índice, densidade e questão inicial mudam).
+- **Ler:** `GET /api/painel` traz `provas: {disponiveis: [{id, nome, questoes, edicoes: [2027, 2026, ...], faixas: [[primeiro, último], ...]}], ativas: ["enem", ...]}` e `catalogo.ativas` (questões das provas ativas). `disponiveis` vem na ordem Enem, Fuvest (USP), Unesp, Unicamp, Famerp, só com as que existem no catálogo.
+- **Gravar:** `POST /api/dispositivos` com `{"acao": "provas", "ativas": ["enem", "fuvest"]}`. Resposta `{"ok": true, "provas": {disponiveis, ativas}, "painel": {...}}`: o painel novo vem junto, para a troca custar uma viagem só no endereço público (abaixo de 100 KB com 2.480 questões, conferido em `tests/provas_ativas.py`). Lista vazia, sigla desconhecida, valor que não é lista ou mais de 20 itens: 400, nada gravado. Sem sessão: 401. Depois de gravar, a interface pede `/api/painel` de novo (índice, densidade e questão inicial mudam).
 - **Padrão:** sem escolha gravada, todas as provas estão ativas, inclusive as que entrarem no catálogo depois. Gravar a lista completa apaga a escolha e volta ao padrão. A conta de teste segue o padrão.
 - **O que respeita a lista:** índice de matérias e assuntos (foco por matéria), densidade (volta pelo banco), questão inicial do dia, revisão espaçada (caderno e vencidas), perfil por assunto e o simulado (que a interface sorteia do índice e da densidade). A média semanal dos usuários continua calculada com o catálogo inteiro, porque é comum a todas as contas.
 - **Volta pelo banco:** questão nova no catálogo, ou de prova reativada, entra na volta em andamento. Questão de prova desativada fica registrada, mas sai da conta e da fila; a volta termina quando todas as questões das provas ativas foram feitas.
@@ -40,7 +40,7 @@ Sem rota nova: o intermediário público não muda.
 
 ## O que ainda supõe só o Enem
 
-Fica para a frente da interface e para decisões de Dominique (afazer "Simulado com várias provas no PU"): o texto "Prova original no site do Inep" (usar `fonteNome`), a busca "Enem <ano> resolução comentada" (usar `edicao`), o tempo de referência de 3 minutos por questão do Enem no simulado, o aviso de TRI e o simulador de nota (só Enem), a composição do simulado com várias provas e as alternativas A a D da Unicamp na tela. Dia e caderno continuam no catálogo; fora do Enem, dia é 1 e caderno é a versão da prova (`V1`, `QY`).
+A frente provas-interface (14/11/2026) já trocou o "Prova original no site do Inep" da correção por `fonteNome` e a busca da resolução por `edicao`, e a tela mostra A a D na Unicamp. Fica para decisões de Dominique (afazer "Simulado com várias provas no PU"): o tempo de referência de 3 minutos por questão do Enem no simulado, o aviso de TRI e o simulador de nota (só Enem), a composição do simulado com várias provas e o texto da página de entrada, que ainda fala só do Enem fora da lista de provas. Dia e caderno continuam no catálogo; fora do Enem, dia é 1 e caderno é a versão da prova (`V1`, `QY`).
 
 ## Verificação
 
@@ -50,3 +50,4 @@ Fica para a frente da interface e para decisões de Dominique (afazer "Simulado 
 
 - 14/11/2026 06:12 · Dominique-Oliveira-Claude🤖🧡 · Documento criado com o catálogo de cinco provas, o extrator e o contrato das provas ativas. **Por quê:** pedido de Dominique Oliveira🐧❤️ de 14/11/2026.
 - 14/11/2026 11:21 · Dominique-Oliveira-Claude🤖🧡 · Acrescentados os formatos da Fuvest, Unesp, Unicamp e Famerp e os números do catálogo. **Por quê:** as quatro bancas entraram no ramo.
+- 14/11/2026 15:30 · Dominique-Oliveira-Claude🤖🧡 · Faixas de IDs por prova em `disponiveis` (a interface tira na hora as questões de uma prova desligada) e painel novo na resposta da gravação. **Por quê:** fluidez ao trocar de prova, frente provas-interface do pedido de Dominique Oliveira🐧❤️.
