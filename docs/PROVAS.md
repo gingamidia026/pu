@@ -19,6 +19,12 @@ O mesmo `ferramentas/importar-prova` importa e corrige (regra **extrator-unico-e
 - Cabeçalho e rodapé sem faixa (2021 a 2023), letra da alternativa separada do texto (2022) e linha justificada partida (2021) são tratados no recorte. 2024 e 2025 saem iguais às notas publicadas (180 de 180 em cada caderno).
 - Uma questão que falha não derruba a prova: vira pendência e, na gravação, nota fora do ar. A correção automática do `pu reiniciar` preserva essas notas em vez de travar o lote.
 - A assinatura da ferramenta na correção automática cobre todos os `.py` do extrator.
+- `formatos.py`: o que é de cada banca (Fuvest, Unesp, Unicamp, Famerp). Nome do caderno na pasta da prova (`fuvest-2026-V1.pdf`, `unicamp-2026-QX.pdf`), com `<nome>-gabarito.pdf` e `<nome>.json` (endereços oficiais e gabarito do inventário) ao lado; marcadores de questão de cada banca, texto comum ("Leia o texto para responder às questões de 13 a 16"), quadro "Note e adote" antes das alternativas, alternativas gráficas pela letra mais próxima, capa, rascunho, tabela periódica e redação fora do recorte, leitor de gabarito por banca (duas letras ou divergência com o inventário vira fora do ar). As melhorias de recorte de fórmula ficaram ligadas só para as bancas novas, para o Enem publicado não mudar. Notas das bancas sem cartas de flashcard.
+- Grupo de texto comum com questão anulada ou fora do ar: a sincronização exige a faixa inteira no catálogo, então o extrator grava a faixa só com as questões que entram.
+
+## Catálogo em 14/11/2026
+
+2.452 questões no ar: Enem 2021 a 2025 (887), Fuvest 2023 a 2027 (437), Unesp 2022 a 2026 (450), Unicamp 2023 a 2027 (358, A a D) e Famerp 2023 a 2026 (320). 11 anuladas e 7 fora do ar (Enem 2021: 4 com caractere sem mapa e 1 com alternativas incompletas; Enem 2023 Q172; Fuvest 2024 Q48, gabarito retificado com "D E"). Gabaritos conferidos contra o PDF oficial de cada banca. A Famerp 2022 não tem prova no site oficial; a Unesp 2022 é a prova de Exatas e Humanidades. Onze questões das bancas têm o enunciado inteiro em imagem (fórmula ou sublinhado em todas as linhas): o conteúdo está certo, mas o leitor de tela não lê.
 
 ## Provas ativas de cada conta (contrato para a interface)
 
@@ -43,3 +49,4 @@ Fica para a frente da interface e para decisões de Dominique (afazer "Simulado 
 ## Atualizações
 
 - 14/11/2026 06:12 · Dominique-Oliveira-Claude🤖🧡 · Documento criado com o catálogo de cinco provas, o extrator e o contrato das provas ativas. **Por quê:** pedido de Dominique Oliveira🐧❤️ de 14/11/2026.
+- 14/11/2026 11:21 · Dominique-Oliveira-Claude🤖🧡 · Acrescentados os formatos da Fuvest, Unesp, Unicamp e Famerp e os números do catálogo. **Por quê:** as quatro bancas entraram no ramo.
