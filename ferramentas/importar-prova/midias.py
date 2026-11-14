@@ -141,10 +141,13 @@ def extrair(documento, trechos, paginas, pasta, prefixo, linhas_inteiras=False):
             # Fundo branco sem contorno (sombreamento de parágrafo do Word) não aparece no papel
             if linhas_inteiras and desenho.get('color') is None and desenho.get('fill') in ((1.0, 1.0, 1.0), (1, 1, 1)): continue
             if linhas_inteiras and moldura_de_texto(r, texto, pagina): continue
-            if linhas_inteiras and r.height < 2:
-                # Sublinhado ("a oração sublinhada"): a linha de texto inteira vai junto, para o traço ter sentido
-                acima = [l for l in texto if -5 <= r.y0 - l[3] <= 4 and r.y0 > (l[1] + l[3]) / 2 and l[0] < r.x1 and r.x0 < l[2]]
-                for l in acima:
+            if linhas_inteiras and r.height < 6 and r.width > 5:
+                # Sublinhado ("a oração sublinhada") ou seta de equação no meio da linha: a linha de texto inteira
+                # vai junto, para o traço ter sentido
+                juntas = [l for l in texto if
+                          (l[0] < r.x1 and r.x0 < l[2] and r.height < 2 and -5 <= r.y0 - l[3] <= 4 and r.y0 > (l[1] + l[3]) / 2) or
+                          (l[0] - 15 < r.x1 and r.x0 < l[2] + 15 and l[1] - 1 <= r.y0 and r.y1 <= l[3] + 1)]
+                for l in juntas:
                     r = r | fitz.Rect(l[0], l[1], l[2], l[3])
             if max(r.width, r.height) > 5:
                 candidatos.append(r + (-.5, -.5, .5, .5))
