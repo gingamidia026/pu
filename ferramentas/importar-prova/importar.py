@@ -66,12 +66,25 @@ FIM = re.compile(r"^(Questões de \d|PROPOSTA DE REDAÇÃO|INSTRUÇÕES PARA A R
                  r"(LINGUAGENS, CÓDIGOS|CIÊNCIAS HUMANAS|CIÊNCIAS DA NATUREZA|MATEMÁTICA) E SUAS TECNOLOGIAS$)", re.I)
 
 
+class Identidade(tuple):
+    """(ano, dia, caderno), com a banca em `.prova`: o Enem continua desempacotando três valores."""
+    def __new__(cls, prova, ano, dia, caderno):
+        ident = super().__new__(cls, (ano, dia, caderno))
+        ident.prova = prova
+        return ident
+
+
 def identificar(pdf):
     m = re.match(r"(\d{4})_PV_impresso_D(\d)_CD(\d+)\.pdf$", pdf.name)
     if not m:
-        sys.exit(f"Nome fora do padrão do Inep: {pdf.name} (esperado: 2024_PV_impresso_D1_CD1.pdf)")
+        import formatos
+        if banca := formatos.identificar(pdf):
+            # Outras bancas: fuvest-2026-V1.pdf, unicamp-2026-QX.pdf (dia único, caderno com letras)
+            return Identidade(banca[0], banca[1], 1, banca[2])
+        sys.exit(f"Nome fora do padrão do Inep: {pdf.name} (esperado: 2024_PV_impresso_D1_CD1.pdf "
+                 "ou fuvest-2026-V1.pdf)")
     ano, dia, caderno = map(int, m.groups())
-    return ano, dia, caderno
+    return Identidade("enem", ano, dia, caderno)
 
 
 def area_da_questao(ano, n):
@@ -140,6 +153,8 @@ def preparar_pagina(pg):
               or (l[1] > h * 0.94 and l[4].strip().isdigit())]
     topo = max([l[3] for l in faixas if l[1] < pg["h"] * 0.3], default=max(cabecalho, default=28)) + 2
     base = min([l[1] for l in faixas if l[1] > pg["h"] * 0.7], default=min(rodape, default=pg["h"] - 28)) - 1
+    if "limites" in pg:  # outras bancas: o formatos.py já achou cabeçalho e rodapé
+        topo, base = pg["limites"]
     corpo = [l for l, f in zip(pg["linhas"], eh_faixa) if not f and topo <= l[1] and l[3] <= base + 1]
     meio = pg["w"] / 2
     cruzam = [l for l in corpo if l[0] < meio - 20 and l[2] > meio + 20]
@@ -192,9 +207,9 @@ def juntar_mesma_linha(linhas, colunas, folga=25):
     return sorted(resultado, key=lambda l: (l[1], l[0]))
 
 
-def alternativas_completas(linhas):
+def alternativas_completas(linhas, letras_da_prova="ABCDE"):
     letras = [l[4][0] for l in linhas if re.match(r"^[A-E](\s|$)", l[4])]
-    return "E" in letras and "D" in letras
+    return letras_da_prova[-1] in letras and letras_da_prova[-2] in letras
 
 
 def fonte_legivel(pdf):
@@ -208,8 +223,14 @@ def fonte_legivel(pdf):
 
 
 def recortar(pdf, ano, pasta_img, selecionadas=None):
+    """Recorta as questões. `ano` vira o prefixo dos nomes (Enem: 2024-Q01; outras bancas: fuvest-2026-Q01)."""
+    import formatos
+    formato = formatos.formato_de(pdf)  # None no Enem; Fuvest, Unesp, Unicamp e Famerp têm formato próprio
+    letras = formato.letras if formato else "ABCDE"
     pdf, reparo = fonte_legivel(pdf)
     paginas = ler_paginas(pdf)
+    if formato:
+        formato.normalizar(paginas)
     for pg in paginas:
         preparar_pagina(pg)
 
@@ -219,19 +240,19 @@ def recortar(pdf, ano, pasta_img, selecionadas=None):
         for (cx0, cx1) in pg["colunas"]:
             linhas = sorted([l for l in pg["corpo"] if l[0] >= cx0 - 6 and l[0] < cx1], key=lambda l: (l[1], l[0]))
             cortes = []  # (y, tipo, número)
-            for l in linhas:
+            for i, l in enumerate(linhas):
                 m = MARCADOR.match(l[4])
                 if m:
                     cortes.append((l[1], "q", int(m.group(1))))
-                elif t := TEXTO_COMUM.match(l[4]):
-                    cortes.append((l[1], "texto", (int(t.group(1)), int(t.group(2)))))
-                elif FIM.match(l[4]):
+                elif t := (formato.texto_comum(linhas, i) if formato else TEXTO_COMUM.match(l[4])):
+                    cortes.append((l[1], "texto", t if formato else (int(t.group(1)), int(t.group(2)))))
+                elif (formato.fim if formato else FIM).match(l[4]):
                     cortes.append((l[1], "fim", l[4]))
             ini, folga = pg["topo"] + 2, 0
             for (y, tipo, valor) in cortes + [(pg["base"], "base", None)]:
                 if aberta is not None and y > ini + 3:
                     trecho = [l for l in linhas if ini - 1 <= l[1] < y - 1]
-                    if trecho and not (aberta.get("continua") and alternativas_completas(aberta["linhas"])):
+                    if trecho and not (aberta.get("continua") and alternativas_completas(aberta["linhas"], letras)):
                         aberta["trechos"].append((ip, cx0, ini - folga, cx1, y - 3))
                         aberta["linhas"] += trecho
                 if tipo == "q":
@@ -265,21 +286,28 @@ def recortar(pdf, ano, pasta_img, selecionadas=None):
             if q["es"] or (selecionadas is not None and q["n"] not in selecionadas):
                 continue
             nome = f"{ano}-Q{q['n']:02d}"
-            texto, imagens, evidencias = extrair(documento, q["trechos"], paginas, pasta_img, nome + "-midia")
+            texto, imagens, evidencias = extrair(documento, q["trechos"], paginas, pasta_img, nome + "-midia", bool(formato))
+            if formato:
+                texto = formato.ajustar_texto(texto)
             comum, grupo = "", ""
             for t in textos:
                 a, b = t["faixa"]
-                if a <= q["n"] <= b:
-                    comum, imgs, evs = extrair(documento, t["trechos"], paginas, pasta_img, f"{ano}-Q{a:02d}a{b:02d}-midia")
+                if a == b == q["n"]:
+                    # "Para responder à questão 19, leia o texto 2" (Unicamp): texto só desta questão, vai no enunciado
+                    proprio, imgs, evs = extrair(documento, t["trechos"], paginas, pasta_img, nome + "-midia", bool(formato))
+                    texto, imagens, evidencias = proprio + "\n" + texto, imgs + imagens, evs + evidencias
+                elif a <= q["n"] <= b:
+                    comum, imgs, evs = extrair(documento, t["trechos"], paginas, pasta_img, f"{ano}-Q{a:02d}a{b:02d}-midia", bool(formato))
                     imagens = imgs + imagens
                     evidencias = evs + evidencias
                     grupo = f"{pdf.stem}:Q{a:02d}a{b:02d}"
             marcas = re.findall(r"^([A-E])(?:\s|$)", texto, re.M)
-            completa = marcas[-5:] == list("ABCDE")
+            completa = marcas[-len(letras):] == list(letras)
             falha = ''
             if not completa or re.search(r'^[A-E][ \t]*$',texto,re.M):
                 try:
-                    texto, imgs, evs = alternativas_visuais(documento, q['trechos'], paginas, pasta_img, nome+'-midia')
+                    visuais = formato.alternativas_visuais if formato else alternativas_visuais
+                    texto, imgs, evs = visuais(documento, q['trechos'], paginas, pasta_img, nome+'-midia', letras)
                     imagens = list(dict.fromkeys(re.findall(r'!\[\[([^]]+)\]\]', comum))) + imgs
                     evidencias = [e for e in evidencias if e['arquivo'] in imagens] + evs
                     completa = True
@@ -695,4 +723,8 @@ if __name__ == "__main__":
         cmd_taxonomia(alvo)
     else:
         pdf = Path(alvo).resolve()
-        {"preparar": cmd_preparar, "gravar": cmd_gravar}[etapa](pdf)
+        import formatos
+        if formatos.identificar(pdf):  # Fuvest, Unesp, Unicamp e Famerp: mesmas etapas, notas sem cartas
+            {"preparar": formatos.cmd_preparar, "gravar": formatos.cmd_gravar}[etapa](pdf)
+        else:
+            {"preparar": cmd_preparar, "gravar": cmd_gravar}[etapa](pdf)
