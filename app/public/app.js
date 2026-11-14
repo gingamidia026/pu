@@ -534,7 +534,7 @@ const MOLDE_ENTRADA = (() => {
   const copia = bloco.cloneNode(true); copia.removeAttribute('data-estatica'); return copia.outerHTML;
 })();
 // Sem o bloco (index.html antigo), a entrada fica só com o título, a demonstração e o formulário.
-const MOLDE_RESERVA = `<div class="entrada"><div class="faixa faixa-papel"><section class="apresentacao" id="apresentacao"><h1>Estude para o Enem uma questão por vez.</h1></section></div>
+const MOLDE_RESERVA = `<div class="entrada"><div class="faixa faixa-papel"><section class="apresentacao" id="apresentacao"><h1>Estude para o vestibular uma questão por vez.</h1></section></div>
 <div data-lugar="faixa-que-corre"></div><div class="faixa faixa-areia"><section class="experimente" id="experimente"><h2 id="titulo-experimente">Experimente uma questão</h2><div data-lugar="demonstracao"></div></section></div>
 <div class="faixa faixa-sol-claro"><section class="chamada" id="entrar"><div class="formulario" data-lugar="formulario"></div></section></div></div>`;
 // Provas no ar: fonte única da lista "Provas no PU" da entrada. Conferido em 14/11/2026 no catálogo novo da frente provas

@@ -121,10 +121,11 @@ main { flex: 1; width: 100%; padding: 1rem max(1rem,env(safe-area-inset-right)) 
 #conteudo.entrou > * { animation: entrar 360ms var(--mola) both; }
 #conteudo.entrou > .entrada { animation: none; }
 #conteudo.entrou > .entrada > * { animation: entrar 600ms var(--mola) both; }
-#conteudo.entrou > .entrada > :nth-child(2) { animation-delay: 80ms; }
-#conteudo.entrou > .entrada > :nth-child(3) { animation-delay: 160ms; }
-/* Na entrada, só as três primeiras faixas (topo, faixa que corre e demonstração) entram; as de baixo já estão paradas. */
-#conteudo.entrou > .entrada > :nth-child(n+4) { animation: none; }
+/* O mar do topo (2º filho) entra junto com o topo, sem atraso, para não abrir fresta entre os dois. */
+#conteudo.entrou > .entrada > :nth-child(3) { animation-delay: 80ms; }
+#conteudo.entrou > .entrada > :nth-child(4) { animation-delay: 160ms; }
+/* Na entrada, só as três primeiras faixas (topo com o mar, faixa que corre e demonstração) entram; as de baixo já estão paradas. */
+#conteudo.entrou > .entrada > :nth-child(n+5) { animation: none; }
 @keyframes entrar { from { opacity: 0; transform: translateY(12px); } }
 #aviso { max-width: 46rem; margin: 1rem auto 0; color: var(--texto); font-weight: 500; }
 #aviso.falha { color: var(--vermelho); }
@@ -291,6 +292,7 @@ main:has(.entrada) { padding: 0; }
 .entrada {
   --foco: var(--azul-mar);
   --forma-onda: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 16'%3E%3Cpath d='M0 8q12-8 24 0t24 0v8H0z'/%3E%3C/svg%3E");
+  --forma-mar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 14'%3E%3Cpath d='M0 7q15-14 30 0t30 0v7H0z'/%3E%3C/svg%3E");
   --forma-linha: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 12'%3E%3Cpath d='M0 6q12-6 24 0t24 0' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E");
   font-family: var(--fonte-texto); font-size: 1.0625rem; line-height: 1.6; color: var(--texto);
 }
@@ -300,7 +302,7 @@ body.sem-sessao .topo { background: #FFFFFF; border-bottom-color: var(--tinta); 
 /* Link "Entrar" do topo: só com a entrada desenhada; leva ao formulário no fim da página. */
 .entrar-topo { display: none; }
 body.sem-sessao:has(#conteudo > .entrada:not([data-estatica])) .entrar-topo {
-  display: inline-flex; align-items: center; min-height: 2.75rem; padding: .5rem 1rem; border: 1px solid var(--tinta); border-radius: 8px;
+  display: inline-flex; align-items: center; flex-shrink: 0; white-space: nowrap; min-height: 2.75rem; padding: .5rem 1rem; border: 1px solid var(--tinta); border-radius: 8px;
   background: #FFFFFF; color: var(--tinta); font-weight: 700; text-decoration: none; transition: background-color 200ms var(--troca);
 }
 @media (hover:hover) and (pointer:fine) { body.sem-sessao .entrar-topo:hover { background: var(--amarelo-claro); } }
@@ -312,7 +314,7 @@ body.sem-sessao:has(#conteudo > .entrada:not([data-estatica])) .entrar-topo {
 .faixa { padding: 3rem max(1rem,env(safe-area-inset-right)) 3.25rem max(1rem,env(safe-area-inset-left)); }
 .faixa > section { max-width: 72rem; margin-inline: auto; }
 .faixa-papel { background: #FFFFFF; }
-.faixa-topo { padding-block: 1.75rem 2rem; }
+.faixa-topo { padding-block: 1.75rem 0; }
 .faixa-areia { background: var(--suave); }
 .faixa-boia { background: var(--laranja-claro); }
 .faixa-mar-claro { background: var(--azul-mar-claro); }
@@ -337,16 +339,23 @@ body.sem-sessao:has(#conteudo > .entrada:not([data-estatica])) .entrar-topo {
 .topo-acoes .botao { min-height: 3.25rem; padding-inline: 1.5rem; font-weight: 700; }
 .tarja { display: inline-block; margin: 0; padding: .25rem .875rem; border: 1px solid var(--tinta); background: var(--amarelo-sol); color: #000000;
   font-family: var(--fonte-cartaz); font-weight: 800; font-size: 1.25rem; letter-spacing: .04em; text-transform: uppercase; rotate: -3deg; }
-.cena-mar { display: block; width: 100%; max-width: 15rem; height: auto; justify-self: center; overflow: visible; }
-.cena-mar * { vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+/* Cena do topo (frente sobras): o SVG e o pescador ocupam a mesma caixa, de proporção fixa (sem deslocamento ao carregar a imagem).
+   A base da caixa é a linha d'água; o mar é a .mar-topo, na largura toda, por cima do casco, do círculo e da boia. */
+.cena-mar { position: relative; width: 100%; max-width: 19rem; aspect-ratio: 360 / 172; justify-self: center; align-self: end; }
+.cena-mar svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.cena-mar svg * { vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+.pescador { position: absolute; left: 6.667%; top: 26.57%; width: 41.667%; aspect-ratio: 460 / 429; background: url("ilustracoes/pescador-livro.webp") 0 0 / 100% 100% no-repeat; }
+.mar-topo { position: relative; height: 3rem; margin-top: 7px; background: var(--azul-mar); }
+.mar-topo::before { content: ""; position: absolute; inset: auto 0 100% 0; height: 14px; background: var(--azul-mar);
+  -webkit-mask: var(--forma-mar) 0 0 / 60px 14px repeat-x; mask: var(--forma-mar) 0 0 / 60px 14px repeat-x; }
+.mar-topo::after { content: ""; position: absolute; inset: 1rem 0 auto 0; height: 12px; background: #FFFFFF;
+  -webkit-mask: var(--forma-linha) 0 0 / 48px 12px repeat-x; mask: var(--forma-linha) 0 0 / 48px 12px repeat-x; }
 .c-mar-claro { fill: var(--azul-mar-claro); }
 .c-sol { fill: var(--amarelo-sol); }
-.c-mar { fill: var(--azul-mar); }
 .c-boia { fill: var(--laranja-boia); }
 .c-papel { fill: #FFFFFF; }
 .c-contorno { stroke: var(--tinta); stroke-width: 1.5px; }
 .c-linha { fill: none; stroke: var(--tinta); stroke-width: 1.5px; }
-.c-espuma { fill: none; stroke: #FFFFFF; stroke-width: 2px; }
 .cena-mar .c-faixas-boia { fill: none; stroke: #FFFFFF; stroke-width: 12; vector-effect: none; stroke-dasharray: 8.17 16.18; }
 .boia { transform-box: fill-box; transform-origin: center; animation: boiar 3.2s ease-in-out infinite; }
 .livro-pescado { transform-box: fill-box; transform-origin: 50% 0; animation: balancar 4.4s ease-in-out infinite; }
@@ -447,11 +456,14 @@ body.sem-sessao:has(#conteudo > .entrada:not([data-estatica])) .entrar-topo {
 .privacidade { margin: 1.25rem 0 0; }
 .privacidade small { color: var(--texto); font-size: .875rem; }
 
-@media (min-width: 40rem) { .lista-ganhos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 40rem) { .lista-ganhos { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cena-mar { max-width: 22rem; } }
 @media (min-width: 56rem) {
   .faixa { padding-block: 5rem; padding-inline: 2rem; }
   /* No computador o título também acompanha a altura da tela, para o começo da demonstração aparecer na primeira tela (regra decoração-sem-respiro). */
-  .faixa-topo { padding-block: 2.5rem 3rem; }
+  .faixa-topo { padding-block: 2.5rem 0; }
+  .apresentacao-texto { padding-bottom: 3rem; }
+  .mar-topo { height: 4.5rem; }
+  .mar-topo::after { top: 1.5rem; }
   .apresentacao h1 { font-size: clamp(3rem, min(12vw, 10vh), 7rem); max-width: 13ch; }
   .apresentacao { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 3rem; }
   .cena-mar { max-width: 34rem; }
