@@ -69,7 +69,7 @@ class Controle(socketserver.StreamRequestHandler):
                 corpo=pedido.get('painel')
                 if pedido['acao']=='painel' and (not isinstance(corpo,dict) or str(corpo.get('conta',{}).get('id'))!=conta):raise ValueError()
                 caminho=pedido.get('caminho','/')
-                if caminho not in ['/','/app.js','/simulador.js','/estilo.css','/textura.svg'] and not re.fullmatch(r'/(?:fontes/[a-z0-9][a-z0-9-]{0,60}\.woff2|ilustracoes/[a-z0-9][a-z0-9-]{0,60}\.(?:webp|png))',caminho):raise ValueError()
+                if caminho not in ['/','/app.js','/tema-inicial.js','/simulador.js','/estilo.css','/textura.svg'] and not re.fullmatch(r'/(?:fontes/[a-z0-9][a-z0-9-]{0,60}\.woff2|ilustracoes/[a-z0-9][a-z0-9-]{0,60}\.(?:webp|png))',caminho):raise ValueError()
                 codigo="import sys,json,urllib.request,base64; p=json.load(sys.stdin); b=json.dumps(p['painel']).encode() if p['acao']=='painel' else None; r=urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000'+('/painel' if b else p['caminho']),data=b,headers={'Content-Type':'application/json'}),timeout=10); print(json.dumps({'corpo':base64.b64encode(r.read()).decode(),'tipo':r.headers.get('Content-Type')}))"
                 r=subprocess.run(['docker','exec','-i',nome(conta),'python','-c',codigo],input=json.dumps({'acao':pedido['acao'],'painel':corpo,'caminho':caminho}),capture_output=True,text=True,timeout=15)
                 if r.returncode:raise RuntimeError()

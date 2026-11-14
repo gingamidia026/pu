@@ -236,9 +236,9 @@ class API(BaseHTTPRequestHandler):
         caminho = self.path.split('?')[0]
         if caminho.startswith('/api/') and '?' in self.path:
             raise Erro(400, 'Parâmetros de consulta não permitidos.')
-        if metodo == 'GET' and caminho in ['/', '/app.js', '/simulador.js', '/estilo.css', '/textura.svg']:
-            arquivo = PUBLICO / {'/': 'index.html', '/app.js': 'app.js', '/simulador.js': 'simulador.js', '/estilo.css': 'estilo.css', '/textura.svg': 'textura.svg'}[caminho]
-            tipo = {'/': 'text/html; charset=utf-8', '/app.js': 'text/javascript; charset=utf-8', '/simulador.js': 'text/javascript; charset=utf-8', '/estilo.css': 'text/css; charset=utf-8', '/textura.svg': 'image/svg+xml'}[caminho]
+        if metodo == 'GET' and caminho in ['/', '/app.js', '/tema-inicial.js', '/simulador.js', '/estilo.css', '/textura.svg']:
+            arquivo = PUBLICO / {'/': 'index.html', '/app.js': 'app.js', '/tema-inicial.js': 'tema-inicial.js', '/simulador.js': 'simulador.js', '/estilo.css': 'estilo.css', '/textura.svg': 'textura.svg'}[caminho]
+            tipo = {'/': 'text/html; charset=utf-8', '/app.js': 'text/javascript; charset=utf-8', '/tema-inicial.js': 'text/javascript; charset=utf-8', '/simulador.js': 'text/javascript; charset=utf-8', '/estilo.css': 'text/css; charset=utf-8', '/textura.svg': 'image/svg+xml'}[caminho]
             return self.enviar(200, arquivo.read_bytes(), tipo)
         if metodo == 'GET' and RECURSO_ESTATICO.fullmatch(caminho) and (PUBLICO / caminho[1:]).is_file():
             return self.enviar(200, (PUBLICO / caminho[1:]).read_bytes(), TIPOS_ESTATICOS[caminho.rsplit('.', 1)[1]])
@@ -332,7 +332,7 @@ class API(BaseHTTPRequestHandler):
             conta = self.conta(con)
             if INDIVIDUAIS and metodo=='GET' and caminho.startswith('/site/'):
                 recurso=caminho[len('/site'):]
-                if recurso not in ['/','/app.js','/simulador.js','/estilo.css','/textura.svg'] and not RECURSO_ESTATICO.fullmatch(recurso):raise Erro(404,'Página não encontrada.')
+                if recurso not in ['/','/app.js','/tema-inicial.js','/simulador.js','/estilo.css','/textura.svg'] and not RECURSO_ESTATICO.fullmatch(recurso):raise Erro(404,'Página não encontrada.')
                 resposta=ambiente(conta['id'],'site',caminho=recurso)
                 return self.enviar(200,base64.b64decode(resposta['corpo']),resposta['tipo'])
             if caminho == '/api/dispositivos':

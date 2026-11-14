@@ -26,7 +26,7 @@ class Site(BaseHTTPRequestHandler):
         except (ValueError,OSError):self.responder(400,b'{}')
     def do_GET(self):
         if self.path=='/saude':return self.responder(200,b'{"ok":true}')
-        arquivos={'/':'index.html','/app.js':'app.js','/simulador.js':'simulador.js','/estilo.css':'estilo.css','/textura.svg':'textura.svg'}
+        arquivos={'/':'index.html','/app.js':'app.js','/tema-inicial.js':'tema-inicial.js','/simulador.js':'simulador.js','/estilo.css':'estilo.css','/textura.svg':'textura.svg'}
         caminho=self.path.split('?')[0]
         nome=arquivos.get(caminho) or (caminho[1:] if RECURSO.fullmatch(caminho) and (PUBLICO/caminho[1:]).is_file() else None)
         if not nome:return self.responder(404,b'{}')

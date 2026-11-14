@@ -590,15 +590,24 @@ await item('tema automático: relógio simulado ao meio-dia e às 22h em dois fu
   } finally { await relogioReal(); await escolherFuso(''); await p.avaliar('aplicarTema()'); }
   igual(await p.avaliar('prefs.fuso'), '', 'volta ao fuso do navegador');
 });
+let atrasarApp = false;
+p.aoEvento('Fetch.requestPaused', async ({requestId, request}) => {
+  if (!atrasarApp || !/\/app\.js(\?|$)/.test(request.url)) return;
+  await dormir(400); await p.s('Fetch.continueRequest', {requestId}).catch(() => {});
+});
 await item('tema: preferência guardada por conta, entra antes do primeiro quadro e a entrada fica sem tema', async () => {
   await abrirConta(); await escolherTema('noturno');
   igual(await p.avaliar('JSON.parse(localStorage.getItem("pu.prefs.v1." + painel.conta.id)).tema'), 'noturno', 'guardada por conta');
   const {identifier} = await p.s('Page.addScriptToEvaluateOnNewDocument', {source: `(() => {
     const registrar = nome => { if (window[nome]) return; const raiz = document.documentElement; window[nome] = {tema: raiz.dataset.tema || null, fundo: raiz.isConnected ? getComputedStyle(raiz).backgroundColor : null}; };
-    requestAnimationFrame(() => registrar('__primeiroQuadro'));
+    requestAnimationFrame(() => { registrar('__primeiroQuadro'); window.__appNoPrimeiroQuadro = typeof window.aplicarTema; });
     new MutationObserver(() => { const c = document.querySelector('#conteudo'); if (c && [...c.children].some(x => !x.matches('.entrada[data-estatica]'))) registrar('__primeiraTela'); }).observe(document, {childList: true, subtree: true});
   })()`});
-  try { await p.recarregar(); await estudoPronto(); } finally { await p.s('Page.removeScriptToEvaluateOnNewDocument', {identifier}); }
+  // O app.js chega 400 ms depois do resto: o navegador desenha antes dele, como numa rede lenta. Sem atraso o quadro sem
+  // app.js só acontecia em 3 de 40 recargas e o item oscilava; o tema-inicial.js (síncrono no <head>) cobre esse quadro.
+  atrasarApp = true; await p.s('Fetch.enable', {patterns: [{urlPattern: '*/app.js*'}]});
+  try { await p.recarregar(); await estudoPronto(); } finally { await p.s('Fetch.disable'); atrasarApp = false; await p.s('Page.removeScriptToEvaluateOnNewDocument', {identifier}); }
+  igual(await p.avaliar('window.__appNoPrimeiroQuadro'), 'undefined', 'primeiro quadro desenhado antes do app.js');
   igual(await p.avaliar('window.__primeiraTela'), {tema: 'noturno', fundo: PRETO}, 'primeira tela de dentro já no noturno');
   igual(await p.avaliar('window.__primeiroQuadro'), {tema: 'noturno', fundo: PRETO}, 'primeiro quadro sem clarão');
   igual(await temaNaPagina(), 'noturno', 'persiste ao recarregar');

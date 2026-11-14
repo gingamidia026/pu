@@ -1119,6 +1119,8 @@ document.addEventListener('visibilitychange', () => {
     atualizar().then(() => { if (!estado.atual && !relogio && ['', '#estudar', '#inicio', '#questoes'].includes(location.hash)) navegar(); else atualizarCabecalhoEstudo(); }).catch(e => { if (painel) erro(e); });
     return;
   }
+  // Sem conta para retomar: tira o tema que o tema-inicial.js tenha posto (a entrada fica sem tema).
+  aplicarTema();
   if (publico) {
     if (conexao.habilitado && sessao) {
       menu.hidden = true; document.body.classList.add('sem-sessao');
