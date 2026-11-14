@@ -53,41 +53,66 @@ def ordem_intercalada(questoes):
         materias[materia(q)][assunto(q)].append(q['id'])
     return rodizio({m: rodizio(dict(assuntos)) for m, assuntos in materias.items()}, 'Português')
 
-def ciclo(con, conta, questoes):
-    ordem = ordem_intercalada(questoes)
+_ORDENS = {}
+
+def ordem_em_cache(questoes):
+    """A ordem intercalada só muda com o conjunto de questões; com o catálogo grande, recalcular a cada pedido pesa."""
+    chave = (len(questoes), hash(tuple(q['id'] for q in questoes)))
+    if chave not in _ORDENS:
+        if len(_ORDENS) > 64: _ORDENS.clear()
+        _ORDENS[chave] = ordem_intercalada(questoes)
+    return _ORDENS[chave]
+
+def ciclo(con, conta, questoes, todas=None):
+    """Volta pelo banco. `questoes` são as das provas ativas da conta; `todas`, o catálogo inteiro.
+    Questão nova no catálogo (ou de prova reativada) entra na volta em andamento; a de prova desativada
+    continua registrada, mas fica fora da conta e da fila até a prova voltar."""
+    todas = questoes if todas is None else todas
+    ordem = ordem_em_cache(questoes)
     con.execute('INSERT OR IGNORE INTO ciclos(conta,ids) VALUES(?,?)',(conta,json.dumps(ordem)))
     r=con.execute('SELECT * FROM ciclos WHERE conta=?',(conta,)).fetchone()
     previstos=json.loads(r['ids']); feitos=set(json.loads(r['feitos'])); mapa={q['id']:q for q in questoes}
+    registrados=set(previstos)
+    novos=[i for i in ordem if i not in registrados]
+    if novos:
+        previstos+=novos
+        con.execute('UPDATE ciclos SET ids=? WHERE conta=?',(json.dumps(previstos),conta))
+    existentes={q['id'] for q in todas}
     posicao={i:n for n,i in enumerate(ordem)}
-    pendentes=[i for i in previstos if i not in feitos]
+    pendentes=[i for i in previstos if i not in feitos and (i in mapa or i not in existentes)]
     # A ordem de estudo é a intercalada atual; o registro guarda quais questões pertencem à densidade.
     disponiveis=sorted((i for i in pendentes if i in mapa),key=lambda i:posicao[i])
     removidas=len(pendentes)-len(disponiveis)
     grupos=defaultdict(lambda: {'total':0,'feitas':0})
-    for i in previstos:
+    contados=[i for i in previstos if i in mapa or i not in existentes]
+    for i in contados:
         nome=materia(mapa[i]) if i in mapa else 'Questão removida do catálogo'
         grupos[nome]['total']+=1; grupos[nome]['feitas']+=int(i in feitos)
-    return {'concluidas':r['concluidos'],'feitas':len(feitos),'total':len(previstos),'proxima':disponiveis[0] if disponiveis else None,
+    return {'concluidas':r['concluidos'],'feitas':sum(1 for i in contados if i in feitos),'total':len(contados),'proxima':disponiveis[0] if disponiveis else None,
             'bloqueada':bool(removidas and not disponiveis),'removidas':removidas,'pendentes':disponiveis,
             'materias':[dict(materia=m,**v) for m,v in grupos.items()],
-            'base':'Distribuição do catálogo de provas 2024 e 2025; classificações em revisão. Não é uma média histórica validada do Enem.'}
+            'base':'Distribuição das questões das provas ativas no catálogo; classificações em revisão. Não é uma média histórica validada de nenhuma prova.'}
 
-def avancar(con, conta, questao, questoes):
-    return avancar_conjunto(con, conta, [questao], questoes)
+def avancar(con, conta, questao, questoes, todas=None):
+    return avancar_conjunto(con, conta, [questao], questoes, todas)
 
-def avancar_conjunto(con, conta, ids, questoes):
-    """Conta qualquer questão pendente da densidade, em qualquer ordem. Repetição não conta duas vezes."""
-    ciclo(con,conta,questoes)
+def avancar_conjunto(con, conta, ids, questoes, todas=None):
+    """Conta qualquer questão pendente da densidade, em qualquer ordem. Repetição não conta duas vezes.
+    A volta termina quando todas as questões das provas ativas foram feitas."""
+    ciclo(con,conta,questoes,todas)
     r=con.execute('SELECT * FROM ciclos WHERE conta=?',(conta,)).fetchone()
     previstos=json.loads(r['ids']); feitos=set(json.loads(r['feitos']))
     novos=[i for i in ids if i in previstos and i not in feitos]
     if not novos: return False
     feitos.update(novos)
-    terminou=bool(previstos) and len(feitos)==len(previstos)
+    # Questão removida do catálogo segura a volta (fica "bloqueada"); a de prova desativada, não.
+    ativas={q['id'] for q in questoes}; existentes={q['id'] for q in (questoes if todas is None else todas)}
+    contados=[i for i in previstos if i in ativas or i not in existentes]
+    terminou=bool(contados) and all(i in feitos for i in contados)
     con.execute('UPDATE ciclos SET feitos=?,concluidos=concluidos+? WHERE conta=?',
                 (json.dumps([] if terminou else sorted(feitos)),int(terminou),conta))
     if terminou:
-        con.execute('UPDATE ciclos SET ids=? WHERE conta=?',(json.dumps(ordem_intercalada(questoes)),conta))
+        con.execute('UPDATE ciclos SET ids=? WHERE conta=?',(json.dumps(ordem_em_cache(questoes)),conta))
     return terminou
 
 def indice(questoes):
@@ -128,10 +153,12 @@ def estudo(con, conta, questoes, agora=None):
     return {'data':hoje.isoformat(),'hoje':{'respostas':feitas_hoje[0],'acertos':feitas_hoje[1]},'semana':semana,'diaDaSemana':hoje.weekday(),
             'revisao':{'vencidas':[q for _,q in sorted(vencidas)],'caderno':caderno,'intervalos':INTERVALOS}}
 
-def perfil(con,conta,questoes,agora=None):
+def perfil(con,conta,questoes,agora=None,todas=None):
+    """Desempenho da conta nas provas ativas. A média semanal dos usuários usa o catálogo inteiro,
+    porque fica em cache para todas as contas."""
     agora=agora or datetime.now(timezone.utc)
     inicio=(agora-timedelta(days=agora.weekday())).replace(hour=0,minute=0,second=0,microsecond=0)
-    semana=inicio.isoformat(); mapa={q['id']:q for q in questoes}
+    semana=inicio.isoformat(); mapa={q['id']:q for q in (questoes if todas is None else todas)}
     cache=con.execute('SELECT dados FROM medias WHERE semana=?',(semana,)).fetchone()
     if cache: medias=json.loads(cache[0])
     else:
@@ -146,7 +173,7 @@ def perfil(con,conta,questoes,agora=None):
         for (_,m,a),(n,s) in por_usuario.items(): totais[m+'\n'+a].append(100*s/n)
         medias={k:{'usuarios':len(v),'percentual':round(sum(v)/len(v),1) if len(v)>=5 else None} for k,v in totais.items()}
         con.execute('INSERT OR IGNORE INTO medias VALUES(?,?)',(semana,json.dumps(medias)))
-    grupos=defaultdict(lambda:[0,0])
+    grupos=defaultdict(lambda:[0,0]); mapa={q['id']:q for q in questoes}
     for r in con.execute('SELECT questao,acerto FROM respostas WHERE conta=?',(conta,)):
         if r['questao'] in mapa:
             q=mapa[r['questao']];v=grupos[(materia(q),assunto(q))];v[0]+=1;v[1]+=r['acerto']
