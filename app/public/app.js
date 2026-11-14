@@ -57,7 +57,7 @@ const imagens = new Map();    // hash → promessa do endereço data:
 const estado = {modo: 'misturado', primeira: null, puladas: new Set(), feitasSessao: new Set(), marcadas: {}, vez: 0, versao: 0, atual: null, aoTeclar: null};
 let simulado = guarda.ler(CHAVES.simulado);
 // Escolha de provas a caminho do servidor (seção "Provas que a pessoa vai prestar").
-const gravacaoProvas = {escolha: null, prazo: null, emVoo: false, confirmada: null, falha: null};
+const gravacaoProvas = {escolha: null, prazo: null, emVoo: false, confirmada: null, falha: null, copia: null, conta: null};
 const enviosSimulado = new Map();   // id → envio em andamento; só na memória, nunca gravado
 let relogio = null;
 
@@ -247,6 +247,8 @@ function encerrarLocal(saida = false) {
   questoes.clear(); imagens.clear(); prefs = {...PREFS_PADRAO}; aplicarTema();
   Object.assign(estado, {modo: 'misturado', primeira: null, puladas: new Set(), feitasSessao: new Set(), marcadas: {}, atual: null, versao: estado.versao + 1});
   if (window.PUSimulador) PUSimulador.limpar();
+  // Escolha de provas a caminho morre com a sessão: não vale para a próxima conta deste aparelho.
+  clearTimeout(gravacaoProvas.prazo); Object.assign(gravacaoProvas, {escolha: null, prazo: null, confirmada: null, falha: null, copia: null, conta: null});
 }
 
 // ---------- Texto das questões ----------
@@ -341,7 +343,7 @@ function receberPainel(dados) {
   carregarPrefs();
   if (simulado && simulado.conta !== painel.conta.id) { simulado = null; guarda.apagar(CHAVES.simulado); enviosSimulado.clear(); }
   // Escolha de provas ainda a caminho do servidor: continua valendo sobre o painel que acabou de chegar.
-  if (gravacaoProvas.escolha && painel.provas) { painel.provas.ativas = gravacaoProvas.escolha; recortarPainel(gravacaoProvas.escolha); } else ajustarAoIndice();
+  if (gravacaoProvas.escolha && painel.provas) { painel.provas.ativas = gravacaoProvas.escolha; recortarPainel(gravacaoProvas.escolha); }
   if (painel.inicial) { lembrarQuestao(painel.inicial); if (!estado.atual) estado.primeira = painel.inicial.id; }
   guardarPainel();
   menu.hidden = false; document.body.classList.remove('sem-sessao');
@@ -366,7 +368,10 @@ function aplicarResultado(r) {
   if (r.progresso) painel.progresso = r.progresso;
   if (r.estudo) painel.estudo = r.estudo;
   painel.inicial = null;
-  normalizar(painel); guardarPainel();
+  normalizar(painel);
+  // Resposta calculada pelo servidor com a escolha antiga, enquanto a nova está a caminho: recorta de novo.
+  if (gravacaoProvas.escolha) recortarPainel(gravacaoProvas.escolha);
+  guardarPainel();
 }
 function lembrarQuestao(q) {
   questoes.set(q.id, q);
@@ -1090,9 +1095,12 @@ function ajustarAoIndice() {
     // As já respondidas ficam (entram no resultado); as que faltam e saíram do índice saem da rodada.
     const ids = simulado.ids.filter(id => simulado.respostas[id] || noIndice.has(id));
     if (ids.length !== simulado.ids.length) {
-      simulado.ids = ids; simulado.atual = Math.min(simulado.atual, ids.length);
+      const tiradas = simulado.ids.length - ids.length;
+      // As respondidas ficam na frente da rodada: a próxima a abrir é a primeira sem resposta.
+      simulado.ids = ids; simulado.atual = ids.filter(id => simulado.respostas[id]).length;
       if (!ids.length) simulado = null;
       salvarSimulado();
+      informar(simulado ? `O simulado em andamento perdeu ${plural(tiradas, 'questão', 'questões')} das provas desmarcadas e ficou com ${simulado.ids.length}.` : 'O simulado em andamento só tinha questões das provas desmarcadas e foi encerrado.');
     }
   }
 }
@@ -1105,8 +1113,8 @@ function escolhaProvasHtml() {
   const todas = provasDisponiveis(); if (todas.length < 2) return '';
   const ativas = provasAtivas();
   return `<section class="escolha-provas" aria-labelledby="titulo-escolha-provas"><h2 id="titulo-escolha-provas">Provas que você vai prestar</h2>
-<p class="secundario">O estudo do dia, a revisão, o simulado e o progresso usam só as provas marcadas. Pelo menos uma fica marcada.</p>
-<fieldset class="lista-provas"><legend class="oculto">Provas que você vai prestar</legend>${todas.map(p => `<label class="opcao-prova" data-prova="${escapar(p.id)}"><input type="checkbox" value="${escapar(p.id)}"${ativas.includes(p.id) ? ' checked' : ''} aria-labelledby="nome-prova-${escapar(p.id)}" aria-describedby="detalhe-prova-${escapar(p.id)}"><span class="caixa" aria-hidden="true"></span><span class="nome" id="nome-prova-${escapar(p.id)}">${escapar(p.nome)}</span><span class="detalhe" id="detalhe-prova-${escapar(p.id)}">${escapar(edicoesTexto(p.edicoes || []))} · ${milhar(p.questoes)} ${p.questoes === 1 ? 'questão' : 'questões'}</span></label>`).join('')}</fieldset>
+<p class="secundario">Vale para o estudo do dia, a revisão, o simulado e o progresso. Pelo menos uma fica marcada.</p>
+<fieldset class="lista-provas" aria-labelledby="titulo-escolha-provas">${todas.map(p => `<label class="opcao-prova" data-prova="${escapar(p.id)}"><input type="checkbox" value="${escapar(p.id)}"${ativas.includes(p.id) ? ' checked' : ''} aria-labelledby="nome-prova-${escapar(p.id)}" aria-describedby="detalhe-prova-${escapar(p.id)}"><span class="caixa" aria-hidden="true"></span><span class="nome" id="nome-prova-${escapar(p.id)}">${escapar(p.nome)}</span><span class="detalhe" id="detalhe-prova-${escapar(p.id)}">${escapar(edicoesTexto(p.edicoes || []))} · ${milhar(p.questoes)} ${p.questoes === 1 ? 'questão' : 'questões'}</span></label>`).join('')}</fieldset>
 <p class="estado-provas" id="estado-provas" role="status" data-estado="salvo">${escapar(resumoProvas())}</p></section>`;
 }
 function mostrarEstadoProvas(situacao, texto) {
@@ -1114,7 +1122,7 @@ function mostrarEstadoProvas(situacao, texto) {
   lugar.dataset.estado = situacao;
   lugar.innerHTML = escapar(texto || resumoProvas());
   if (situacao === 'falha') {
-    const tentar = document.createElement('button'); tentar.type = 'button'; tentar.className = 'texto-botao'; tentar.textContent = 'Tentar de novo';
+    const tentar = document.createElement('button'); tentar.type = 'button'; tentar.className = 'texto-botao'; tentar.textContent = 'Tentar salvar de novo';
     tentar.onclick = () => escolherProvas(gravacaoProvas.falha); lugar.append(' ', tentar);
   }
 }
@@ -1124,8 +1132,10 @@ function escolherProvas(ativas) {
   const ordem = provasDisponiveis().map(p => p.id);
   ativas = ordem.filter(id => ativas.includes(id));
   if (!ativas.length) return;
-  gravacaoProvas.confirmada ??= provasAtivas();
+  // Antes da primeira mudança: o que o servidor tem, e uma cópia do painel para voltar se a gravação falhar.
+  if (!gravacaoProvas.confirmada) { gravacaoProvas.confirmada = provasAtivas(); gravacaoProvas.copia = structuredClone({...painel, inicial: undefined}); gravacaoProvas.conta = painel.conta.id; }
   gravacaoProvas.escolha = ativas; gravacaoProvas.falha = null;
+  estado.versao++;   // painel pedido antes desta escolha chega velho e é pedido de novo
   painel.provas.ativas = ativas; recortarPainel(ativas); guardarPainel();
   marcarCaixasProvas(); mostrarEstadoProvas('salvando', `${resumoProvas()} Salvando…`);
   clearTimeout(gravacaoProvas.prazo); gravacaoProvas.prazo = setTimeout(enviarProvas, 500);
@@ -1134,25 +1144,31 @@ window.escolherProvas = escolherProvas;
 async function enviarProvas() {
   if (gravacaoProvas.emVoo) return;   // a que está a caminho chama de novo quando voltar
   const lista = gravacaoProvas.escolha; if (!lista) return;
-  gravacaoProvas.emVoo = true; const versao = estado.versao;
+  gravacaoProvas.emVoo = true; const versao = estado.versao; const conta = painel?.conta.id;
   try {
     const r = await api('/api/dispositivos', {acao: 'provas', ativas: lista});
-    if (!painel) return;
+    if (!painel || painel.conta.id !== conta) return;
     gravacaoProvas.confirmada = r.provas.ativas;
     if (gravacaoProvas.escolha === lista) {
       gravacaoProvas.escolha = null;
       // Painel que chegou junto com a escolha; se uma resposta saiu no meio do caminho, pede o painel de novo.
-      if (r.painel && versao === estado.versao) receberPainel(r.painel); else await atualizar();
-      gravacaoProvas.confirmada = null;
+      estado.versao++;
+      if (r.painel && versao + 1 === estado.versao) receberPainel(r.painel); else await atualizar();
+      ajustarAoIndice(); guardarPainel();
+      gravacaoProvas.confirmada = null; gravacaoProvas.copia = null;
       if (location.hash === '#conta') { marcarCaixasProvas(); mostrarEstadoProvas('salvo', `${resumoProvas()} Salvo.`); }
     }
   } catch (e) {
-    if (!painel) return;
+    if (!painel || painel.conta.id !== conta) return;
     if (gravacaoProvas.escolha === lista) {
-      // Volta ao que o servidor tem, para a tela não mostrar uma escolha que não foi gravada.
+      // Volta ao que o servidor tem (painel de antes da escolha, com as questões recortadas), para a tela não mostrar
+      // uma escolha que não foi gravada; o painel do servidor é pedido de novo em seguida.
       gravacaoProvas.escolha = null; gravacaoProvas.falha = lista;
-      painel.provas.ativas = gravacaoProvas.confirmada || provasAtivas(); gravacaoProvas.confirmada = null; guardarPainel();
-      marcarCaixasProvas(); mostrarEstadoProvas('falha', `Não foi possível salvar a escolha das provas. ${mensagemErro(e)}`);
+      if (gravacaoProvas.copia) painel = normalizar({...gravacaoProvas.copia, provas: {...gravacaoProvas.copia.provas, ativas: gravacaoProvas.confirmada}});
+      else painel.provas.ativas = gravacaoProvas.confirmada || provasAtivas();
+      gravacaoProvas.confirmada = null; gravacaoProvas.copia = null; guardarPainel();
+      const texto = `Não foi possível salvar a escolha das provas. ${mensagemErro(e)}`;
+      if ($('#estado-provas')) { marcarCaixasProvas(); mostrarEstadoProvas('falha', texto); } else informar(texto, true);
       atualizar().catch(() => {});
     }
   } finally {
@@ -1163,7 +1179,7 @@ async function enviarProvas() {
 function ligarEscolhaProvas() {
   $$('.opcao-prova input').forEach(caixa => caixa.onchange = () => {
     const marcadas = $$('.opcao-prova input').filter(c => c.checked).map(c => c.value);
-    if (!marcadas.length) { caixa.checked = true; mostrarEstadoProvas('aviso', 'Pelo menos uma prova fica marcada. Marque outra antes de desmarcar esta.'); return; }
+    if (!marcadas.length) { caixa.checked = true; mostrarEstadoProvas('aviso', 'Marque outra prova antes de desmarcar esta.'); return; }
     escolherProvas(marcadas);
   });
 }
@@ -1183,7 +1199,7 @@ ${publico && !matchMedia('(display-mode: standalone)').matches ? '<h2>PU a um to
 <h2>Dados e saída</h2><div class="acoes"><a class="botao discreto" href="#privacidade">Dados e segurança</a><button type="button" class="discreto" id="sair">Sair da conta</button></div>`, 'ipe');
   ligarEscolhaProvas();
   if (gravacaoProvas.escolha) mostrarEstadoProvas('salvando', `${resumoProvas()} Salvando…`);
-  else if (gravacaoProvas.falha) mostrarEstadoProvas('falha', 'Não foi possível salvar a última escolha das provas.');
+  else if (gravacaoProvas.falha) mostrarEstadoProvas('falha', 'Não foi possível salvar a última escolha das provas. Verifique a conexão.');
   $$('[data-meta]').forEach(b => b.onclick = () => { prefs.meta = Number(b.dataset.meta); prefs.alvo = null; acertarAlvo(); $$('[data-meta]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); informar(`Meta do dia: ${prefs.meta} questões.`); });
   $('#criar-lembrete').onclick = () => { const hora = $('#hora-lembrete').value; if (!/^\d{2}:\d{2}$/.test(hora)) { informar('Escolha um horário para o lembrete.', true); return; } prefs.lembrete = hora; salvarPrefs(); baixarLembrete(hora); informar(`Lembrete das ${hora} baixado. Abra o arquivo para colocá-lo no calendário.`); };
   $$('input[name="tema"]').forEach(entrada => entrada.onchange = () => {

@@ -50,7 +50,13 @@ for (let id = 25; id <= 30; id++) {
   questoes.push({id, chave: 'teste:' + id, prova: unicamp ? 'unicamp' : 'fuvest', edicao: nome, fonteNome: unicamp ? 'Comvest' : 'Fuvest', area, materia, topico: `Assunto ${id % 2 ? 'ímpar' : 'par'} de ${materia}`, titulo: `${nome} · Questão ${String(id).padStart(2, '0')}`, ano: unicamp ? 2097 : 2098, numero: id, oficial: true, extrator: 2,
     enunciado: `Enunciado curto da questão ${id}.`, alternativas: ['alternativa um', 'alternativa dois', 'alternativa três', 'alternativa quatro', ...(unicamp ? [] : ['alternativa cinco'])], correta: id % (unicamp ? 4 : 5), explicacao: PLACEBO, imagens: [], textoParcial: false, textoComum: '', grupo: '', fonte: 'https://example.com/prova-' + id + '.pdf'});
 }
-const PROVA_DE = id => id >= 28 ? 'unicamp' : id >= 25 ? 'fuvest' : 'enem';
+for (const [id, prova, nome] of [[31, 'unesp', 'Unesp 2096'], [32, 'unesp', 'Unesp 2096'], [33, 'famerp', 'Famerp 2095'], [34, 'famerp', 'Famerp 2095']]) {
+  const [materia, area] = MATERIAS[id % 4];
+  questoes.push({id, chave: 'teste:' + id, prova, edicao: nome, fonteNome: 'Vunesp', area, materia, topico: `Assunto ${id % 2 ? 'ímpar' : 'par'} de ${materia}`, titulo: `${nome} · Questão ${id}`, ano: Number(nome.slice(-4)), numero: id, oficial: true, extrator: 2,
+    enunciado: `Enunciado curto da questão ${id}.`, alternativas: ['alternativa um', 'alternativa dois', 'alternativa três', 'alternativa quatro', 'alternativa cinco'], correta: id % 5, explicacao: PLACEBO, imagens: [], textoParcial: false, textoComum: '', grupo: '', fonte: 'https://example.com/prova-' + id + '.pdf'});
+}
+const PROVA_DE = id => id >= 33 ? 'famerp' : id >= 31 ? 'unesp' : id >= 28 ? 'unicamp' : id >= 25 ? 'fuvest' : 'enem';
+const TODAS = ['enem', 'fuvest', 'unesp', 'unicamp', 'famerp'];
 fs.writeFileSync(path.join(pasta, 'catalogo/atual.json'), JSON.stringify({formato: 1, questoes, anuladas: 0, revisar: 0, versao: 'fluida'}));
 
 // ---------- Servidor do PU e servidor estático da entrada pública ----------
@@ -796,7 +802,9 @@ await item('capturas da conta e da questão corrigida em diurno e noturno, em 39
   if (CAPTURAS) await p.captura(path.join(CAPTURAS, 'tema-conta-automatico-390.png'));
 });
 // ---------- Provas que a pessoa vai prestar (frente provas-interface, 14/11/2026) ----------
-// Contrato da frente provas (docs/PROVAS.md). No catálogo do teste: Enem 1–24, Fuvest 25–27, Unicamp 28–30.
+// Contrato da frente provas (docs/PROVAS.md). No catálogo do teste: Enem 1–24, Fuvest 25–27, Unicamp 28–30, Unesp 31–32, Famerp 33–34.
+// Pedidos feitos pela página a cada rota (contagem do Resource Timing), para provar quantas viagens a troca custa.
+const pedidosA = rota => p.avaliar(`performance.getEntriesByType('resource').filter(r => r.name.endsWith(${JSON.stringify(rota)})).length`);
 const marcadasNaTela = () => p.avaliar('[...document.querySelectorAll(".opcao-prova input")].filter(c => c.checked).map(c => c.value)');
 const estadoProvas = () => p.avaliar('document.querySelector("#estado-provas")?.dataset.estado');
 const provasNoBanco = () => sql(`SELECT ativas FROM provas_ativas WHERE conta=(SELECT id FROM contas WHERE nome='Provas')`).map(l => JSON.parse(l[0]))[0] || 'todas';
@@ -804,11 +812,12 @@ const idsDoPainel = expressao => p.avaliar(`(() => { const p = ${expressao}; ret
 await item('provas: conta nova com todas marcadas, cada prova com edições e questões, contraste AA e sem rolagem lateral', async () => {
   await abrirConta(); await p.clicar('#sair'); await p.esperar('document.querySelector("#acesso")'); await cadastrar('Provas');
   await abrirConta(); await p.esperar('document.querySelector(".opcao-prova")');
-  igual(await p.avaliar('[...document.querySelectorAll(".opcao-prova")].map(e => e.dataset.prova)'), ['enem', 'fuvest', 'unicamp'], 'provas do catálogo, na ordem do contrato');
-  igual(await marcadasNaTela(), ['enem', 'fuvest', 'unicamp'], 'todas marcadas por padrão'); igual(provasNoBanco(), 'todas', 'sem escolha gravada: padrão do servidor');
-  igual(await p.avaliar('[...document.querySelectorAll(".opcao-prova .nome")].map(e => e.textContent)'), ['Enem', 'Fuvest (USP)', 'Unicamp'], 'nomes');
+  igual(await p.avaliar('[...document.querySelectorAll(".opcao-prova")].map(e => e.dataset.prova)'), TODAS, 'provas do catálogo, na ordem do contrato');
+  igual(await marcadasNaTela(), TODAS, 'todas marcadas por padrão'); igual(provasNoBanco(), 'todas', 'sem escolha gravada: padrão do servidor');
+  igual(await p.avaliar('[...document.querySelectorAll(".opcao-prova .nome")].map(e => e.textContent)'), ['Enem', 'Fuvest (USP)', 'Unesp', 'Unicamp', 'Famerp'], 'nomes');
   igual(await p.avaliar('document.querySelector("[data-prova=unicamp] .detalhe").textContent'), '1 edição, 2097 · 3 questões', 'edições e questões');
-  certo((await p.texto('#estado-provas')).startsWith('Todas as 3 provas marcadas: 30 questões'), 'resumo da escolha');
+  certo((await p.texto('#estado-provas')).startsWith('Todas as 5 provas marcadas: 34 questões'), 'resumo da escolha');
+  igual(await nomeAcessivel('.lista-provas'), 'Provas que você vai prestar', 'grupo com o nome do título, sem repetir');
   // Caixa de marcar de verdade, com nome acessível vindo do cartão.
   igual(await nomeAcessivel('[data-prova=fuvest] input'), 'Fuvest (USP)', 'nome acessível da caixa');
   igual(await p.avaliar('[...new Set([...document.querySelectorAll(".escolha-provas *")].filter(e => e.getClientRects().length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())).map(e => getComputedStyle(e).fontFamily.split(",")[0].replace(/"/g, "")))].sort()'), ['Atkinson Hyperlegible Next', 'Bricolage Grotesque'], 'só Bricolage e Atkinson');
@@ -826,20 +835,26 @@ await item('provas: conta nova com todas marcadas, cada prova com edições e qu
 });
 await item('provas: desligar a Unicamp tira as questões dela na hora (estudo, revisão, índice, simulado) e o servidor grava', async () => {
   // Uma rodada de simulado em andamento com questões da Unicamp, e uma da Unicamp esperando na revisão.
-  await p.avaliar('(() => { simulado = {conta: painel.conta.id, ids: [28, 1, 29, 2], respostas: {}, atual: 0, gasto: 0, criado: Date.now(), fim: null}; salvarSimulado(); painel.estudo.revisao.vencidas.push(30); })()');
-  const antes = await p.avaliar('sortearSimulado()');
+  // Rodada parada na segunda questão (a 1 respondida), com duas da Unicamp pela frente.
+  await p.avaliar('(() => { simulado = {conta: painel.conta.id, ids: [1, 28, 2, 29], respostas: {1: {alternativa: 0, envio: "x", resultado: {acerto: false, correta: 1}}}, atual: 1, gasto: 30, criado: Date.now(), fim: null}; salvarSimulado(); painel.estudo.revisao.vencidas.push(30); })()');
+  certo((await idsDoPainel('painel')).filter(i => PROVA_DE(i) === 'unicamp').length === 3, 'Unicamp no painel antes');
+  const [painelAntes, provasAntes] = [await pedidosA('/api/painel'), await pedidosA('/api/dispositivos')];
   await p.clicar('[data-prova=unicamp] input');
   // Na hora, antes do servidor: nada da Unicamp no painel do aparelho.
   igual((await idsDoPainel('painel')).filter(i => PROVA_DE(i) === 'unicamp'), [], 'painel do aparelho sem a Unicamp na hora');
-  igual(await p.avaliar('simulado.ids'), [1, 2], 'simulado em andamento sem as que faltavam da Unicamp');
-  igual(await p.avaliar('sortearSimulado().filter(i => i >= 28)'), [], 'sorteio do simulado sem a Unicamp');
-  certo(JSON.stringify(antes) !== JSON.stringify(await p.avaliar('sortearSimulado()')) || !antes.some(i => i >= 28), 'sorteio mudou');
-  igual(await estadoProvas(), 'salvando', 'salvando'); igual(await marcadasNaTela(), ['enem', 'fuvest'], 'caixa desmarcada');
+  igual(await p.avaliar('[simulado.ids, simulado.atual]'), [[1, 2], 1], 'simulado em andamento sem as que faltavam da Unicamp, na mesma posição');
+  certo((await p.texto('#aviso')).includes('perdeu 2 questões'), 'aviso do simulado encolhido');
+  igual(await p.avaliar('sortearSimulado().filter(i => i >= 28 && i <= 30)'), [], 'sorteio do simulado sem a Unicamp');
+  igual(await estadoProvas(), 'salvando', 'salvando'); igual(await marcadasNaTela(), ['enem', 'fuvest', 'unesp', 'famerp'], 'caixa desmarcada');
+  // Uma resposta chega enquanto a escolha está a caminho: o painel que ela traz (calculado com a escolha antiga) é recortado de novo.
+  await p.avaliar(`aplicarResultado({acompanhamento: {densidade: {...painel.densidade, pendentes: [...painel.densidade.pendentes, 28, 29]}, perfil: painel.perfil}, estudo: {...painel.estudo, revisao: {...painel.estudo.revisao, vencidas: [30]}}})`);
+  igual((await idsDoPainel('painel')).filter(i => PROVA_DE(i) === 'unicamp'), [], 'resposta durante a gravação não traz a Unicamp de volta');
   await p.esperar('document.querySelector("#estado-provas")?.dataset.estado === "salvo"', 8000, 'servidor confirmou');
-  igual(provasNoBanco(), ['enem', 'fuvest'], 'escolha gravada no servidor');
+  igual(provasNoBanco(), ['enem', 'fuvest', 'unesp', 'famerp'], 'escolha gravada no servidor');
+  igual([await pedidosA('/api/painel') - painelAntes, await pedidosA('/api/dispositivos') - provasAntes], [0, 1], 'uma viagem só: a gravação traz o painel');
   igual((await idsDoPainel('painel')).filter(i => PROVA_DE(i) === 'unicamp'), [], 'painel novo do servidor sem a Unicamp');
-  igual(await p.avaliar('JSON.parse(localStorage.getItem("pu.painel.v2")).provas.ativas'), ['enem', 'fuvest'], 'painel guardado no aparelho');
-  certo((await p.texto('#estado-provas')).startsWith('2 de 3 provas marcadas: 27 questões'), 'resumo atualizado');
+  igual(await p.avaliar('JSON.parse(localStorage.getItem("pu.painel.v2")).provas.ativas'), ['enem', 'fuvest', 'unesp', 'famerp'], 'painel guardado no aparelho');
+  certo((await p.texto('#estado-provas')).startsWith('4 de 5 provas marcadas: 31 questões'), 'resumo atualizado');
   if (CAPTURAS) for (const tema of ['diurno', 'noturno']) { await escolherTema(tema); await p.tamanho(390, 1500); await p.avaliar('scrollTo(0, 0)'); await dormir(250); await p.captura(path.join(CAPTURAS, `provas-conta-desligada-${tema}-390.png`), false); }
   await p.tamanho(390, 844); await escolherTema('automatico');
   await p.avaliar('(() => { simulado = null; salvarSimulado(); })()');
@@ -850,34 +865,51 @@ await item('provas: desligar a Unicamp tira as questões dela na hora (estudo, r
   igual(vistas.filter(i => PROVA_DE(i) === 'unicamp'), [], 'nenhuma questão da Unicamp no estudo: ' + vistas.join(','));
   certo(vistas.some(i => PROVA_DE(i) === 'fuvest') || vistas.length === 10, 'estudo seguiu');
   // Foco por matéria só com o que sobrou.
-  igual(await p.avaliar('[...idsDoFoco({materia: "Português"})].filter(i => i >= 28)'), [], 'foco sem a Unicamp');
+  igual(await p.avaliar('[...idsDoFoco({materia: "Português"})].filter(i => i >= 28 && i <= 30)'), [], 'foco sem a Unicamp');
 });
 await item('provas: a escolha sobrevive ao recarregamento e a outro aparelho da mesma conta', async () => {
   await p.recarregar(); await questaoPronta();
-  igual(await p.avaliar('painel.provas.ativas'), ['enem', 'fuvest'], 'painel guardado ao abrir');
+  igual(await p.avaliar('painel.provas.ativas'), ['enem', 'fuvest', 'unesp', 'famerp'], 'painel guardado ao abrir');
   await p.esperar('!document.querySelector(".esqueleto")'); await dormir(400);
   await abrirConta(); await p.esperar('document.querySelector(".opcao-prova")');
-  igual(await marcadasNaTela(), ['enem', 'fuvest'], 'caixas depois de recarregar');
+  igual(await marcadasNaTela(), ['enem', 'fuvest', 'unesp', 'famerp'], 'caixas depois de recarregar');
   // Painel pedido do zero (como num aparelho novo): o servidor devolve a mesma escolha.
-  igual(await p.avaliar('fetch("/api/painel").then(r => r.json()).then(d => d.provas.ativas)'), ['enem', 'fuvest'], 'servidor com a escolha');
+  igual(await p.avaliar('fetch("/api/painel").then(r => r.json()).then(d => d.provas.ativas)'), ['enem', 'fuvest', 'unesp', 'famerp'], 'servidor com a escolha');
 });
 await item('provas: não deixa desmarcar todas', async () => {
-  await p.clicar('[data-prova=fuvest] input'); await p.esperar('document.querySelector("#estado-provas")?.dataset.estado === "salvo"', 8000, 'salvo só Enem');
-  igual(provasNoBanco(), ['enem'], 'só o Enem no servidor');
+  // Três seguidas: vão juntas ao servidor, numa gravação só.
+  const gravacoes = await pedidosA('/api/dispositivos');
+  for (const prova of ['fuvest', 'unesp', 'famerp']) await p.clicar(`[data-prova=${prova}] input`);
+  await p.esperar('document.querySelector("#estado-provas")?.dataset.estado === "salvo"', 8000, 'salvo só Enem');
+  igual(provasNoBanco(), ['enem'], 'só o Enem no servidor'); igual(await pedidosA('/api/dispositivos') - gravacoes, 1, 'três marcações, uma gravação');
+  const depois = await pedidosA('/api/dispositivos');
   await p.clicar('[data-prova=enem] input');
   igual(await marcadasNaTela(), ['enem'], 'a última continua marcada'); igual(await estadoProvas(), 'aviso', 'aviso na tela');
-  certo((await p.texto('#estado-provas')).includes('Pelo menos uma prova fica marcada'), 'texto do aviso');
-  await dormir(900); igual(provasNoBanco(), ['enem'], 'nada mudou no servidor'); igual(await p.avaliar('painel.provas.ativas'), ['enem'], 'nada mudou no aparelho');
+  certo((await p.texto('#estado-provas')).includes('Marque outra prova antes de desmarcar esta'), 'texto do aviso');
+  await dormir(900); igual(await pedidosA('/api/dispositivos') - depois, 0, 'nenhum pedido ao servidor');
+  igual(provasNoBanco(), ['enem'], 'nada mudou no servidor'); igual(await p.avaliar('painel.provas.ativas'), ['enem'], 'nada mudou no aparelho');
   // O servidor também recusa a lista vazia.
   const errosAntes = p.erros.length;
   igual(await p.avaliar('fetch("/api/dispositivos", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({acao: "provas", ativas: []})}).then(r => r.status)'), 400, 'lista vazia recusada');
   // O aviso de 400 desse pedido de propósito sai da conta de erros do console; qualquer outro fica.
   await dormir(200); for (let i = p.erros.length - 1; i >= errosAntes; i--) if (/400 \(Bad Request\).*\/api\/dispositivos/.test(p.erros[i])) p.erros.splice(i, 1);
 });
+await item('provas: sem rede, a escolha volta ao que o servidor tem, com as questões, e avisa', async () => {
+  const pendentes = await p.avaliar('painel.densidade.pendentes.length');
+  await p.s('Network.emulateNetworkConditions', {offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1});
+  try {
+    await p.clicar('[data-prova=fuvest] input'); igual(await marcadasNaTela(), ['enem', 'fuvest'], 'marcada na hora');
+    await p.esperar('document.querySelector("#estado-provas")?.dataset.estado === "falha"', 8000, 'falha mostrada');
+    igual(await marcadasNaTela(), ['enem'], 'caixa volta ao que o servidor tem'); igual(await p.avaliar('painel.provas.ativas'), ['enem'], 'painel de volta');
+    igual(await p.avaliar('painel.densidade.pendentes.length'), pendentes, 'fila de antes de volta');
+    certo((await p.texto('#estado-provas')).includes('Não foi possível salvar'), 'aviso de falha');
+  } finally { await p.s('Network.emulateNetworkConditions', {offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1}); }
+  igual(provasNoBanco(), ['enem'], 'servidor sem mudança');
+});
 await item('provas: ligar de novo traz as questões de volta, e cada questão mostra a prova e a edição, com o caderno oficial', async () => {
-  await p.clicar('[data-prova=unicamp] input'); await p.clicar('[data-prova=fuvest] input');
+  for (const prova of ['unicamp', 'fuvest', 'unesp', 'famerp']) await p.clicar(`[data-prova=${prova}] input`);
   await p.esperar('document.querySelector("#estado-provas")?.dataset.estado === "salvo"', 8000, 'salvo de novo');
-  igual(provasNoBanco(), 'todas', 'lista completa volta ao padrão'); igual(await marcadasNaTela(), ['enem', 'fuvest', 'unicamp'], 'todas marcadas');
+  igual(provasNoBanco(), 'todas', 'lista completa volta ao padrão'); igual(await marcadasNaTela(), TODAS, 'todas marcadas');
   certo((await idsDoPainel('painel')).filter(i => PROVA_DE(i) === 'unicamp').length === 3, 'questões da Unicamp de volta');
   await p.avaliar('location.hash = "#estudar"'); await questaoPronta();
   await abrir(28);

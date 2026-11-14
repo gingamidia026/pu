@@ -777,15 +777,15 @@ html[data-tema=noturno] .questao img { padding: .5rem; border-radius: 6px; }
   margin: 0; padding: 1.125rem 1rem .875rem; border: 1px solid var(--texto); border-radius: 12px; background: var(--painel); color: var(--texto); cursor: pointer; overflow: hidden;
   transition: background-color 200ms var(--troca), border-color 200ms var(--troca); }
 .opcao-prova::before { content: ""; position: absolute; inset: 0 0 auto; height: .375rem; background: var(--cor-prova); }
-.opcao-prova:nth-of-type(5n+2) { --cor-prova: var(--laranja-boia); }
-.opcao-prova:nth-of-type(5n+3) { --cor-prova: var(--amarelo-sol); }
-.opcao-prova:nth-of-type(5n+4) { --cor-prova: var(--rosa-goiaba); }
-.opcao-prova:nth-of-type(5n+5) { --cor-prova: var(--roxo-ipe); }
+.opcao-prova:nth-child(5n+2) { --cor-prova: var(--laranja-boia); }
+.opcao-prova:nth-child(5n+3) { --cor-prova: var(--amarelo-sol); }
+.opcao-prova:nth-child(5n+4) { --cor-prova: var(--rosa-goiaba); }
+.opcao-prova:nth-child(5n+5) { --cor-prova: var(--roxo-ipe); }
 html[data-tema=noturno] .opcao-prova { --cor-prova: var(--azul-mar-noite); }
-html[data-tema=noturno] .opcao-prova:nth-of-type(5n+2) { --cor-prova: var(--laranja-boia-noite); }
-html[data-tema=noturno] .opcao-prova:nth-of-type(5n+3) { --cor-prova: var(--amarelo-sol-noite); }
-html[data-tema=noturno] .opcao-prova:nth-of-type(5n+4) { --cor-prova: var(--rosa-goiaba-noite); }
-html[data-tema=noturno] .opcao-prova:nth-of-type(5n+5) { --cor-prova: var(--roxo-ipe-noite); }
+html[data-tema=noturno] .opcao-prova:nth-child(5n+2) { --cor-prova: var(--laranja-boia-noite); }
+html[data-tema=noturno] .opcao-prova:nth-child(5n+3) { --cor-prova: var(--amarelo-sol-noite); }
+html[data-tema=noturno] .opcao-prova:nth-child(5n+4) { --cor-prova: var(--rosa-goiaba-noite); }
+html[data-tema=noturno] .opcao-prova:nth-child(5n+5) { --cor-prova: var(--roxo-ipe-noite); }
 .opcao-prova input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
 .opcao-prova .caixa { grid-row: span 2; position: relative; width: 1.5rem; height: 1.5rem; border: 2px solid var(--texto); border-radius: 6px; background: var(--painel); }
 .opcao-prova .nome { font-family: var(--fonte-cartaz); font-weight: 700; font-size: 1.375rem; line-height: 1.1; letter-spacing: -.01em; color: var(--tinta); overflow-wrap: anywhere; }

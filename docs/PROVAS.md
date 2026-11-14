@@ -50,4 +50,4 @@ A frente provas-interface (14/11/2026) já trocou o "Prova original no site do I
 
 - 14/11/2026 06:12 · Dominique-Oliveira-Claude🤖🧡 · Documento criado com o catálogo de cinco provas, o extrator e o contrato das provas ativas. **Por quê:** pedido de Dominique Oliveira🐧❤️ de 14/11/2026.
 - 14/11/2026 11:21 · Dominique-Oliveira-Claude🤖🧡 · Acrescentados os formatos da Fuvest, Unesp, Unicamp e Famerp e os números do catálogo. **Por quê:** as quatro bancas entraram no ramo.
-- 14/11/2026 15:30 · Dominique-Oliveira-Claude🤖🧡 · Faixas de IDs por prova em `disponiveis` (a interface tira na hora as questões de uma prova desligada) e painel novo na resposta da gravação. **Por quê:** fluidez ao trocar de prova, frente provas-interface do pedido de Dominique Oliveira🐧❤️.
+- 14/11/2026 12:40 · Dominique-Oliveira-Claude🤖🧡 · Faixas de IDs por prova em `disponiveis` (a interface tira na hora as questões de uma prova desligada) e painel novo na resposta da gravação. **Por quê:** fluidez ao trocar de prova, frente provas-interface do pedido de Dominique Oliveira🐧❤️.
