@@ -302,7 +302,7 @@ body.sem-sessao .topo { background: #FFFFFF; border-bottom-color: var(--tinta); 
 /* Link "Entrar" do topo: só com a entrada desenhada; leva ao formulário no fim da página. */
 .entrar-topo { display: none; }
 body.sem-sessao:has(#conteudo > .entrada:not([data-estatica])) .entrar-topo {
-  display: inline-flex; align-items: center; min-height: 2.75rem; padding: .5rem 1rem; border: 1px solid var(--tinta); border-radius: 8px;
+  display: inline-flex; align-items: center; flex-shrink: 0; white-space: nowrap; min-height: 2.75rem; padding: .5rem 1rem; border: 1px solid var(--tinta); border-radius: 8px;
   background: #FFFFFF; color: var(--tinta); font-weight: 700; text-decoration: none; transition: background-color 200ms var(--troca);
 }
 @media (hover:hover) and (pointer:fine) { body.sem-sessao .entrar-topo:hover { background: var(--amarelo-claro); } }
@@ -341,7 +341,7 @@ body.sem-sessao:has(#conteudo > .entrada:not([data-estatica])) .entrar-topo {
   font-family: var(--fonte-cartaz); font-weight: 800; font-size: 1.25rem; letter-spacing: .04em; text-transform: uppercase; rotate: -3deg; }
 /* Cena do topo (frente sobras): o SVG e o pescador ocupam a mesma caixa, de proporção fixa (sem deslocamento ao carregar a imagem).
    A base da caixa é a linha d'água; o mar é a .mar-topo, na largura toda, por cima do casco, do círculo e da boia. */
-.cena-mar { position: relative; width: 100%; max-width: 15rem; aspect-ratio: 360 / 172; justify-self: center; align-self: end; }
+.cena-mar { position: relative; width: 100%; max-width: 19rem; aspect-ratio: 360 / 172; justify-self: center; align-self: end; }
 .cena-mar svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .cena-mar svg * { vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
 .pescador { position: absolute; left: 6.667%; top: 26.57%; width: 41.667%; aspect-ratio: 460 / 429; background: url("ilustracoes/pescador-livro.webp") 0 0 / 100% 100% no-repeat; }
