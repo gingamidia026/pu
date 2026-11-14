@@ -6,16 +6,16 @@ import fitz
 
 VERSAO = 2
 
-def alternativas_visuais(documento, trechos, paginas, pasta, prefixo):
-    """Usa as letras da fonte para separar opções gráficas ou fórmulas em células."""
+def alternativas_visuais(documento, trechos, paginas, pasta, prefixo, letras='ABCDE', linhas_inteiras=False):
+    """Usa as letras da fonte para separar opções gráficas ou fórmulas em células (Unicamp: A a D)."""
     ancoras=[]
     for ip,x0,y0,x1,y1 in trechos:
         for l in paginas[ip]['corpo']:
-            if x0-6 <= l[0] < x1 and y0-1 <= l[1] < y1 and re.match(r'^[A-E](?:\s|$)',l[4]):
+            if x0-6 <= l[0] < x1 and y0-1 <= l[1] < y1 and re.match(r'^['+letras+r'](?:\s|$)',l[4]):
                 ancoras.append((l[4][0],ip,l,x0,y0,x1,y1))
     # Evita confundir letras citadas no enunciado com as opções finais.
     por_letra={a[0]:a for a in ancoras}
-    if set(por_letra)!=set('ABCDE'): raise ValueError('Não foi possível localizar as cinco alternativas na fonte')
+    if set(por_letra)!=set(letras): raise ValueError(f'Não foi possível localizar as {len(letras)} alternativas na fonte')
     ancoras=list(por_letra.values())
     if len({a[1] for a in ancoras})!=1: raise ValueError('Alternativas entre páginas exigem revisão')
     ip=ancoras[0][1]; pagina=documento[ip]
@@ -29,7 +29,7 @@ def alternativas_visuais(documento, trechos, paginas, pasta, prefixo):
     for t in trechos:
         if t[0]==ip and t[2]<inicio: novos.append((t[0],t[1],t[2],t[3],inicio-1))
         elif t[0]<ip: novos.append(t)
-    corpo,nomes,evidencias=extrair(documento,novos,paginas,pasta,prefixo)
+    corpo,nomes,evidencias=extrair(documento,novos,paginas,pasta,prefixo,linhas_inteiras)
     def linha_em_branco(y,esquerda,direita):
         caixa=fitz.Rect(esquerda,y-5,direita,y+5) & pagina.rect
         pix=pagina.get_pixmap(matrix=fitz.Matrix(2,2),clip=caixa,colorspace=fitz.csGRAY,alpha=False)
@@ -79,8 +79,38 @@ def unir(retangulos):
         resultado.append(r)
     return resultado
 
-def extrair(documento, trechos, paginas, pasta, prefixo):
-    """Mantém texto em ordem; recorta objetos gráficos, nunca a questão inteira."""
+# Outras bancas (Fuvest 2026): símbolos de legenda em fontes de desenho, sem mapa Unicode.
+FONTES_DE_SIMBOLO = re.compile(r'Wingdings|Webdings|Dingbat', re.I)
+
+
+def faixa_do_marcador(r, marcadores):
+    """Tarja desenhada em volta de "QUESTÃO 02" (Vunesp): enfeite do caderno, não mídia da questão."""
+    return any(m[1] - 8 <= r.y0 and r.y1 <= m[3] + 8 for m in marcadores)
+
+
+def tabela_de_verdade(tabela):
+    """Texto corrido numa moldura também vira "tabela" no find_tables, com uma célula cheia por linha.
+    Tabela de verdade tem pelo menos duas células com texto na maioria das linhas."""
+    linhas = [l for l in tabela.extract() if any(c and c.strip() for c in l)]
+    if len(linhas) < 2 or any(re.match(r'\s*quest[ãa]o\b', c or '', re.I) for l in linhas for c in l):
+        return False  # uma linha só, ou a tarja "questão 09" com o traço de baixo
+    return sum(1 for l in linhas if sum(1 for c in l if c and c.strip()) >= 2) >= len(linhas) * .5
+
+
+def moldura_de_texto(r, texto, pagina):
+    """Caixa ou fundo desenhado atrás de um bloco de texto corrido (quadro "Note e adote", enunciado em
+    moldura): o texto continua texto. Tabelas são achadas à parte pelo find_tables."""
+    dentro = [l for l in texto if r.contains(fitz.Rect(*l[:4]))]
+    if len(dentro) < 2 or any(r.intersects(fitz.Rect(i['bbox'])) for i in pagina.get_image_info()):
+        return False
+    return sum((l[2] - l[0]) * (l[3] - l[1]) for l in dentro) > r.get_area() * .3
+
+
+def extrair(documento, trechos, paginas, pasta, prefixo, linhas_inteiras=False):
+    """Mantém texto em ordem; recorta objetos gráficos, nunca a questão inteira.
+
+    Com `linhas_inteiras` (outras bancas), a fórmula no meio de uma linha de texto e o símbolo sem mapa
+    Unicode levam a linha inteira para o recorte, para nenhum pedaço da frase ficar de fora."""
     partes, nomes, evidencias = [], [], []
     for ip, x0, y0, x1, y1 in trechos:
         pagina = documento[ip]
@@ -92,11 +122,13 @@ def extrair(documento, trechos, paginas, pasta, prefixo):
                  and not re.match(r'^QUEST[ÃA]O\s*\d|^Texto para as quest', l[4], re.I)]
         candidatos = []
         for tabela in pagina.find_tables(clip=area).tables:
+            if linhas_inteiras and not tabela_de_verdade(tabela): continue
             candidatos.append(fitz.Rect(tabela.bbox))
         for info in pagina.get_image_info():
             r = fitz.Rect(info['bbox'])
             if r.height < 8 and r.width > area.width * .65: continue
             if r.y1 < limite_grafico: continue
+            if linhas_inteiras and faixa_do_marcador(r, marcadores): continue
             if r.intersects(area) and (r & area).get_area() > r.get_area() * .9:
                 candidatos.append(r)
         # Linhas compridas de moldura e separadores de questão não são conteúdo.
@@ -104,21 +136,41 @@ def extrair(documento, trechos, paginas, pasta, prefixo):
             r = desenho['rect']
             if not area.contains(r): continue
             if r.y0 < limite_grafico: continue
+            if linhas_inteiras and faixa_do_marcador(r, marcadores): continue
             if r.height < 2 and r.width > area.width * .9: continue
+            # Fundo branco sem contorno (sombreamento de parágrafo do Word) não aparece no papel
+            if linhas_inteiras and desenho.get('color') is None and desenho.get('fill') in ((1.0, 1.0, 1.0), (1, 1, 1)): continue
+            if linhas_inteiras and moldura_de_texto(r, texto, pagina): continue
+            if linhas_inteiras and r.height < 6 and r.width > 5:
+                # Sublinhado ("a oração sublinhada") ou seta de equação no meio da linha: a linha de texto inteira
+                # vai junto, para o traço ter sentido
+                juntas = [l for l in texto if
+                          (l[0] < r.x1 and r.x0 < l[2] and r.height < 2 and -5 <= r.y0 - l[3] <= 4 and r.y0 > (l[1] + l[3]) / 2) or
+                          (l[0] - 15 < r.x1 and r.x0 < l[2] + 15 and l[1] - 1 <= r.y0 and r.y1 <= l[3] + 1)]
+                for l in juntas:
+                    r = r | fitz.Rect(l[0], l[1], l[2], l[3])
             if max(r.width, r.height) > 5:
                 candidatos.append(r + (-.5, -.5, .5, .5))
         # Fórmulas com fontes matemáticas preservam expoentes, raízes e frações.
         for bloco in pagina.get_text('dict')['blocks']:
             for linha in bloco.get('lines', []):
                 for span in linha['spans']:
-                    if re.search(r'Symbol|Math|Cambria|CMSY|CMMI|MTExtra', span['font'], re.I):
+                    if re.search(r'Symbol|Math|Cambria|CMSY|CMMI|MTExtra', span['font'], re.I) or \
+                            (linhas_inteiras and FONTES_DE_SIMBOLO.search(span['font'])):
                         r = fitz.Rect(linha['bbox'])
+                        if linhas_inteiras and area.contains(r):
+                            for l in texto:
+                                altura = min(l[3] - l[1], r.height)
+                                if altura > 0 and min(l[3], r.y1) - max(l[1], r.y0) > altura * .5:
+                                    r |= fitz.Rect(l[0], l[1], l[2], l[3])
+                            r &= area
                         if area.contains(r): candidatos.append(r)
         regioes = unir(candidatos)
         # Incorpora rótulos internos e tabelas; o texto fora da mídia permanece texto.
         eventos = []
         for r in regioes:
             if r.get_area() < 45: continue
+            if linhas_inteiras and faixa_do_marcador(r, marcadores): continue
             if r.height < 8 and r.width > area.width * .65: continue
             # Não acrescentar linhas vizinhas a recortes baixos de fórmulas.
             folga = 0 if r.height < 20 else 2

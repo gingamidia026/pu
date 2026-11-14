@@ -18,6 +18,7 @@ import base64
 from ambientes import AmbienteIndisponivel, ATIVO as INDIVIDUAIS, solicitar as ambiente, painel_individual
 from acompanhamento import preparar, ciclo, avancar, perfil, estudo, indice
 from conjuntos import membros as membros_conjunto, responder as responder_conjunto
+import provas
 
 DADOS = Path(os.environ.get('DADOS', '/dados'))
 DADOS.mkdir(parents=True, exist_ok=True)
@@ -42,8 +43,10 @@ PUBLICO = Path(__file__).parent / 'public'
 # tests/fluida-navegador.mjs confere que as três são iguais.
 RECURSO_ESTATICO = re.compile(r'/(?:fontes/[a-z0-9][a-z0-9-]{0,60}\.woff2|ilustracoes/[a-z0-9][a-z0-9-]{0,60}\.(?:webp|png))')
 TIPOS_ESTATICOS = {'woff2': 'font/woff2', 'webp': 'image/webp', 'png': 'image/png'}
-INDICE = indice(QUESTOES)
 MAPA = {q['id']: q for q in QUESTOES}
+# Recorte do catálogo pelas provas ativas de cada conta (Enem, Fuvest, Unesp, Unicamp, Famerp).
+RECORTE = provas.Recorte(QUESTOES)
+DISPONIVEIS = provas.disponiveis(QUESTOES)
 
 def publica(questao):
     """Questão sem gabarito, explicação ou estatística; conjuntos levam as perguntas irmãs."""
@@ -53,11 +56,11 @@ def publica(questao):
         item['grupoQuestoes'] = [{k: v for k, v in limpa(q).items() if k != 'textoComum'} for q in membros_conjunto(questao, QUESTOES)]
     return item
 
-def sugerida(densidade, ritmo):
+def sugerida(densidade, ritmo, indice_ativo):
     """Primeira questão do dia: curta e sem figura, para começar sem esforço. Depois, revisão vencida ou a fila."""
     pendentes = densidade['pendentes']
     if ritmo['hoje']['respostas'] == 0:
-        curtas = set(INDICE['curtas'])
+        curtas = set(indice_ativo['curtas'])
         for i in pendentes:
             if i in curtas:
                 return i
@@ -94,6 +97,7 @@ with banco() as con:
     if 'dispositivo' not in [r[1] for r in con.execute('PRAGMA table_info(sessoes)')]:
         con.execute('ALTER TABLE sessoes ADD COLUMN dispositivo TEXT')
     preparar(con)
+    provas.preparar(con)
 os.chmod(BANCO, 0o600)
 
 def resumo(senha, sal, legado=False):
@@ -175,16 +179,23 @@ class API(BaseHTTPRequestHandler):
             self.send_header('Retry-After', '900')
         self.end_headers()
         self.wfile.write(corpo)
+    def recorte(self, con, conta_id):
+        """Questões das provas ativas da conta. Todas por padrão."""
+        lista = provas.ativas(con, conta_id, RECORTE.siglas)
+        return lista, RECORTE.de(lista)
     def painel(self, con, conta):
         totais = con.execute('SELECT COUNT(*) total,COALESCE(SUM(acerto),0) acertos FROM respostas WHERE conta=?', (conta['id'],)).fetchone()
         # Somente enunciados; gabarito e explicação continuam exclusivos da correção.
-        densidade = ciclo(con, conta['id'], QUESTOES)
-        ritmo = estudo(con, conta['id'], QUESTOES)
-        primeira = sugerida(densidade, ritmo)
-        painel = {'densidade': densidade, 'estudo': ritmo, 'indice': INDICE, 'inicial': publica(MAPA[primeira]) if primeira in MAPA else None,
-            'perfil': perfil(con, conta['id'], QUESTOES), 'conta': conta, 'progresso': dict(totais), 'questoes': [
-            {k: q[k] for k in (['id','area','titulo'] if q.get('oficial') else ['id', 'area', 'titulo', 'enunciado', 'alternativas'])} for q in QUESTOES],
-            'catalogo': {'origem':'cofre','total':len(QUESTOES),'anuladas':CATALOGO['anuladas'],'revisar':CATALOGO['revisar'],'versao':CATALOGO['versao']} if CATALOGO is not None else {'origem':'vazio','total':0}}
+        ativas, recorte = self.recorte(con, conta['id'])
+        densidade = ciclo(con, conta['id'], recorte['questoes'], QUESTOES)
+        ritmo = estudo(con, conta['id'], recorte['questoes'])
+        primeira = sugerida(densidade, ritmo, recorte['indice'])
+        # O campo antigo `questoes` (lista do catálogo inteiro) saiu em 14/11/2026: com as cinco provas passaria de 100 KB,
+        # e a interface atual não o usa. O índice e a densidade trazem os IDs das provas ativas.
+        painel = {'densidade': densidade, 'estudo': ritmo, 'indice': recorte['indice'], 'inicial': publica(MAPA[primeira]) if primeira in MAPA else None,
+            'perfil': perfil(con, conta['id'], recorte['questoes'], todas=QUESTOES), 'conta': conta, 'progresso': dict(totais), 'questoes': [],
+            'provas': {'disponiveis': DISPONIVEIS, 'ativas': ativas},
+            'catalogo': {'origem':'cofre','total':len(QUESTOES),'ativas':len(recorte['questoes']),'anuladas':CATALOGO['anuladas'],'revisar':CATALOGO['revisar'],'versao':CATALOGO['versao']} if CATALOGO is not None else {'origem':'vazio','total':0,'ativas':0}}
 
         return painel_individual(conta['id'], painel)
 
@@ -339,6 +350,13 @@ class API(BaseHTTPRequestHandler):
                 if metodo=='GET':
                     atual=con.execute('SELECT dispositivo FROM sessoes WHERE token=?',(digest(self.token()),)).fetchone()[0]
                     return self.enviar(200,{'dispositivos':[dict(r,atual=r['id']==atual) for r in con.execute('SELECT id,nome,ultimo FROM dispositivos WHERE conta=? AND revogado=0',(conta['id'],))]})
+                if dados.get('acao')=='provas':
+                    # Preferência da conta: rota de configurações que o intermediário já aceita (POST /api/dispositivos).
+                    try: lista=provas.gravar(con,conta['id'],dados.get('ativas'),RECORTE.siglas)
+                    except ValueError as e: raise Erro(400,str(e))
+                    con.commit()
+                    # O painel novo vai junto: no endereço público, trocar de prova custa uma viagem só, e não duas.
+                    return self.enviar(200,{'ok':True,'provas':{'disponiveis':DISPONIVEIS,'ativas':lista},'painel':self.painel(con,conta)})
                 alvo=dados.get('id')
                 if dados.get('acao')!='revogar' or not isinstance(alvo,str):raise Erro(400,'Dispositivo inválido.')
                 if not con.execute('SELECT 1 FROM dispositivos WHERE conta=? AND id=? AND revogado=0',(conta['id'],alvo)).fetchone():raise Erro(404,'Dispositivo não encontrado.')
@@ -355,7 +373,7 @@ class API(BaseHTTPRequestHandler):
             partes = re.fullmatch(r'/api/questoes/([0-9]+)', caminho)
             if partes:
                 if INDIVIDUAIS:ambiente(conta['id'])
-                questao = next((q for q in QUESTOES if q['id'] == int(partes[1])), None)
+                questao = MAPA.get(int(partes[1]))
                 if not questao:
                     raise Erro(404, 'Questão não encontrada.')
                 if metodo == 'GET':
@@ -376,9 +394,10 @@ class API(BaseHTTPRequestHandler):
                         imagem.seek(parte * 49152)
                         bloco = imagem.read(49152)
                     return self.enviar(200, {'bloco':base64.b64encode(bloco).decode(), 'partes':info['partes'], 'tipo':'image/png', 'hash':sha})
+                _, recorte = self.recorte(con, conta['id'])
                 if questao.get('grupo'):
                     self.limitar(con,'respostas:'+str(conta['id']),200)
-                    try: resultado=responder_conjunto(con,conta['id'],questao,QUESTOES,dados)
+                    try: resultado=responder_conjunto(con,conta['id'],questao,QUESTOES,dados,recorte['questoes'])
                     except ValueError as e: raise Erro(400,str(e))
                     return self.enviar(200,anexar_proxima(resultado,dados))
                 alternativa = dados.get('alternativa')
@@ -398,14 +417,14 @@ class API(BaseHTTPRequestHandler):
                 acerto = alternativa == questao['correta']
                 # "Chutei" vem do aluno e só afeta a revisão dele; o acerto continua decidido aqui.
                 con.execute('INSERT INTO respostas(conta,questao,alternativa,acerto,criada,chute) VALUES(?,?,?,?,?,?)', (conta['id'], questao['id'], alternativa, acerto, time.time(), int(dados.get('chute') is True)))
-                concluida=avancar(con,conta['id'],questao['id'],QUESTOES)
+                concluida=avancar(con,conta['id'],questao['id'],recorte['questoes'],QUESTOES)
                 resultado={'acerto':acerto,'correta':questao['correta'],'explicacao':questao['explicacao'],'densidadeConcluida':concluida,'estatisticaOriginal':None}
                 if chave:
                     con.execute('INSERT INTO envios VALUES(?,?,?,?,?)',(conta['id'],chave,questao['id'],alternativa,json.dumps(resultado)))
-                resultado['acompanhamento']={'densidade':ciclo(con,conta['id'],QUESTOES),'perfil':perfil(con,conta['id'],QUESTOES)}
+                resultado['acompanhamento']={'densidade':ciclo(con,conta['id'],recorte['questoes'],QUESTOES),'perfil':perfil(con,conta['id'],recorte['questoes'],todas=QUESTOES)}
                 totais=con.execute('SELECT COUNT(*) total,COALESCE(SUM(acerto),0) acertos FROM respostas WHERE conta=?',(conta['id'],)).fetchone()
                 resultado['progresso']=dict(totais)
-                resultado['estudo']=estudo(con,conta['id'],QUESTOES)
+                resultado['estudo']=estudo(con,conta['id'],recorte['questoes'])
                 if chave: con.execute('UPDATE envios SET resultado=? WHERE conta=? AND chave=?',(json.dumps(resultado),conta['id'],chave))
                 con.commit()
                 return self.enviar(200,anexar_proxima(resultado,dados))

@@ -12,6 +12,17 @@ import tempfile
 
 RAIZ = Path(__file__).resolve().parents[1]
 PADRAO_COFRE = '/home/dominique/backup/Estudos/Vestibular'
+# Uma pasta por prova no cofre. Só a do Enem é obrigatória; as outras entram quando existirem.
+# Dominique-Oliveira-Claude🤖🧡, 14/11/2026: Fuvest (USP), Unesp, Unicamp e Famerp.
+PROVAS = {
+    'enem': {'nome': 'Enem', 'pasta': 'Provas Enem/Questões', 'letras': 'ABCDE', 'dias': (1, 2), 'maximo': 180, 'fonte': 'Inep'},
+    'fuvest': {'nome': 'Fuvest', 'pasta': 'Provas Fuvest/Questões', 'letras': 'ABCDE', 'dias': (1,), 'maximo': 90, 'fonte': 'Fuvest'},
+    'unesp': {'nome': 'Unesp', 'pasta': 'Provas Unesp/Questões', 'letras': 'ABCDE', 'dias': (1,), 'maximo': 90, 'fonte': 'Vunesp'},
+    'unicamp': {'nome': 'Unicamp', 'pasta': 'Provas Unicamp/Questões', 'letras': 'ABCD', 'dias': (1,), 'maximo': 72, 'fonte': 'Comvest'},
+    'famerp': {'nome': 'Famerp', 'pasta': 'Provas Famerp/Questões', 'letras': 'ABCDE', 'dias': (1,), 'maximo': 80, 'fonte': 'Vunesp'},
+}
+# Endereços oficiais aceitos no campo fonte_url das provas que não são do Enem.
+HOSTS_OFICIAIS = ('https://www.fuvest.br/', 'https://www.comvest.unicamp.br/', 'https://documento.vunesp.com.br/')
 
 def atomico(caminho, dados):
     fd, nome = tempfile.mkstemp(dir=caminho.parent, prefix='.temporario-')
@@ -38,9 +49,11 @@ def texto_meta(texto):
             meta[k] = str(v)
     return meta, partes[2]
 
+AREAS = ('Linguagens', 'Ciências Humanas', 'Ciências da Natureza', 'Matemática')
+
 def sincronizar(cofre, destino):
     cofre = cofre.resolve()
-    questoes = cofre / 'Provas Enem/Questões'
+    questoes = cofre / PROVAS['enem']['pasta']
     imagens = cofre / 'Matérias/Flashcards/Imagens exercícios'
     if not questoes.is_dir() or not (cofre/'Leia-me.md').is_file():
         raise ValueError('Cofre indisponível ou raiz incorreta. Catálogo anterior preservado.')
@@ -50,33 +63,55 @@ def sincronizar(cofre, destino):
         anterior = json.loads((destino/'atual.json').read_text()) if (destino/'atual.json').exists() else {}
         registro = dict(anterior.get('registro', {}))
         proximo = max([999, *registro.values()])+1
-        itens=[]; chaves=set(); arquivos={}; anuladas=0; revisao=0
-        for nota in sorted(questoes.rglob('*.md')):
-            if nota.is_symlink() or not nota.resolve().is_relative_to(questoes.resolve()):
+        itens=[]; chaves=set(); arquivos={}; anuladas=0; revisao=0; fora=0; por_prova={}
+        notas=[]
+        for sigla,info in PROVAS.items():
+            pasta=cofre/info['pasta']
+            if pasta.is_dir():
+                notas+=[(sigla,pasta,n) for n in sorted(pasta.rglob('*.md'))]
+        for prova,pasta,nota in notas:
+            regra=PROVAS[prova]
+            if nota.is_symlink() or not nota.resolve().is_relative_to(pasta.resolve()):
                 raise ValueError(f'Questão fora da pasta autorizada: {nota.name}')
             if nota.stat().st_size > 200000: raise ValueError(f'Nota muito grande: {nota.name}')
             try:
                 meta, corpo = texto_meta(nota.read_text())
                 ano=int(meta['ano']);dia=int(meta['dia']);numero=int(meta['questão'])
-                caderno=re.match(r'^([0-9]+)(?:\s|$)',meta['caderno'])
-                if not caderno or not 2000 <= ano <= 2999 or dia not in (1,2) or not 1 <= numero <= 180:
+                if meta.get('prova',prova)!=prova: raise ValueError('Prova da nota diferente da pasta')
+                if prova=='enem':
+                    caderno=re.match(r'^([0-9]+)(?:\s|$)',meta['caderno'])
+                    caderno=int(caderno[1]) if caderno else None
+                else:
+                    caderno=meta.get('caderno','') if re.fullmatch(r'[A-Za-z0-9]{1,6}',meta.get('caderno','')) else None
+                if caderno is None or not 2000 <= ano <= 2999 or dia not in regra['dias'] or not 1 <= numero <= regra['maximo']:
                     raise ValueError('Identificação inválida')
-                caderno=int(caderno[1]); chave=f'enem:{ano}:{dia}:{caderno}:{numero}'
+                # A chave do Enem não muda: os IDs já gravados nas respostas dependem dela.
+                chave=f'{prova}:{ano}:{dia}:{caderno}:{numero}'
                 if chave in chaves: raise ValueError('Identificação duplicada')
                 chaves.add(chave)
-                if meta.get('anulada','false') not in ('true','false') or meta.get('revisar','false') not in ('true','false'):
-                    raise ValueError('anulada/revisar devem ser true ou false')
+                for campo in ('anulada','revisar','fora_do_ar'):
+                    if meta.get(campo,'false') not in ('true','false'): raise ValueError(campo+' deve ser true ou false')
                 if meta.get('anulada')=='true': anuladas+=1;continue
+                # Dúvida de extração ou de gabarito: a nota fica no cofre, marcada, e não entra no ar.
+                if meta.get('fora_do_ar')=='true': fora+=1;continue
+                letras=regra['letras']
                 gabarito=meta.get('gabarito','')
-                if gabarito not in list('ABCDE'): raise ValueError('Gabarito ausente ou inválido')
+                if gabarito not in list(letras): raise ValueError('Gabarito ausente ou inválido')
+                if prova=='enem':
+                    fonte=f'https://download.inep.gov.br/enem/provas_e_gabaritos/{ano}_PV_impresso_D{dia}_CD{caderno}.pdf'
+                else:
+                    fonte=meta.get('fonte_url','')
+                    if not fonte.startswith(HOSTS_OFICIAIS) or not re.fullmatch(r'https://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+',fonte):
+                        raise ValueError('fonte_url ausente ou fora dos endereços oficiais')
                 if '\n## Texto\n' not in corpo: raise ValueError('Seção Texto ausente')
                 texto=corpo.split('\n## Texto\n',1)[1].strip()
                 comum=corpo.split('\n## Texto comum\n',1)[1].split('\n## Texto\n',1)[0].strip() if '\n## Texto comum\n' in corpo else ''
-                marcas=list(re.finditer(r'^([A-E])(?:[ \t]+|(?=\n|$))',texto,re.M))[-5:]
-                texto_parcial = [m[1] for m in marcas] != list('ABCDE')
-                if meta.get('extrator') == '2' and texto_parcial:
+                n=len(letras)
+                marcas=list(re.finditer(r'^(['+letras+r'])(?:[ \t]+|(?=\n|$))',texto,re.M))[-n:]
+                texto_parcial = [m[1] for m in marcas] != list(letras)
+                if (meta.get('extrator') == '2' or prova!='enem') and texto_parcial:
                     raise ValueError('Questão corrigida sem alternativas completas')
-                alternativas = [f'Alternativa {letra} (veja a imagem original)' for letra in 'ABCDE'] if texto_parcial else [texto[m.end():marcas[i+1].start() if i<4 else len(texto)].strip() for i,m in enumerate(marcas)]
+                alternativas = [f'Alternativa {letra} (veja a imagem original)' for letra in letras] if texto_parcial else [texto[m.end():marcas[i+1].start() if i<n-1 else len(texto)].strip() for i,m in enumerate(marcas)]
                 if not all(alternativas): raise ValueError('Alternativa vazia')
                 enunciado=texto.strip() if texto_parcial else texto[:marcas[0].start()].strip()
                 enunciado=re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', enunciado)
@@ -101,14 +136,17 @@ def sincronizar(cofre, destino):
                     if proximo > 999999: raise ValueError('Limite de identificadores atingido')
                     registro[chave]=proximo;proximo+=1
                 revisar=meta.get('revisar')=='true';revisao+=int(revisar)
-                itens.append({'id':registro[chave],'chave':chave,'area':meta['área'],'titulo':f'Enem {ano} · Questão {numero:02d}',
+                if meta.get('área') not in AREAS: raise ValueError('Área fora das quatro do catálogo')
+                por_prova[prova]=por_prova.get(prova,0)+1
+                itens.append({'id':registro[chave],'chave':chave,'prova':prova,'edicao':f"{regra['nome']} {ano}",'fonteNome':regra['fonte'],
+                    'area':meta['área'],'titulo':f"{regra['nome']} {ano} · Questão {numero:02d}",
                     'ano':ano,'dia':dia,'numero':numero,'caderno':caderno,'materia':meta.get('matéria',''),
                     'topico':meta.get('tópico',''),'assunto':meta.get('assunto',''),'conteudo':meta.get('conteúdo',''),
                     'revisar':revisar,'oficial':True,'enunciado':enunciado,'alternativas':alternativas,'correta':ord(gabarito)-65,
                     'explicacao':'Gabarito registrado no cofre a partir do caderno oficial. Ainda não há solução comentada para esta questão.',
                     'imagens':refs,'textoParcial':texto_parcial,'textoComum':comum,'grupo':meta.get('grupo',''),
                     'extrator':int(meta.get('extrator','1')),'origemArquivo':meta.get('origem_arquivo',''),
-                    'fonte':f'https://download.inep.gov.br/enem/provas_e_gabaritos/{ano}_PV_impresso_D{dia}_CD{caderno}.pdf'})
+                    'fonte':fonte})
             except (KeyError, ValueError, TypeError, OSError) as e:
                 raise ValueError(f'{nota.name}: {e}. Catálogo anterior preservado.') from e
         grupos={}
@@ -125,7 +163,9 @@ def sincronizar(cofre, destino):
             ids=[q['id'] for q in sorted(membros,key=lambda q:q['numero'])]
             for q in membros: q['grupoIds']=ids
         velho={q['chave'] for q in anterior.get('questoes',[])};novo={q['chave'] for q in itens}
-        catalogo={'formato':1,'registro':registro,'questoes':itens,'anuladas':anuladas,'revisar':revisao}
+        catalogo={'formato':1,'registro':registro,'questoes':itens,'anuladas':anuladas,'revisar':revisao,'foraDoAr':fora,
+                  'provas':[{'id':s,'nome':PROVAS[s]['nome'],'questoes':por_prova[s],
+                             'edicoes':sorted({q['ano'] for q in itens if q['prova']==s},reverse=True)} for s in PROVAS if s in por_prova]}
         assinatura=json.dumps(catalogo,ensure_ascii=False,sort_keys=True).encode();catalogo['versao']=hashlib.sha256(assinatura).hexdigest()
         # Imagens imutáveis e registro completo são publicados antes da troca atômica do índice.
         (destino/'imagens').mkdir(exist_ok=True)
@@ -134,7 +174,7 @@ def sincronizar(cofre, destino):
             if not arquivo.exists(): atomico(arquivo,dados)
             arquivo.chmod(0o644)
         atomico(destino/'atual.json',json.dumps(catalogo,ensure_ascii=False).encode())
-        resumo={'total':len(itens),'adicionadas':len(novo-velho),'removidas':len(velho-novo),'anuladas':anuladas,'revisar':revisao,'versao':catalogo['versao'][:12]}
+        resumo={'total':len(itens),'adicionadas':len(novo-velho),'removidas':len(velho-novo),'anuladas':anuladas,'revisar':revisao,'foraDoAr':fora,'porProva':por_prova,'versao':catalogo['versao'][:12]}
         print('Questões sincronizadas, sem IA: '+json.dumps(resumo,ensure_ascii=False))
         return resumo
 

@@ -9,7 +9,9 @@ def membros(questao, questoes):
     if not questao.get('grupo'): return [questao]
     return sorted([q for q in questoes if q.get('grupo')==questao['grupo']],key=lambda q:q.get('numero',q['id']))
 
-def responder(con, conta, questao, questoes, dados):
+def responder(con, conta, questao, questoes, dados, ativas=None):
+    """`questoes` é o catálogo inteiro (para achar o conjunto); `ativas`, as das provas ativas da conta."""
+    ativas = questoes if ativas is None else ativas
     grupo=membros(questao,questoes)
     respostas=dados.get('respostas'); envio=dados.get('envio')
     if not isinstance(envio,str) or not re.fullmatch(r'[a-zA-Z0-9-]{20,80}',envio):
@@ -38,11 +40,11 @@ def responder(con, conta, questao, questoes, dados):
         con.execute('INSERT INTO respostas(conta,questao,alternativa,acerto,criada,chute) VALUES(?,?,?,?,?,?)',
                     (conta,q['id'],mapa[q['id']],acerto,time.time(),int(dados.get('chute') is True)))
         resultados.append({'id':q['id'],'acerto':acerto,'correta':q['correta'],'explicacao':q['explicacao']})
-    terminou=avancar_conjunto(con,conta,list(mapa),questoes)
+    terminou=avancar_conjunto(con,conta,list(mapa),ativas,questoes)
     resultado={'resultados':resultados,'densidadeConcluida':terminou,
-               'acompanhamento':{'densidade':ciclo(con,conta,questoes),'perfil':perfil(con,conta,questoes)},
+               'acompanhamento':{'densidade':ciclo(con,conta,ativas,questoes),'perfil':perfil(con,conta,ativas,todas=questoes)},
                'progresso':dict(con.execute('SELECT COUNT(*) total,COALESCE(SUM(acerto),0) acertos FROM respostas WHERE conta=?',(conta,)).fetchone()),
-               'estudo':estudo(con,conta,questoes)}
+               'estudo':estudo(con,conta,ativas)}
     con.execute('INSERT INTO envios_conjuntos VALUES(?,?,?,?)',(conta,envio,assinatura,json.dumps(resultado)))
     con.commit()
     return resultado
