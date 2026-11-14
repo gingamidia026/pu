@@ -108,14 +108,15 @@ E quinta alternativa
    with r:b=r.read();return r.status,json.loads(b),len(b)
   proc,origem=iniciar()
   try:
-   status,r,_=pedido('/api/cadastro',{'nome':'Fixture','email':'fixture@example.com','senha':'Senha fixture longa 123!'});self.assertEqual(status,200);self.assertEqual(len(r['painel']['questoes']),2)
-   self.assertNotIn('correta',r['painel']['questoes'][0]);self.assertNotIn('enunciado',r['painel']['questoes'][0])
+   status,r,_=pedido('/api/cadastro',{'nome':'Fixture','email':'fixture@example.com','senha':'Senha fixture longa 123!'});self.assertEqual(status,200);self.assertEqual(r['painel']['catalogo']['ativas'],2)
+   # O painel não leva mais a lista do catálogo (14/11/2026); a questão inicial continua sem gabarito.
+   self.assertEqual(r['painel']['questoes'],[]);self.assertNotIn('correta',r['painel']['inicial'])
    status,q,_=pedido('/api/questoes/'+str(ids[0]));self.assertEqual(status,200);self.assertNotIn('correta',q)
    status,img,tamanho=pedido('/api/questoes/'+str(ids[0]),{'acao':'imagem','indice':0,'parte':0});self.assertEqual(status,200);self.assertLess(tamanho,100000);self.assertEqual(base64.b64decode(img['bloco']),PNG)
    self.assertEqual(pedido('/api/questoes/'+str(ids[0]),{'acao':'imagem','indice':True,'parte':0})[0],400)
    self.assertEqual(pedido('/api/questoes/'+str(ids[0]),{'alternativa':2})[1]['acerto'],True)
    proc.terminate();proc.wait();self.nota(1).unlink();self.sync();proc,origem=iniciar()
-   status,p,_=pedido('/api/painel');self.assertEqual(status,200);self.assertEqual(len(p['questoes']),1);self.assertEqual(p['progresso']['total'],1)
+   status,p,_=pedido('/api/painel');self.assertEqual(status,200);self.assertEqual(p['catalogo']['ativas'],1);self.assertEqual(p['progresso']['total'],1)
    self.assertEqual(pedido('/api/questoes/'+str(ids[0]))[0],404)
   finally:proc.terminate();proc.wait()
 if __name__=='__main__':unittest.main(verbosity=2)
