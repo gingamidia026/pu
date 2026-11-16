@@ -339,12 +339,12 @@ body.sem-sessao:has(#conteudo > .entrada:not([data-estatica])) .entrar-topo {
 .topo-acoes .botao { min-height: 3.25rem; padding-inline: 1.5rem; font-weight: 700; }
 .tarja { display: inline-block; margin: 0; padding: .25rem .875rem; border: 1px solid var(--tinta); background: var(--amarelo-sol); color: #000000;
   font-family: var(--fonte-cartaz); font-weight: 800; font-size: 1.25rem; letter-spacing: .04em; text-transform: uppercase; rotate: -3deg; }
-/* Cena do topo (frente sobras): o SVG e o pescador ocupam a mesma caixa, de proporção fixa (sem deslocamento ao carregar a imagem).
-   A base da caixa é a linha d'água; o mar é a .mar-topo, na largura toda, por cima do casco, do círculo e da boia. */
-.cena-mar { position: relative; width: 100%; max-width: 19rem; aspect-ratio: 360 / 172; justify-self: center; align-self: end; }
+/* Cena do topo: o pinguim pescador da amostra 9 (gelo, balde, vara e livro na água), numa caixa de proporção fixa (sem deslocamento
+   ao carregar a imagem). A base da caixa encosta no mar da .mar-topo, que vai de uma borda à outra. */
+.cena-mar { position: relative; width: 100%; max-width: 17rem; aspect-ratio: 920 / 752; justify-self: center; align-self: end; }
 .cena-mar svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .cena-mar svg * { vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
-.pescador { position: absolute; left: 6.667%; top: 26.57%; width: 41.667%; aspect-ratio: 460 / 429; background: url("ilustracoes/pescador-livro.webp") 0 0 / 100% 100% no-repeat; }
+.pescador { position: absolute; inset: 0; background: url("ilustracoes/pescador-gelo.webp") 0 0 / 100% 100% no-repeat; }
 .mar-topo { position: relative; height: 3rem; margin-top: 7px; background: var(--azul-mar); }
 .mar-topo::before { content: ""; position: absolute; inset: auto 0 100% 0; height: 14px; background: var(--azul-mar);
   -webkit-mask: var(--forma-mar) 0 0 / 60px 14px repeat-x; mask: var(--forma-mar) 0 0 / 60px 14px repeat-x; }
@@ -456,7 +456,7 @@ body.sem-sessao:has(#conteudo > .entrada:not([data-estatica])) .entrar-topo {
 .privacidade { margin: 1.25rem 0 0; }
 .privacidade small { color: var(--texto); font-size: .875rem; }
 
-@media (min-width: 40rem) { .lista-ganhos { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cena-mar { max-width: 22rem; } }
+@media (min-width: 40rem) { .lista-ganhos { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cena-mar { max-width: 19rem; } }
 @media (min-width: 56rem) {
   .faixa { padding-block: 5rem; padding-inline: 2rem; }
   /* No computador o título também acompanha a altura da tela, para o começo da demonstração aparecer na primeira tela (regra decoração-sem-respiro). */
@@ -466,7 +466,7 @@ body.sem-sessao:has(#conteudo > .entrada:not([data-estatica])) .entrar-topo {
   .mar-topo::after { top: 1.5rem; }
   .apresentacao h1 { font-size: clamp(3rem, min(12vw, 10vh), 7rem); max-width: 13ch; }
   .apresentacao { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 3rem; }
-  .cena-mar { max-width: 34rem; }
+  .cena-mar { max-width: 27rem; }
   .experimente [data-lugar="demonstracao"] { padding: 2rem 2.5rem; }
   .passos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
   .provas { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr; align-items: start; }
