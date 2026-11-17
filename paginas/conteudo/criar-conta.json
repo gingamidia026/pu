@@ -1,0 +1,9 @@
+{
+ "tipo": "cadastro",
+ "endereco": "/criar-conta/",
+ "migalha": "Criar conta",
+ "menu": true,
+ "no_mapa": true,
+ "titulo": "Criar conta no Pé na Universidade (PU)",
+ "descricao": "Crie sua conta gratuita e comece pela primeira questão. Questões oficiais do Enem, Fuvest (USP), Unesp, Unicamp e Famerp, uma por vez, com revisão do que você errar."
+}

@@ -68,11 +68,13 @@ const INTERMEDIARIO = 'https://intermediario.teste';
 const estatico = http.createServer((pedido, resposta) => {
   const caminho = decodeURIComponent(new URL(pedido.url, URL_PUBLICA).pathname);
   if (caminho === '/configuracao-publica.js') { resposta.writeHead(200, {'Content-Type': 'text/javascript'}); return resposta.end(`window.ENEM_PUBLICO = Object.freeze({habilitado: true, intermediario: '${INTERMEDIARIO}'});`); }
-  const arquivo = path.join(RAIZ, caminho === '/' ? 'index.html' : caminho);
-  if (!arquivo.startsWith(RAIZ) || !/^\/(index\.html)?$|^\/app\/public\/(?:(?:fontes|ilustracoes)\/)?[a-z0-9][a-z0-9-]*(?:\.[a-z0-9]+)+$|^\/manifest\.webmanifest$|^\/icones\/[a-z0-9.-]+$/.test(caminho) || !fs.existsSync(arquivo)) { resposta.writeHead(404); return resposta.end(); }
+  // Também as páginas de paginas/gerar.py: a porta do cadastro, as de leitura e a folha delas (docs/PAGINAS.md).
+  const entradaOuPorta = caminho === '/' || caminho === '/criar-conta/';
+  const arquivo = path.join(RAIZ, caminho.endsWith('/') ? caminho + 'index.html' : caminho);
+  if (!arquivo.startsWith(RAIZ) || !/^\/(index\.html)?$|^\/[a-z0-9-]+\/$|^\/paginas\/estilo\.css$|^\/app\/public\/(?:(?:fontes|ilustracoes)\/)?[a-z0-9][a-z0-9-]*(?:\.[a-z0-9]+)+$|^\/manifest\.webmanifest$|^\/icones\/[a-z0-9.-]+$/.test(caminho) || !fs.existsSync(arquivo)) { resposta.writeHead(404); return resposta.end(); }
   resposta.writeHead(200, {'Content-Type': {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json'}[path.extname(arquivo)]});
   // A política de conteúdo da entrada pública aponta para o intermediário real; no teste, para o simulado.
-  resposta.end(caminho === '/' ? fs.readFileSync(arquivo, 'utf8').replace('https://enem-ginga-conexao.sabrinaconradoadv.chatgpt.site', INTERMEDIARIO) : fs.readFileSync(arquivo));
+  resposta.end(entradaOuPorta ? fs.readFileSync(arquivo, 'utf8').replace('https://enem-ginga-conexao.sabrinaconradoadv.chatgpt.site', INTERMEDIARIO) : fs.readFileSync(arquivo));
 }).listen(portaPublica, '127.0.0.1');
 for (let i = 0; i < 100; i++) { try { await fetch(URL_LOCAL + '/api/saude'); break; } catch { await dormir(50); } }
 
@@ -1049,6 +1051,26 @@ p.aoEvento('Fetch.requestPaused', async ({requestId, request}) => {
     if (u.pathname.startsWith('/resultado/')) { const id = u.pathname.split('/').pop(); const r = fila.get(id); fila.delete(id); return await responderFetch(requestId, r ? 200 : 404, r || {erro: 'Solicitação expirada.'}); }
     await responderFetch(requestId, 404, {erro: 'Operação não encontrada.'});
   } catch (e) { await p.s('Fetch.failRequest', {requestId, errorReason: 'Failed'}).catch(() => {}); }
+});
+await item('endereços próprios: /criar-conta/ abre a entrada pública já no cadastro, com o foco no nome', async () => {
+  await p.tamanho(390, 844); await p.ir(URL_PUBLICA + '/criar-conta/'); await p.esperar('document.querySelector("#nome")'); await dormir(300);
+  igual(await p.avaliar('document.documentElement.dataset.publico'), '1', 'modo público');
+  igual(await p.texto('#titulo-acesso'), 'Crie sua conta', 'título do cadastro'); igual(await p.avaliar('document.activeElement.id'), 'nome', 'foco no nome');
+  certo(await p.avaliar('(() => { const r = document.querySelector("#entrar").getBoundingClientRect(); return r.top >= 0 && r.top < innerHeight / 2; })()'), 'rolou até o formulário');
+  igual(await p.avaliar('document.title'), 'Criar conta no Pé na Universidade (PU)', 'título próprio');
+  // Sem pedido de cadastro, a raiz continua abrindo no Entrar.
+  await p.ir(URL_PUBLICA + '/'); await p.esperar('document.querySelector("#acesso")'); igual(await p.texto('#titulo-acesso'), 'Entre para estudar', 'raiz no Entrar');
+});
+await item('endereços próprios: página de leitura sem JavaScript, sem pedido para fora e sem rolagem lateral em 320 e 390 px', async () => {
+  const pedidos = []; p.aoEvento('Network.requestWillBeSent', e => { if (/^https?:/.test(e.request.url)) pedidos.push(e.request.url); });
+  for (const largura of [320, 390]) {
+    await p.tamanho(largura, 800); await p.ir(URL_PUBLICA + '/provas-anteriores/'); await p.avaliar('document.fonts.ready.then(() => true)');
+    certo(await p.semRolagemLateral(), 'sem rolagem lateral em ' + largura);
+  }
+  igual(pedidos.filter(u => !u.startsWith(URL_PUBLICA)), [], 'pedidos para fora do site');
+  igual(await p.avaliar('document.scripts.length - document.querySelectorAll("script[type=\'application/ld+json\']").length'), 0, 'nenhum script executável');
+  igual(await p.avaliar('[...document.querySelectorAll("a.botao")].map(a => a.getAttribute("href"))'), ['/criar-conta/'], 'chamada única para a porta do cadastro');
+  igual(await p.avaliar('getComputedStyle(document.querySelector("h1")).fontFamily.split(",")[0]'), '"Bricolage Grotesque"', 'fonte de títulos da identidade');
 });
 await item('entrada pública: cadastro pelo intermediário cai direto na questão', async () => {
   await p.ir(URL_PUBLICA); await p.esperar('document.querySelector("#acesso")');

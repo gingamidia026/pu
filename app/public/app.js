@@ -1259,8 +1259,9 @@ function verNota() { tela('', 'sol'); PUSimulador.mostrar(conteudo); }
 // ---------- Navegação ----------
 const ROTAS = {'#estudar': verEstudo, '#progresso': verProgresso, '#simulado': verSimulado, '#nota': verNota, '#conta': verConta, '#privacidade': verPrivacidade};
 const APELIDOS = {'': '#estudar', '#inicio': '#estudar', '#questoes': '#estudar', '#dispositivos': '#conta', '#entrar': '#estudar', '#criar-conta': '#estudar'};
-// Endereço para links de outras páginas: /?criar-conta abre a entrada já no cadastro (sem rota nova). Vale uma vez, ao abrir.
-let pedidoDeCadastro = new URLSearchParams(location.search).has('criar-conta');
+// Endereço para links de outras páginas: /criar-conta/ (porta gravada por paginas/gerar.py, com data-abrir no <html>) e /?criar-conta
+// abrem a entrada já no cadastro (sem rota nova). Vale uma vez, ao abrir.
+let pedidoDeCadastro = new URLSearchParams(location.search).has('criar-conta') || document.documentElement.dataset.abrir === 'criar-conta';
 function navegar() {
   if (location.hash === '#principal') return;
   let destino = APELIDOS[location.hash] ?? location.hash;
