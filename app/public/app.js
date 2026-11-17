@@ -314,6 +314,16 @@ function origemHtml(item) {
   const fonte = /^https:\/\//.test(item.fonte || '') ? ` <a href="${escapar(item.fonte)}" target="_blank" rel="noopener noreferrer">Prova original${item.fonteNome ? ` (${escapar(item.fonteNome)})` : ''}</a>` : '';
   return `<p class="secundario origem">Questão da prova ${escapar(edicao)}.${fonte}</p>`;
 }
+// Marcação na aplicação original (microdados do Inep). Chega só na resposta do servidor, depois de a pessoa responder,
+// e só aparece com a resposta certa já na tela (docs/ESTATISTICAS-INEP.md). Sem dado validado, diz que está indisponível.
+function estatisticaHtml(e) {
+  const errada = e && e.situacao === 'validado' && Array.isArray(e.alternativas) ? e.alternativas.find(a => a.letra === e.erradaMaisMarcada) : null;
+  if (!errada) return '<p class="secundario estatistica">Dado da aplicação original indisponível.</p>';
+  const pct = valor => `${Number(valor).toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%`;
+  const data = String(e.baixadoEm || '').split('-').reverse().join('/');
+  const link = /^https:\/\//.test(e.pagina || '') ? `<a href="${escapar(e.pagina)}" target="_blank" rel="noopener noreferrer">${escapar(e.fonte)}</a>` : escapar(e.fonte);
+  return `<p class="secundario estatistica">Na aplicação original, ${pct(e.acerto)} acertaram. A errada mais marcada foi a ${escapar(e.erradaMaisMarcada)} (${pct(errada.pct)}). Amostra: ${Number(e.amostra).toLocaleString('pt-BR')} participantes dos cadernos regulares${e.lingua ? ` que escolheram ${escapar(e.lingua)}` : ''}. Fonte: ${link}, baixados em ${escapar(data)}.</p>`;
+}
 
 // ---------- Painel e ritmo ----------
 // O dia de estudo segue o horário de Brasília, o mesmo do servidor, em qualquer fuso do aparelho.
@@ -852,7 +862,7 @@ ${temImagens ? '<div class="originais"><p id="estado-original" class="secundario
       marcarCorrecao(area, item.id, {escolhida: enviadas.find(x => x.id === item.id).alternativa, correta: resultado.correta});
       const seguro = resultado.acerto && !chute;
       const comentada = resultado.explicacao && !SEM_SOLUCAO.test(resultado.explicacao);
-      $('.correcao', secao).innerHTML = `${cabecalho}${comentada ? `<p class="explicacao">${escapar(resultado.explicacao)}</p>` : seguro ? '' : `<p>Ainda não há solução comentada para esta questão. Tente dizer, em uma frase, por que a ${letra(resultado.correta)} responde ao que foi pedido. Se não fizer sentido, veja uma resolução:</p>${buscaResolucao(item)}`}${seguro ? '' : '<p class="secundario">Ela volta na sua revisão amanhã.</p>'}${assuntoDe(item)}${origemHtml(item)}${seguro ? '' : mais(item)}`;
+      $('.correcao', secao).innerHTML = `${cabecalho}${comentada ? `<p class="explicacao">${escapar(resultado.explicacao)}</p>` : seguro ? '' : `<p>Ainda não há solução comentada para esta questão. Tente dizer, em uma frase, por que a ${letra(resultado.correta)} responde ao que foi pedido. Se não fizer sentido, veja uma resolução:</p>${buscaResolucao(item)}`}${seguro ? '' : '<p class="secundario">Ela volta na sua revisão amanhã.</p>'}${assuntoDe(item)}${origemHtml(item)}${estatisticaHtml(resultado.estatisticaOriginal)}${seguro ? '' : mais(item)}`;
       ligarTreino();
     };
     retorno.textContent = '';
