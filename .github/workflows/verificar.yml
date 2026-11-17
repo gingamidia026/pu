@@ -16,6 +16,7 @@ jobs:
       - run: python tests/testar.py
       - run: python tests/sincronizacao.py
       - run: python tests/conjuntos.py
+      - run: python tests/paginas.py
       - run: node tests/simulador.cjs
       - run: node tests/intermediario.mjs
       - run: bash conexao-publica/scripts/build.sh && node conexao-publica/scripts/validate-artifact.mjs

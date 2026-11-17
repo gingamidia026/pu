@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<title>${titulo}</title>
+<meta name="description" content="${descricao}">
+${robots}${canonico}<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Pé na Universidade (PU)">
+<meta property="og:title" content="${titulo}">
+<meta property="og:description" content="${descricao}">
+${og_url}<meta property="og:image" content="${imagem}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${imagem_alt}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image:alt" content="${imagem_alt}">
+<link rel="icon" href="/icones/pu-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/icones/pu-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="/icones/pu-180.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/paginas/estilo.css?v=${versao_estilo}">
+<script type="application/ld+json">${dados_estruturados}</script>
+</head>
+<body data-tom="${tom}">
+<a class="pular" href="#principal">Pular para o conteúdo</a>
+<header class="topo"><a class="marca" href="/"><img src="/icones/pu.svg" width="32" height="32" alt=""><strong>Pé na Universidade <span>(PU)</span></strong></a><a class="entrar-topo" href="/#entrar">Entrar</a></header>
+<main id="principal" tabindex="-1">
+<div class="faixa faixa-topo"><div class="miolo">
+${migalhas}<h1>${h1}</h1>
+<p class="apoio">${apoio}</p>
+${sumario}</div></div>
+<div class="onda" aria-hidden="true"></div>
+${blocos}
+${chamada}
+</main>
+<footer><nav aria-label="Páginas do PU"><ul>${menu}</ul></nav>
+<p>Questões para estudo. Plataforma independente, sem vínculo com o Inep nem com as bancas.</p></footer>
+</body>
+</html>

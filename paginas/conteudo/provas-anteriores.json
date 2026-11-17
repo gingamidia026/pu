@@ -1,0 +1,326 @@
+{
+ "tipo": "leitura",
+ "endereco": "/provas-anteriores/",
+ "titulo": "Provas anteriores do Enem, Fuvest, Unesp, Unicamp e Famerp em PDF",
+ "descricao": "Cadernos oficiais das provas objetivas do Enem, Fuvest (USP), Unesp, Unicamp e Famerp, com o link da banca e a data da conferência. Treine as questões no PU.",
+ "migalha": "Provas anteriores",
+ "h1": "Provas anteriores em PDF",
+ "apoio": "Os cadernos oficiais das provas que estão no PU, com o link para o site de cada banca. Abra o PDF para ver a prova inteira ou treine as questões no PU, uma por vez.",
+ "tom": "mar",
+ "atualizada_em": "2026-11-17",
+ "menu": true,
+ "sumario": true,
+ "blocos": [
+  {
+   "tipo": "texto",
+   "titulo": "Como usar esta lista",
+   "paragrafos": [
+    "Cada linha leva ao PDF no site da banca e diz quando o link foi conferido. Os arquivos ficam com as bancas: esta página só aponta para eles.",
+    "Quase todas as questões objetivas destas edições estão no PU com o gabarito oficial. Ficam de fora as anuladas e algumas que não saíram certas do PDF."
+   ]
+  },
+  {
+   "tipo": "dados",
+   "id": "enem",
+   "titulo": "Enem",
+   "colunas": [
+    "Edição",
+    "Caderno"
+   ],
+   "coluna_fonte": "Link oficial",
+   "texto_fonte": "PDF no site do Inep",
+   "linhas": [
+    {
+     "valores": [
+      "Enem 2025",
+      "1º dia, caderno 1"
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D1_CD1.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Enem 2025",
+      "2º dia, caderno 7"
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D2_CD7.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Enem 2024",
+      "1º dia, caderno 1"
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D1_CD1.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Enem 2024",
+      "2º dia, caderno 7"
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D2_CD7.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Enem 2023",
+      "1º dia, caderno 1"
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2023_PV_impresso_D1_CD1.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Enem 2023",
+      "2º dia, caderno 7"
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2023_PV_impresso_D2_CD7.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Enem 2022",
+      "1º dia, caderno 1"
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2022_PV_impresso_D1_CD1.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Enem 2022",
+      "2º dia, caderno 7"
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2022_PV_impresso_D2_CD7.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Enem 2021",
+      "1º dia, caderno 1"
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2021_PV_impresso_D1_CD1.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Enem 2021",
+      "2º dia, caderno 7"
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2021_PV_impresso_D2_CD7.pdf",
+     "conferido_em": "2026-11-17"
+    }
+   ]
+  },
+  {
+   "tipo": "dados",
+   "id": "fuvest",
+   "titulo": "Fuvest (USP)",
+   "colunas": [
+    "Edição",
+    "Caderno"
+   ],
+   "coluna_fonte": "Link oficial",
+   "texto_fonte": "PDF no site da Fuvest",
+   "linhas": [
+    {
+     "valores": [
+      "Fuvest 2027",
+      "1ª fase"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-fase1-prova-V1.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Fuvest 2026",
+      "1ª fase"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2026-fase1-prova-V1.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Fuvest 2025",
+      "1ª fase"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2025_primeira_fase_prova_V1.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Fuvest 2024",
+      "1ª fase"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2024_primeira_fase_prova_V.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Fuvest 2023",
+      "1ª fase"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2023_primeira_fase_prova_V.pdf",
+     "conferido_em": "2026-11-17"
+    }
+   ]
+  },
+  {
+   "tipo": "dados",
+   "id": "unesp",
+   "titulo": "Unesp",
+   "colunas": [
+    "Edição",
+    "Caderno"
+   ],
+   "coluna_fonte": "Link oficial",
+   "texto_fonte": "PDF no site da Vunesp",
+   "linhas": [
+    {
+     "valores": [
+      "Unesp 2026",
+      "Prova objetiva"
+     ],
+     "fonte": "https://documento.vunesp.com.br/documento/stream/NzQ2NDIyMA%3d%3d",
+     "conferido_em": "2026-11-14"
+    },
+    {
+     "valores": [
+      "Unesp 2025",
+      "Prova objetiva"
+     ],
+     "fonte": "https://documento.vunesp.com.br/documento/stream/NjU5MzI0Mg%3d%3d",
+     "conferido_em": "2026-11-14"
+    },
+    {
+     "valores": [
+      "Unesp 2024",
+      "Prova objetiva"
+     ],
+     "fonte": "https://documento.vunesp.com.br/documento/stream/NTM0MTAyMA%3d%3d",
+     "conferido_em": "2026-11-14"
+    },
+    {
+     "valores": [
+      "Unesp 2023",
+      "Prova objetiva"
+     ],
+     "fonte": "https://documento.vunesp.com.br/documento/stream/MzE3NTk4Mg%3d%3d",
+     "conferido_em": "2026-11-14"
+    },
+    {
+     "valores": [
+      "Unesp 2022",
+      "Prova objetiva de Exatas e Humanidades"
+     ],
+     "fonte": "https://documento.vunesp.com.br/documento/stream/MjQxNjU0OA%3d%3d",
+     "conferido_em": "2026-11-14"
+    }
+   ],
+   "nota": "A Unesp e a Famerp publicam as provas pelo site da Vunesp, que não abre para leitura automática. Por isso a data é a de 14/11/2026, quando o PU baixou estes cadernos pelos mesmos links."
+  },
+  {
+   "tipo": "dados",
+   "id": "unicamp",
+   "titulo": "Unicamp",
+   "colunas": [
+    "Edição",
+    "Caderno"
+   ],
+   "coluna_fonte": "Link oficial",
+   "texto_fonte": "PDF no site da Comvest",
+   "linhas": [
+    {
+     "valores": [
+      "Unicamp 2027",
+      "1ª fase"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/vest2027/F1/F1_2027_Q_Y.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Unicamp 2026",
+      "1ª fase"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/vest2026/F1/f12026Q_X.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Unicamp 2025",
+      "1ª fase"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/vest2025/F1/f12025Q_Z.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Unicamp 2024",
+      "1ª fase"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/vest2024/F1/f12024Q_Y.pdf",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Unicamp 2023",
+      "1ª fase"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/vest2023/F1/f12023Q_Z.pdf",
+     "conferido_em": "2026-11-17"
+    }
+   ]
+  },
+  {
+   "tipo": "dados",
+   "id": "famerp",
+   "titulo": "Famerp",
+   "colunas": [
+    "Edição",
+    "Caderno"
+   ],
+   "coluna_fonte": "Link oficial",
+   "texto_fonte": "PDF no site da Vunesp",
+   "linhas": [
+    {
+     "valores": [
+      "Famerp 2026",
+      "Prova objetiva"
+     ],
+     "fonte": "https://documento.vunesp.com.br/documento/stream/NzUyMjIyNQ%3d%3d",
+     "conferido_em": "2026-11-14"
+    },
+    {
+     "valores": [
+      "Famerp 2025",
+      "Prova objetiva"
+     ],
+     "fonte": "https://documento.vunesp.com.br/documento/stream/NjY1MTk1Nw%3d%3d",
+     "conferido_em": "2026-11-14"
+    },
+    {
+     "valores": [
+      "Famerp 2024",
+      "Prova objetiva"
+     ],
+     "fonte": "https://documento.vunesp.com.br/documento/stream/NTY0Mzg3MA%3d%3d",
+     "conferido_em": "2026-11-14"
+    },
+    {
+     "valores": [
+      "Famerp 2023",
+      "Prova objetiva"
+     ],
+     "fonte": "https://documento.vunesp.com.br/documento/stream/MzIxMTE5OA%3d%3d",
+     "conferido_em": "2026-11-14"
+    }
+   ],
+   "nota": "A Famerp também publica pela Vunesp. Os links valem pelo mesmo motivo da Unesp: conferidos em 14/11/2026, quando o PU baixou os cadernos."
+  }
+ ],
+ "chamada": {
+  "titulo": "Treine estas questões no PU",
+  "texto": "As questões objetivas destas provas aparecem uma por vez, com o gabarito oficial. O que você errar volta para a revisão depois de 1, 3 e 7 dias. É gratuito."
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "tipo": "erro",
+ "endereco": "/404.html",
+ "migalha": "Página não encontrada",
+ "no_mapa": true,
+ "tom": "boia",
+ "titulo": "Página não encontrada no Pé na Universidade (PU)",
+ "descricao": "Este endereço não existe no PU. Veja as páginas que existem ou comece pela primeira questão.",
+ "h1": "Esta página não existe",
+ "apoio": "O endereço pode ter mudado ou ter sido digitado com um erro. Escolha uma das páginas abaixo.",
+ "blocos": [
+  {
+   "tipo": "links",
+   "titulo": "Páginas do PU"
+  }
+ ],
+ "chamada": {
+  "titulo": "Ou comece pela primeira questão",
+  "texto": "Questões oficiais do Enem, Fuvest (USP), Unesp, Unicamp e Famerp, uma por vez. É gratuito."
+ }
+}
