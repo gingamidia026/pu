@@ -19,6 +19,7 @@ from ambientes import AmbienteIndisponivel, ATIVO as INDIVIDUAIS, solicitar as a
 from acompanhamento import preparar, ciclo, avancar, perfil, estudo, indice
 from conjuntos import membros as membros_conjunto, responder as responder_conjunto
 import provas
+import estatisticas
 
 DADOS = Path(os.environ.get('DADOS', '/dados'))
 DADOS.mkdir(parents=True, exist_ok=True)
@@ -399,6 +400,8 @@ class API(BaseHTTPRequestHandler):
                     self.limitar(con,'respostas:'+str(conta['id']),200)
                     try: resultado=responder_conjunto(con,conta['id'],questao,QUESTOES,dados,recorte['questoes'])
                     except ValueError as e: raise Erro(400,str(e))
+                    # Estatística do Inep só aqui, depois da resposta gravada (também na repetição do envio).
+                    resultado=dict(resultado,resultados=[dict(r,estatisticaOriginal=estatisticas.da_questao(MAPA[r['id']])) for r in resultado['resultados']])
                     return self.enviar(200,anexar_proxima(resultado,dados))
                 alternativa = dados.get('alternativa')
                 if type(alternativa) is not int or not 0 <= alternativa < len(questao['alternativas']):
@@ -413,12 +416,12 @@ class API(BaseHTTPRequestHandler):
                     if anterior:
                         if anterior['questao'] != questao['id'] or anterior['alternativa'] != alternativa:
                             raise Erro(409, 'Este envio já foi usado para outra resposta.')
-                        return self.enviar(200,anexar_proxima(json.loads(anterior['resultado']),dados))
+                        return self.enviar(200,anexar_proxima(dict(json.loads(anterior['resultado']),estatisticaOriginal=estatisticas.da_questao(questao)),dados))
                 acerto = alternativa == questao['correta']
                 # "Chutei" vem do aluno e só afeta a revisão dele; o acerto continua decidido aqui.
                 con.execute('INSERT INTO respostas(conta,questao,alternativa,acerto,criada,chute) VALUES(?,?,?,?,?,?)', (conta['id'], questao['id'], alternativa, acerto, time.time(), int(dados.get('chute') is True)))
                 concluida=avancar(con,conta['id'],questao['id'],recorte['questoes'],QUESTOES)
-                resultado={'acerto':acerto,'correta':questao['correta'],'explicacao':questao['explicacao'],'densidadeConcluida':concluida,'estatisticaOriginal':None}
+                resultado={'acerto':acerto,'correta':questao['correta'],'explicacao':questao['explicacao'],'densidadeConcluida':concluida,'estatisticaOriginal':estatisticas.da_questao(questao)}
                 if chave:
                     con.execute('INSERT INTO envios VALUES(?,?,?,?,?)',(conta['id'],chave,questao['id'],alternativa,json.dumps(resultado)))
                 resultado['acompanhamento']={'densidade':ciclo(con,conta['id'],recorte['questoes'],QUESTOES),'perfil':perfil(con,conta['id'],recorte['questoes'],todas=QUESTOES)}
