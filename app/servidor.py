@@ -115,6 +115,31 @@ def resumo(senha, sal, legado=False):
 def digest(token):
     return hashlib.sha256(token.encode()).hexdigest()
 
+# Chave dos resumos da tabela limites (achado N8 da revisão de 14/11/2026). E-mail e endereço de conexão entram ali
+# como HMAC-SHA256 com esta chave: o SHA-256 simples de um e-mail ou de um IPv4 se desfaz por tentativa, e a tabela
+# vai para as cópias do banco. A chave fica fora do banco: no compose, em .segredos/limites/chave (fora do git, da
+# imagem e das cópias), criada na primeira subida pelo serviço chave-limites e lida só para leitura em CHAVE_LIMITES.
+# Sem CHAVE_LIMITES (testes, execução local), cria a chave ao lado do banco, em arquivo próprio com permissão 600.
+def chave_dos_limites():
+    indicado = os.environ.get('CHAVE_LIMITES')
+    caminho = Path(indicado) if indicado else DADOS / 'chave-limites'
+    if not indicado and not caminho.exists():
+        try:
+            descritor = os.open(caminho, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(descritor, 'w') as arquivo:
+                arquivo.write(secrets.token_hex(32))
+        except FileExistsError:
+            pass
+    valor = caminho.read_text().strip()
+    if not re.fullmatch(r'[0-9a-f]{64}', valor):
+        raise SystemExit('Chave dos limites ausente ou inválida.')
+    return bytes.fromhex(valor)
+
+CHAVE_LIMITES = chave_dos_limites()
+
+def resumo_limite(texto):
+    return hmac.new(CHAVE_LIMITES, texto.encode(), hashlib.sha256).hexdigest()
+
 # Perfil local explícito; não redefine senha ou histórico a cada reinício.
 if PERFIL_TESTE:
     with banco() as con:
@@ -158,7 +183,7 @@ class API(BaseHTTPRequestHandler):
     def cliente(self):
         endereco = self.headers.get('X-ENEM-Cliente', '') if PROXY_CONFIAVEL else self.client_address[0]
         try:
-            return digest(str(ipaddress.ip_address(endereco)))
+            return resumo_limite(str(ipaddress.ip_address(endereco)))
         except ValueError:
             raise Erro(400, 'Identificação de conexão inválida.')
     def enviar(self, status, dado, tipo='application/json; charset=utf-8', cookie=None):
@@ -290,12 +315,12 @@ class API(BaseHTTPRequestHandler):
                 # Pela fila pública todos chegam do conector: só a cota por conta e origem deixaria quem sabe o e-mail
                 # travar a dona da conta com 10 senhas erradas. Navegador já autorizado da conta tem cota própria,
                 # que quem não conhece o identificador dele não alcança. Revisão de segurança de 14/11/2026.
-                balde = 'entrada_conta_origem:' + digest(email) + ':' + cliente
+                balde = 'entrada_conta_origem:' + resumo_limite(email) + ':' + cliente
                 aparelho = dados.get('dispositivo', '')
                 if isinstance(aparelho, str) and re.fullmatch(r'[A-Za-z0-9_-]{32,100}', aparelho):
                     dona = con.execute('SELECT id FROM contas WHERE email=?', (email,)).fetchone()
                     if dona and con.execute('SELECT 1 FROM dispositivos WHERE id=? AND conta=? AND revogado=0', (digest(str(dona['id']) + ':' + aparelho), dona['id'])).fetchone():
-                        balde = 'entrada_conta_dispositivo:' + digest(email) + ':' + digest(aparelho)
+                        balde = 'entrada_conta_dispositivo:' + resumo_limite(email) + ':' + resumo_limite(aparelho)
                 self.limitar(con, balde, 10)
                 if caminho == '/api/cadastro':
                     nome = dados.get('nome', '')

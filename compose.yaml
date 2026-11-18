@@ -1,5 +1,20 @@
 name: enem
 services:
+  # Chave dos resumos da tabela limites (achado N8): criada na primeira subida em .segredos/limites/chave
+  # (fora do git, da imagem e das cópias do banco), permissão 600, dona o usuário 10001 da aplicação; depois só é lida.
+  # No Docker sem root, o root deste contêiner é o usuário do PC; ele só cria a pasta, a chave e passa a dona.
+  chave-limites:
+    image: python:3.13-slim
+    user: '0:0'
+    command: [python, -c, "import os, secrets, pathlib; d = pathlib.Path('/segredos'); d.chmod(0o711); c = d / 'chave'\nif not c.exists():\n    f = os.open(c, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600); os.write(f, secrets.token_hex(32).encode()); os.close(f); os.chown(c, 10001, 10001)"]
+    volumes:
+      - ./.segredos/limites:/segredos
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [CHOWN]
+    security_opt: [no-new-privileges:true]
+    restart: 'no'
   aplicacao:
     build: .
     environment:
@@ -8,9 +23,11 @@ services:
       AMBIENTES_INDIVIDUAIS: '1'
       PERFIL_TESTE: ${PERFIL_TESTE:-0}
       COOKIE_SEGURO: ${COOKIE_SEGURO:-0}
+      CHAVE_LIMITES: /segredos/chave
     volumes:
       - estudos:/dados
       - ./.segredos/gerenciador:/controle:ro
+      - ./.segredos/limites:/segredos:ro
       - ./.catalogo:/catalogo:ro
     read_only: true
     tmpfs:
@@ -21,6 +38,9 @@ services:
     mem_limit: 256m
     cpus: 1
     networks: [interna]
+    depends_on:
+      chave-limites:
+        condition: service_completed_successfully
     restart: unless-stopped
     healthcheck:
       test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/saude')"]

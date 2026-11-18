@@ -19,6 +19,7 @@ jobs:
       - run: python tests/paginas.py
       - run: python tests/estatisticas.py
       - run: python tests/sessao_documentada.py
+      - run: python tests/limites_com_chave.py
       - run: node tests/simulador.cjs
       - run: node tests/intermediario.mjs
       - run: bash conexao-publica/scripts/build.sh && node conexao-publica/scripts/validate-artifact.mjs
