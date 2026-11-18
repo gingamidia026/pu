@@ -37,6 +37,8 @@ TONS = {'mar', 'boia', 'sol', 'ipe', 'goiaba'}
 MARCA_INICIO, MARCA_FIM = '<!-- dados-estruturados:inicio -->', '<!-- dados-estruturados:fim -->'
 LINK = re.compile(r'\[([^\]]+)\]\(([^)\s]+)\)')
 DATA = re.compile(r'\d{4}-\d{2}-\d{2}')
+SCRIPT = re.compile(r'[a-z0-9-]+\.js')
+MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 
 
 class Recusa(Exception):
@@ -91,6 +93,12 @@ def carregar(pasta_conteudo):
             raise Recusa(f'{arquivo.name}: tom deve ser um de {sorted(TONS)}')
         if pagina.get('atualizada_em') and not DATA.fullmatch(pagina['atualizada_em']):
             raise Recusa(f'{arquivo.name}: atualizada_em no formato AAAA-MM-DD')
+        if 'script' in pagina:
+            # Script só do próprio site, na pasta paginas/, e só em página de leitura que o declara.
+            if pagina['tipo'] != 'leitura' or not SCRIPT.fullmatch(str(pagina['script'])):
+                raise Recusa(f'{arquivo.name}: script deve ser nome-do-arquivo.js da pasta paginas/, só em página de leitura')
+            if not (PASTA / pagina['script']).is_file():
+                raise Recusa(f'{arquivo.name}: script {pagina["script"]} não existe em paginas/')
         paginas.append(pagina)
     # Ordem do menu e do mapa: a entrada, as páginas de leitura (pelo nome do arquivo), a porta do cadastro e a 404.
     paginas.sort(key=lambda p: ['entrada', 'leitura', 'cadastro', 'erro'].index(p['tipo']))
@@ -101,17 +109,40 @@ def carregar(pasta_conteudo):
     enderecos = [p['endereco'] for p in paginas]
     if len(set(enderecos)) != len(enderecos):
         raise Recusa('dois arquivos com o mesmo endereço')
+    for pagina in paginas:
+        for endereco in pagina.get('relacionadas', []):
+            if endereco not in enderecos or endereco == pagina['endereco']:
+                raise Recusa(f"{pagina['_arquivo']}: página relacionada que não existe: {endereco}")
     return paginas
 
 
-def problemas_de_fonte(pagina, hoje):
-    """Lista os dados sem fonte oficial ou sem data de conferência válida."""
-    problemas = []
+def blocos_de_dados(pagina):
+    """Os blocos 'dados' da página, inclusive os que estão dentro de um bloco 'par'."""
     for bloco in pagina.get('blocos', []):
-        if bloco.get('tipo') != 'dados':
-            continue
+        if bloco.get('tipo') == 'dados':
+            yield bloco
+        elif bloco.get('tipo') == 'par':
+            yield from (b for b in bloco.get('blocos', []) if b.get('tipo') == 'dados')
+
+
+def links_das_celulas(linha):
+    return [v['link'] for v in linha.get('valores', []) if isinstance(v, dict) and v.get('link')]
+
+
+def problemas_de_fonte(pagina, hoje):
+    """Lista os dados sem fonte oficial ou sem data de conferência válida.
+    Linha de aviso (campo 'aviso') não é dado: mostra que a informação não foi achada em fonte oficial."""
+    problemas = []
+    for bloco in blocos_de_dados(pagina):
         for n, linha in enumerate(bloco.get('linhas', []), 1):
             onde = f"{pagina['_arquivo']}, bloco {bloco.get('id')}, linha {n}"
+            extras = linha.get('outras_fontes', []) + links_das_celulas(linha)
+            if any(not str(u).startswith('https://') for u in extras):
+                problemas.append(f'{onde}: link de célula ou fonte extra sem https')
+            if linha.get('aviso'):
+                if linha.get('fonte') and not linha['fonte'].startswith('https://'):
+                    problemas.append(f'{onde}: aviso com link sem https')
+                continue
             fonte, conferido = linha.get('fonte', ''), linha.get('conferido_em', '')
             if not fonte.startswith('https://'):
                 problemas.append(f'{onde}: sem fonte https')
@@ -119,6 +150,8 @@ def problemas_de_fonte(pagina, hoje):
                 problemas.append(f'{onde}: sem data de conferência (AAAA-MM-DD)')
             elif datetime.date.fromisoformat(conferido) > hoje:
                 problemas.append(f'{onde}: data de conferência no futuro')
+            if linha.get('contagem') and not DATA.fullmatch(linha['contagem']):
+                problemas.append(f'{onde}: contagem no formato AAAA-MM-DD')
     return problemas
 
 
@@ -154,41 +187,143 @@ def meta_do_index(texto, chave):
 
 
 # ---------- Página de leitura e 404 ----------
+def data_por_extenso(iso):
+    d = datetime.date.fromisoformat(iso)
+    return f'{d.day} de {MESES[d.month - 1]} de {d.year}'
+
+
+def id_do_titulo(bloco):
+    return 't-' + bloco.get('id', re.sub(r'[^a-z0-9]+', '-', bloco.get('titulo', 'bloco').lower()).strip('-'))
+
+
+def celula(valor):
+    """Valor de célula: texto simples, ou {"texto", "link" (https), "nota"}. Nada vira HTML sem escapar."""
+    if isinstance(valor, dict):
+        texto = e(valor.get('texto', ''))
+        if valor.get('link'):
+            if not str(valor['link']).startswith('https://'):
+                raise Recusa(f'link de célula sem https: {valor["link"]}')
+            texto = f'<a href="{e(valor["link"])}">{texto}</a>'
+        if valor.get('nota'):
+            texto += f' <small>{texto_com_links(valor["nota"])}</small>'
+        return texto
+    if valor is None:
+        raise Recusa('célula vazia: escreva o texto que a página deve mostrar (ex.: "sem valor no PDF")')
+    return e(valor)
+
+
+def tabela_de(bloco, marcar, pagina, nivel='h2'):
+    """Título, nota, campo de busca (opcional) e a tabela de um bloco 'dados'.
+    Opções do bloco: largo (tabela com rolagem lateral própria no celular, em vez de cartões),
+    rotulos (no celular, cada valor do cartão leva o nome da coluna), filtro (campo de busca de linhas, ligado
+    pelo script da página; sem script fica escondido e a tabela aparece inteira)."""
+    titulo_id = id_do_titulo(bloco)
+    colunas = bloco['colunas'] + [bloco.get('coluna_fonte', 'Fonte')]
+    topo = ''.join(f'<th scope="col">{e(c)}</th>' for c in colunas)
+    linhas = []
+    hoje = datetime.date.today()
+    for linha in bloco['linhas']:
+        valores = linha['valores']
+        id_linha = f' id="{e(linha["id"])}"' if linha.get('id') else ''
+        if linha.get('aviso'):
+            # Linha sem dado oficial: só os valores descritivos e o aviso no lugar do resto, sem data-dado.
+            if not 1 <= len(valores) < len(bloco['colunas']):
+                raise Recusa(f"{pagina['_arquivo']}, bloco {bloco.get('id')}: linha de aviso precisa de menos valores que colunas")
+            celulas = ''.join(f'<td data-rotulo="{e(c)}">{celula(v)}</td>' for c, v in zip(bloco['colunas'], valores))
+            link = ''
+            if linha.get('fonte'):
+                link = f' <a href="{e(linha["fonte"])}">{e(linha.get("texto_fonte", "ver o documento oficial"))}</a>'
+            resto = len(colunas) - len(valores)
+            linhas.append(f'<tr data-aviso{id_linha}>{celulas}<td class="sem-dado" colspan="{resto}" data-rotulo="{e(colunas[len(valores)])}">'
+                          f'<strong class="aviso-dado">{e(linha["aviso"])}</strong>{link}</td></tr>')
+            continue
+        if len(valores) != len(bloco['colunas']):
+            raise Recusa(f"{pagina['_arquivo']}, bloco {bloco.get('id')}: linha com {len(valores)} valores para {len(bloco['colunas'])} colunas")
+        celulas = ''.join(f'<td data-rotulo="{e(c)}">{celula(v)}</td>' for c, v in zip(bloco['colunas'], valores))
+        fonte, conferido = linha.get('fonte', ''), linha.get('conferido_em', '')
+        valido = fonte.startswith('https://') and DATA.fullmatch(conferido) and datetime.date.fromisoformat(conferido) <= hoje
+        if valido:
+            extras = ''.join(f' <a href="{e(u)}">{e(r)}</a>' for u, r in zip(linha.get('outras_fontes', []), linha.get('textos_outras_fontes', [])))
+            celula_fonte = (f'<a href="{e(fonte)}">{e(linha.get("texto_fonte", bloco.get("texto_fonte", "Fonte oficial")))}</a>{extras} '
+                            f'<small>conferido em {data_br(conferido)}</small>')
+            atributos = f' data-dado data-fonte="{e(fonte)}" data-conferido="{conferido}"'
+        elif marcar:
+            celula_fonte = '<strong class="a-confirmar">Dado a confirmar</strong>'
+            atributos = ' data-dado data-a-confirmar'
+        else:
+            raise Recusa('dado sem fonte')  # já barrado antes; segurança extra
+        linhas.append(f'<tr{atributos}{id_linha}>{celulas}<td data-rotulo="{e(colunas[-1])}">{celula_fonte}</td></tr>')
+    nota = ''.join(f'<p class="nota">{texto_com_links(n)}</p>\n' for n in ([bloco['nota']] if isinstance(bloco.get('nota'), str) else bloco.get('nota', [])))
+    filtro = ''
+    if bloco.get('filtro'):
+        campo = f'busca-{e(bloco["id"])}'
+        filtro = (f'<div class="filtro" data-filtro="{e(bloco["id"])}" hidden><label for="{campo}">{e(bloco["filtro"])}</label>'
+                  f'<input id="{campo}" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search">'
+                  f'<p class="filtro-total" aria-live="polite"></p></div>\n')
+    classes = ' '.join(c for c in ('larga' if bloco.get('largo') else '', 'rotulada' if bloco.get('rotulos') else '') if c)
+    classe = f' class="{classes}"' if classes else ''
+    tabela = f'<table{classe}><thead><tr>{topo}</tr></thead><tbody>\n' + '\n'.join(linhas) + '\n</tbody></table>'
+    if bloco.get('largo'):
+        tabela = f'<div class="rolagem" role="region" aria-labelledby="{titulo_id}" tabindex="0">{tabela}</div>'
+    return f'<{nivel} id="{titulo_id}">{e(bloco["titulo"])}</{nivel}>\n{nota}{filtro}{tabela}\n'
+
+
+def contagem_de(bloco, pagina):
+    """Lista das próximas datas, tiradas das linhas do bloco 'de' que têm o campo 'contagem'.
+    Sem script, mostra cada data por extenso; o script da página escreve quantos dias faltam, pela data do aparelho."""
+    origem = next((b for b in blocos_de_dados(pagina) if b.get('id') == bloco['de']), None)
+    if origem is None:
+        raise Recusa(f"{pagina['_arquivo']}: contagem aponta para um bloco que não existe: {bloco['de']}")
+    eventos = sorted((l for l in origem['linhas'] if l.get('contagem') and not l.get('aviso')), key=lambda l: l['contagem'])
+    if not eventos or any(not l.get('id') for l in eventos):
+        raise Recusa(f"{pagina['_arquivo']}: contagem sem datas, ou linha com contagem sem id")
+    itens = ''.join(f'<li data-data="{l["contagem"]}"><time datetime="{l["contagem"]}">{data_por_extenso(l["contagem"])}</time> '
+                    f'<a href="#{e(l["id"])}">{e(l["rotulo_contagem"])}</a></li>' for l in eventos)
+    titulo_id = id_do_titulo(bloco)
+    texto = ''.join(f'<p>{texto_com_links(p)}</p>\n' for p in bloco.get('paragrafos', []))
+    return (f'<div class="faixa"><section class="miolo bloco contagem" id="{e(bloco.get("id", titulo_id))}" aria-labelledby="{titulo_id}">\n'
+            f'<h2 id="{titulo_id}">{e(bloco["titulo"])}</h2>\n<p class="contagem-saida" data-contagem-saida aria-live="polite"></p>\n{texto}'
+            f'<ol class="datas-de-prova">{itens}</ol>\n</section></div>')
+
+
 def html_bloco(bloco, paginas, marcar, pagina):
     tipo = bloco.get('tipo')
-    titulo_id = 't-' + bloco.get('id', re.sub(r'[^a-z0-9]+', '-', bloco.get('titulo', 'bloco').lower()).strip('-'))
+    titulo_id = id_do_titulo(bloco)
     cabeca = f'<h2 id="{titulo_id}">{e(bloco["titulo"])}</h2>\n'
     if tipo == 'texto':
         corpo = ''.join(f'<p>{texto_com_links(p)}</p>\n' for p in bloco['paragrafos'])
-        return f'<div class="faixa"><section class="miolo bloco" aria-labelledby="{titulo_id}">\n{cabeca}{corpo}</section></div>'
+        id_secao = f' id="{e(bloco["id"])}"' if bloco.get('id') else ''
+        return f'<div class="faixa"><section class="miolo bloco"{id_secao} aria-labelledby="{titulo_id}">\n{cabeca}{corpo}</section></div>'
+    if tipo == 'aviso':
+        # Informação que não foi achada em fonte oficial: caixa visível, sem dado.
+        corpo = ''.join(f'<p>{texto_com_links(p)}</p>\n' for p in bloco['paragrafos'])
+        return (f'<div class="faixa"><section class="miolo bloco" id="{e(bloco.get("id", titulo_id))}" aria-labelledby="{titulo_id}">\n'
+                f'<div class="aviso" data-aviso>\n{cabeca}{corpo}</div>\n</section></div>')
     if tipo == 'links':
         itens = ''.join(f'<li><a href="{e(p["endereco"])}">{e(p["migalha"])}</a></li>' for p in paginas if p.get('menu'))
         return f'<div class="faixa"><section class="miolo bloco" aria-labelledby="{titulo_id}">\n{cabeca}<ul class="lista-links">{itens}<li><a href="/#privacidade">Dados e segurança</a></li></ul>\n</section></div>'
     if tipo == 'dados':
-        colunas = bloco['colunas'] + [bloco.get('coluna_fonte', 'Fonte')]
-        topo = ''.join(f'<th scope="col">{e(c)}</th>' for c in colunas)
-        linhas = []
-        hoje = datetime.date.today()
-        for linha in bloco['linhas']:
-            valores = linha['valores']
-            if len(valores) != len(bloco['colunas']):
-                raise Recusa(f"{pagina['_arquivo']}, bloco {bloco.get('id')}: linha com {len(valores)} valores para {len(bloco['colunas'])} colunas")
-            celulas = ''.join(f'<td data-rotulo="{e(c)}">{e(v)}</td>' for c, v in zip(bloco['colunas'], valores))
-            fonte, conferido = linha.get('fonte', ''), linha.get('conferido_em', '')
-            valido = fonte.startswith('https://') and DATA.fullmatch(conferido) and datetime.date.fromisoformat(conferido) <= hoje
-            if valido:
-                celula_fonte = f'<a href="{e(fonte)}">{e(linha.get("texto_fonte", bloco.get("texto_fonte", "Fonte oficial")))}</a> <small>conferido em {data_br(conferido)}</small>'
-                atributos = f' data-dado data-fonte="{e(fonte)}" data-conferido="{conferido}"'
-            elif marcar:
-                celula_fonte = '<strong class="a-confirmar">Dado a confirmar</strong>'
-                atributos = ' data-dado data-a-confirmar'
-            else:
-                raise Recusa('dado sem fonte')  # já barrado antes; segurança extra
-            linhas.append(f'<tr{atributos}>{celulas}<td data-rotulo="{e(colunas[-1])}">{celula_fonte}</td></tr>')
-        nota = f'<p class="nota">{texto_com_links(bloco["nota"])}</p>\n' if bloco.get('nota') else ''
-        return (f'<div class="faixa"><section class="miolo bloco dados" id="{e(bloco.get("id", titulo_id))}" aria-labelledby="{titulo_id}">\n{cabeca}{nota}'
-                f'<table><thead><tr>{topo}</tr></thead><tbody>\n' + '\n'.join(linhas) + '\n</tbody></table>\n</section></div>')
+        largura = ' miolo-largo' if bloco.get('largo') else ''
+        return (f'<div class="faixa"><section class="miolo{largura} bloco dados" id="{e(bloco.get("id", titulo_id))}" aria-labelledby="{titulo_id}">\n'
+                + tabela_de(bloco, marcar, pagina) + '</section></div>')
+    if tipo == 'par':
+        # Duas tabelas lado a lado no computador e uma embaixo da outra no celular.
+        partes = ''.join(f'<div class="dados" id="{e(b["id"])}">\n{tabela_de(b, marcar, pagina, "h3")}</div>\n' for b in bloco['blocos'])
+        nota = ''.join(f'<p class="nota">{texto_com_links(n)}</p>\n' for n in bloco.get('nota', []))
+        return (f'<div class="faixa"><section class="miolo miolo-largo bloco par" id="{e(bloco["id"])}" aria-labelledby="{titulo_id}">\n'
+                f'{cabeca}{nota}<div class="par-grade">\n{partes}</div>\n</section></div>')
+    if tipo == 'contagem':
+        return contagem_de(bloco, pagina)
     raise Recusa(f"{pagina['_arquivo']}: bloco de tipo desconhecido {tipo}")
+
+
+def relacionadas_de(pagina, paginas):
+    if not pagina.get('relacionadas'):
+        return ''
+    por_endereco = {p['endereco']: p for p in paginas}
+    itens = ''.join(f'<li><a href="{e(a)}">{e(por_endereco[a]["migalha"])}</a></li>' for a in pagina['relacionadas'])
+    return (f'<div class="faixa"><nav class="miolo bloco relacionadas" aria-labelledby="t-relacionadas">\n'
+            f'<h2 id="t-relacionadas">Veja também</h2>\n<ul class="lista-links">{itens}</ul>\n</nav></div>')
 
 
 def chamada_de(pagina):
@@ -197,12 +332,13 @@ def chamada_de(pagina):
             f'<p>{texto_com_links(c["texto"])}</p>\n<p class="acoes"><a class="botao" href="/criar-conta/">Criar minha conta</a> <a class="entrar" href="/#entrar">Já tenho conta</a></p>\n</section></div>')
 
 
-def pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, imagem_alt, marcar):
+def pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, imagem_alt, marcar, versoes_script=None):
     erro = pagina['tipo'] == 'erro'
     trilha = migalhas_de(pagina, inicio)
     itens = ''.join(f'<li><a href="{e(p["endereco"])}">{e(p["migalha"])}</a></li>' for p in trilha[:-1])
     migalhas = f'<nav class="migalhas" aria-label="Você está em"><ol>{itens}<li aria-current="page">{e(trilha[-1]["migalha"])}</li></ol></nav>\n'
-    dados = [b for b in pagina.get('blocos', []) if b.get('tipo') == 'dados']
+    # Sumário: os blocos de dados, os pares de tabelas e os blocos marcados com "no_sumario": true, na ordem da página.
+    dados = [b for b in pagina.get('blocos', []) if b.get('id') and (b.get('tipo') in ('dados', 'par') or b.get('no_sumario'))]
     sumario = ''
     if pagina.get('sumario') and dados:
         sumario = '<nav class="sumario" aria-label="Nesta página"><ul>' + ''.join(f'<li><a href="#{e(b["id"])}">{e(b["titulo"])}</a></li>' for b in dados) + '</ul></nav>\n'
@@ -217,7 +353,11 @@ def pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, ima
         'versao_estilo': versao_estilo, 'dados_estruturados': dados_estruturados(pagina, inicio), 'tom': pagina.get('tom', 'mar'),
         'migalhas': migalhas, 'h1': e(pagina['h1']), 'apoio': texto_com_links(pagina['apoio']), 'sumario': sumario,
         'blocos': '\n'.join(html_bloco(b, paginas, marcar, pagina) for b in pagina.get('blocos', [])),
-        'chamada': chamada_de(pagina), 'menu': menu,
+        'chamada': relacionadas_de(pagina, paginas) + chamada_de(pagina), 'menu': menu,
+        # Página sem script: script-src 'none'. Com o campo "script": só o arquivo do próprio site, nada embutido.
+        'script_src': "'self'" if pagina.get('script') else "'none'",
+        'script': (f'<script src="/paginas/{pagina["script"]}?v={(versoes_script or {})[pagina["script"]]}" defer></script>\n'
+                   if pagina.get('script') else ''),
     }
     return Template(molde).substitute(valores)
 
@@ -283,6 +423,7 @@ def gerar(saida, marcar=False, raiz=RAIZ, conteudo=None, hoje=None):
     inicio = next(p for p in paginas if p['tipo'] == 'entrada')
     molde = (PASTA / 'molde.html').read_text(encoding='utf-8')
     versao_estilo = hashlib.sha256((PASTA / 'estilo.css').read_bytes()).hexdigest()[:10]
+    versoes_script = {p['script']: hashlib.sha256((PASTA / p['script']).read_bytes()).hexdigest()[:10] for p in paginas if p.get('script')}
     index_raiz = com_bloco((raiz / 'index.html').read_text(encoding='utf-8'), bloco_jsonld(inicio, inicio))
     index_app = com_bloco((raiz / 'app/public/index.html').read_text(encoding='utf-8'), bloco_jsonld(inicio, inicio))
     imagem = urlparse_caminho(meta_do_index(index_raiz, 'og:image'))
@@ -294,7 +435,7 @@ def gerar(saida, marcar=False, raiz=RAIZ, conteudo=None, hoje=None):
             arquivos[pagina['endereco'].strip('/') + '/index.html'] = porta_do_cadastro(index_raiz, pagina, inicio)
         elif pagina['tipo'] in ('leitura', 'erro'):
             destino = '404.html' if pagina['tipo'] == 'erro' else pagina['endereco'].strip('/') + '/index.html'
-            arquivos[destino] = pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, imagem_alt, marcar)
+            arquivos[destino] = pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, imagem_alt, marcar, versoes_script)
         if pagina.get('titulo'):
             titulos.append(e(pagina['titulo']))
     if len(set(titulos)) != len(titulos):

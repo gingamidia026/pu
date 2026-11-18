@@ -1,4 +1,4 @@
-/* Páginas públicas do PU (gerador paginas/gerar.py). Mesmas variáveis, fontes e faixas da entrada, sem JavaScript.
+/* Páginas públicas do PU (gerador paginas/gerar.py). Mesmas variáveis, fontes e faixas da entrada. JavaScript só onde a página declara (contagem e busca).
    Duas famílias servidas pelo próprio site: Bricolage (títulos) e Atkinson (texto). Celular primeiro. Dominique-Oliveira-Claude🤖🧡, 17/11/2026. */
 @font-face { font-family: "Bricolage Grotesque"; src: url("/app/public/fontes/pu-cartaz.woff2") format("woff2"); font-weight: 600 800; font-display: swap; }
 @font-face { font-family: "Atkinson Hyperlegible Next"; src: url("/app/public/fontes/pu-texto.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
@@ -78,15 +78,74 @@ td a { font-weight: 700; display: inline-block; padding-block: .25rem; }
 td small { display: block; color: var(--secundario); font-size: .875rem; }
 .a-confirmar { display: inline-block; padding: .125rem .5rem; border: 2px dashed #B3261E; color: #B3261E; }
 @media (max-width: 40rem) {
-  thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  table, tbody, tr, td { display: block; }
-  tr { display: grid; grid-template-columns: auto 1fr; gap: 0 .75rem; align-items: baseline; padding: .625rem .875rem; margin-bottom: .5rem; border: 1px solid var(--tinta); border-radius: 8px; background: #FFFFFF; }
-  td { padding: 0; border: 0; }
-  td:first-child { font-family: var(--fonte-cartaz); font-weight: 800; font-size: 1.1875rem; color: var(--tinta); }
-  td:last-child { grid-column: 1 / -1; }
-  td:last-child a { padding-block: .5rem .125rem; }
-  td:last-child small { display: inline-block; margin-left: .375rem; white-space: nowrap; }
+  table:not(.larga) thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  table:not(.larga), table:not(.larga) tbody, table:not(.larga) tr, table:not(.larga) td { display: block; }
+  table:not(.larga) tr { display: grid; grid-template-columns: auto 1fr; gap: 0 .75rem; align-items: baseline; padding: .625rem .875rem; margin-bottom: .5rem; border: 1px solid var(--tinta); border-radius: 8px; background: #FFFFFF; }
+  table:not(.larga) td { padding: 0; border: 0; }
+  table:not(.larga) td:first-child { font-family: var(--fonte-cartaz); font-weight: 800; font-size: 1.1875rem; color: var(--tinta); }
+  table:not(.larga) td:last-child { grid-column: 1 / -1; }
+  table:not(.larga) td:last-child a { padding-block: .5rem .125rem; }
+  table:not(.larga) td:last-child small { display: inline-block; margin-left: .375rem; white-space: nowrap; }
+  table.rotulada tr { grid-template-columns: 1fr; }
+  table.rotulada td.sem-dado { grid-column: 1 / -1; }
+  table.rotulada td:not(:last-child) a { display: inline; }
 }
+/* Tabela rotulada em cartão (celular e pares de tabelas): cada valor leva o nome da coluna. */
+@media (max-width: 40rem) {
+  table.rotulada td:not(:first-child):not(:last-child)::before { content: attr(data-rotulo) ": "; font-weight: 700; color: var(--secundario); }
+}
+.par table.rotulada td:not(:first-child):not(:last-child)::before { content: attr(data-rotulo) ": "; font-weight: 700; color: var(--secundario); }
+
+/* Linha sem dado oficial (aviso visível no lugar da data) e caixa de aviso. */
+.aviso-dado { display: inline-block; padding: .125rem .5rem; border: 1px dashed var(--tinta); border-radius: 4px; background: var(--laranja-claro); color: var(--tinta); font-weight: 700; }
+td.sem-dado a { margin-left: .25rem; }
+.aviso { padding: 1.25rem 1.25rem .25rem; border: 2px dashed var(--tinta); border-radius: 8px; background: var(--laranja-claro); }
+.aviso h2 { font-size: clamp(1.5rem, 5vw, 2rem); }
+td small, td > small { font-size: .875rem; }
+td:not(:last-child) small { display: block; color: var(--secundario); }
+h3 { font-family: var(--fonte-cartaz); font-weight: 800; font-size: 1.5rem; line-height: 1.1; color: var(--tinta); letter-spacing: -.01em; margin: 0 0 .75rem; }
+
+/* Tabela larga: rolagem lateral só dentro da caixa, com a 1ª coluna fixa. A página não rola para o lado. */
+.rolagem { overflow-x: auto; overscroll-behavior-x: contain; border: 1px solid var(--tinta); border-radius: 8px; max-width: 100%; }
+.rolagem:focus-visible { outline-offset: 2px; }
+table.larga { table-layout: auto; min-width: 58rem; }
+table.larga th, table.larga td { white-space: nowrap; text-align: right; padding-inline: .625rem; }
+table.larga th:first-child, table.larga td:first-child { position: sticky; left: 0; z-index: 1; text-align: left; white-space: normal; width: auto; min-width: 11rem; max-width: 15rem; background: #FFFFFF; border-right: 1px solid var(--linha); }
+table.larga th:first-child { background: var(--suave); }
+table.larga th { white-space: normal; vertical-align: bottom; min-width: 5.5rem; }
+table.larga td:last-child, table.larga th:last-child { text-align: left; white-space: nowrap; min-width: 9rem; }
+table.larga td:last-child small { display: block; }
+table.rotulada { table-layout: auto; }
+table.rotulada th:first-child { width: auto; }
+table.larga tr[data-aviso] td.sem-dado { text-align: left; white-space: normal; }
+
+/* Campo de busca de curso (aparece só com o script da página). */
+.filtro { margin: 0 0 1rem; }
+.filtro label { display: block; font-weight: 700; margin-bottom: .375rem; }
+.filtro input { width: 100%; max-width: 28rem; min-height: 2.75rem; padding: .5rem .875rem; border: 1px solid var(--tinta); border-radius: 8px;
+  font: inherit; font-size: 1.0625rem; color: var(--texto); background: #FFFFFF; }
+.filtro-total { margin: .5rem 0 0; font-size: .9375rem; color: var(--secundario); }
+tr[hidden] { display: none !important; }
+
+/* Contagem regressiva: sem script, só a lista das datas por extenso. */
+.contagem-saida { font-family: var(--fonte-cartaz); font-weight: 800; font-size: clamp(1.5rem, 6vw, 2.25rem); line-height: 1.1; color: var(--tinta); text-wrap: balance; }
+.contagem-saida:empty { display: none; }
+.datas-de-prova { margin: 0; padding: 0; list-style: none; display: grid; gap: .25rem; }
+.datas-de-prova li { padding: .5rem 0 .5rem 1rem; border-left: 4px solid var(--linha); }
+.datas-de-prova time { display: block; font-weight: 700; color: var(--tinta); }
+.datas-de-prova a { display: inline-block; padding-block: .25rem; }
+.datas-de-prova .passou, .datas-de-prova .passou time { color: var(--secundario); }
+.datas-de-prova .proxima { border-left-color: var(--tom); background: var(--tom-faixa); }
+
+/* Duas tabelas lado a lado (obras): uma embaixo da outra no celular. Sempre em cartões, para caber na metade. */
+.par-grade { display: grid; gap: 2rem; }
+.par table, .par tbody, .par tr, .par td { display: block; }
+.par thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.par tr { padding: .625rem .875rem; margin-bottom: .5rem; border: 1px solid var(--tinta); border-radius: 8px; background: #FFFFFF; }
+.par td { padding: 0; border: 0; }
+.par td:first-child { font-family: var(--fonte-cartaz); font-weight: 800; font-size: 1.1875rem; line-height: 1.2; color: var(--tinta); }
+.par td:last-child a { padding-block: .5rem .125rem; }
+.par td:last-child small { display: inline-block; margin-left: .375rem; white-space: nowrap; }
 
 .lista-links { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
 .lista-links a { display: inline-block; padding-block: .5rem; font-weight: 700; font-size: 1.125rem; }
@@ -112,5 +171,7 @@ footer p { margin: 0; }
   .faixa { padding-block: 3.5rem; }
   .faixa-topo { padding-block: 2rem 3rem; }
   .miolo { max-width: 60rem; }
+  .miolo-largo { max-width: 72rem; }
+  .par-grade { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

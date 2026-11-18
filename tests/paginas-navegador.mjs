@@ -1,0 +1,133 @@
+// Páginas públicas no Chrome sem janela (tests/cdp.mjs): todas as páginas de leitura geradas por paginas/gerar.py,
+// servidas como o GitHub Pages serve (pasta → index.html). Confere em 320, 390, 768 e 1440 px: nenhuma rolagem lateral,
+// nenhum erro de JavaScript nem violação da política de conteúdo, nenhum pedido a outro endereço, contraste AA de
+// todo texto visível; a contagem e a busca com e sem JavaScript; o campo de busca com 44 px de altura.
+// Uso: node tests/paginas-navegador.mjs [pasta-das-fotos]   (com pasta, grava a página inteira em 390 e 1440 px)
+// Dominique-Oliveira-Claude🤖🧡, 17/11/2026.
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {abrirChrome, dormir} from './cdp.mjs';
+
+const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const FOTOS = process.argv[2] ? path.resolve(process.argv[2]) : null;
+const TIPOS = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.xml': 'application/xml', '.txt': 'text/plain'};
+
+// Páginas de leitura, pelo conteúdo do gerador.
+const paginas = fs.readdirSync(path.join(RAIZ, 'paginas/conteudo')).filter(n => n.endsWith('.json'))
+  .map(n => JSON.parse(fs.readFileSync(path.join(RAIZ, 'paginas/conteudo', n), 'utf8'))).filter(p => p.tipo === 'leitura');
+
+const servidor = http.createServer((pedido, resposta) => {
+  const caminho = decodeURIComponent(new URL(pedido.url, 'http://x').pathname);
+  const arquivo = path.join(RAIZ, caminho.endsWith('/') ? caminho + 'index.html' : caminho);
+  if (!arquivo.startsWith(RAIZ + path.sep) || !fs.existsSync(arquivo) || fs.statSync(arquivo).isDirectory()) { resposta.writeHead(404); return resposta.end(); }
+  resposta.writeHead(200, {'Content-Type': TIPOS[path.extname(arquivo)] || 'application/octet-stream'});
+  resposta.end(fs.readFileSync(arquivo));
+}).listen(0, '127.0.0.1');
+await new Promise(ok => servidor.once('listening', ok));
+const BASE = `http://127.0.0.1:${servidor.address().port}`;
+
+let falhas = 0, feitos = 0;
+const igual = (a, b, msg) => { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`${msg}: ${JSON.stringify(a)} ≠ ${JSON.stringify(b)}`); };
+const verdade = (v, msg) => { if (!v) throw new Error(msg); };
+async function item(nome, f) {
+  feitos++;
+  try { await f(); console.log('OK     ' + nome); } catch (erro) { falhas++; console.log('FALHOU ' + nome + '\n       ' + erro.message); }
+}
+
+const chrome = await abrirChrome();
+const p = await chrome.novaPagina({largura: 390, altura: 844});
+const pedidos = [], violacoes = [];
+p.aoEvento('Network.requestWillBeSent', m => pedidos.push(m.request.url));
+p.aoEvento('Log.entryAdded', m => { if (/Content Security Policy/i.test(m.entry.text)) violacoes.push(m.entry.text); });
+
+const CONTRASTE = `(() => { const cor = t => (t.match(/[\\d.]+/g) || []).map(Number);
+  const lum = ([r, g, b]) => [r, g, b].map(c => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }).reduce((s, c, i) => s + c * [0.2126, 0.7152, 0.0722][i], 0);
+  const razao = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return Math.round((x + 0.05) / (y + 0.05) * 100) / 100; };
+  const fundo = e => { for (let x = e; x; x = x.parentElement) { const v = cor(getComputedStyle(x).backgroundColor); if (v.length === 3 || v[3] > 0.5) return v.slice(0, 3); } return [255, 255, 255]; };
+  return [...document.querySelectorAll('body *')].filter(e => e.getClientRects().length && !e.closest('.pular') && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()))
+    .map(e => [e.tagName + '.' + e.className + ' "' + e.textContent.trim().slice(0, 24) + '"', razao(cor(getComputedStyle(e).color).slice(0, 3), fundo(e))]).filter(([, r]) => r < 4.5); })()`;
+
+for (const pagina of paginas) {
+  await item(`${pagina.endereco}: sem rolagem lateral, sem erro, nada de fora e contraste AA em 320, 390, 768 e 1440`, async () => {
+    pedidos.length = 0; violacoes.length = 0; p.erros.length = 0;
+    for (const largura of [320, 390, 768, 1440]) {
+      await p.tamanho(largura, 900); await p.ir(BASE + pagina.endereco); await p.avaliar('document.fonts.ready.then(() => true)'); await dormir(100);
+      verdade(await p.semRolagemLateral(), `rolagem lateral em ${largura}`);
+      igual(await p.avaliar(CONTRASTE), [], `contraste AA em ${largura}`);
+      // Nada passa da largura da janela, a não ser dentro da caixa de rolagem da tabela larga.
+      const largos = await p.avaliar(`[...document.querySelectorAll('main *')].filter(e => !e.closest('.rolagem') && e.getBoundingClientRect().right > innerWidth + 1).map(e => e.tagName + '.' + e.className).slice(0, 5)`);
+      igual(largos, [], `elemento passando da largura em ${largura}`);
+    }
+    igual(p.erros, [], 'erros no console');
+    igual(violacoes, [], 'violação da política de conteúdo');
+    igual(pedidos.filter(u => /^(https?|wss?):/.test(u) && !u.startsWith(BASE + '/')), [], 'pedido a outro endereço');
+    const scripts = [...new Set(pedidos.filter(u => u.startsWith(BASE + '/') && /\.js(\?|$)/.test(u)).map(u => new URL(u).pathname))];
+    igual(scripts, pagina.script ? ['/paginas/' + pagina.script] : [], 'só o script que a página declara');
+  });
+}
+
+await item('calendário: contagem calculada no aparelho e, sem JavaScript, as datas por extenso', async () => {
+  await p.tamanho(390, 844); await p.ir(BASE + '/calendario-vestibulares/');
+  const saida = await p.texto('[data-contagem-saida]');
+  verdade(/^(Faltam \d+ dias|Falta 1 dia|A próxima prova é hoje|As provas desta lista já passaram)/.test(saida), 'texto da contagem: ' + saida);
+  // Relógio do aparelho em 2026-11-17: a próxima prova da lista é a 1ª fase da Unesp (22/11), em 5 dias.
+  // Relógio do aparelho trocado antes do script da página (o protocolo injeta fora da política de conteúdo).
+  const {identifier} = await p.s('Page.addScriptToEvaluateOnNewDocument', {source: `{ const Real = Date, fixo = Real.parse('2026-11-17T12:00:00-03:00');
+    globalThis.Date = class extends Real { constructor(...a) { super(...(a.length ? a : [fixo])); } static now() { return fixo; } }; }`});
+  await p.recarregar();
+  igual(await p.texto('[data-contagem-saida]'), 'Faltam 5 dias para Unesp, 1ª fase, em 22 de novembro de 2026.', 'contagem em 17/11/2026');
+  igual(await p.avaliar(`document.querySelectorAll('.datas-de-prova .passou').length`), 4, 'Enem (2 dias), Fuvest e Unicamp 1ª fase já passaram');
+  await p.s('Page.removeScriptToEvaluateOnNewDocument', {identifier});
+  await p.s('Emulation.setScriptExecutionDisabled', {value: true}); await p.recarregar();
+  igual(await p.avaliar(`getComputedStyle(document.querySelector('[data-contagem-saida]')).display`), 'none', 'sem script, a frase vazia some');
+  const datas = await p.avaliar(`[...document.querySelectorAll('.datas-de-prova time')].map(t => t.textContent)`);
+  verdade(datas.length >= 10 && datas.every(d => /^\d{1,2} de [a-zç]+ de \d{4}$/.test(d)), 'datas por extenso: ' + datas.join(' | '));
+  verdade((await p.avaliar(`document.querySelectorAll('tr[data-aviso]').length`)) >= 8, 'avisos de data não encontrada visíveis');
+  await p.s('Emulation.setScriptExecutionDisabled', {value: false});
+});
+
+for (const [endereco, procura, esperado] of [['/notas-de-corte/fuvest/', 'medicina', /Medicina/], ['/notas-de-corte/unicamp/', 'computacao', /Computação/]]) {
+  await item(`${endereco}: busca por curso (sem acento), 44 px de toque e, sem JavaScript, a tabela inteira`, async () => {
+    await p.tamanho(390, 844); await p.ir(BASE + endereco);
+    const total = await p.avaliar(`document.querySelectorAll('#cortes tbody tr').length`);
+    igual(await p.avaliar(`document.querySelector('[data-filtro]').hidden`), false, 'campo aparece com script');
+    verdade((await p.avaliar(`document.querySelector('.filtro input').getBoundingClientRect().height`)) >= 44, 'campo com 44 px');
+    await p.preencher('.filtro input', procura);
+    const vistas = await p.avaliar(`[...document.querySelectorAll('#cortes tbody tr')].filter(l => !l.hidden).map(l => l.cells[0].textContent)`);
+    verdade(vistas.length > 0 && vistas.length < total && vistas.every(n => esperado.test(n)), 'linhas filtradas: ' + vistas.join(' | '));
+    verdade(/encontrada/.test(await p.texto('.filtro-total')), 'total anunciado');
+    await p.preencher('.filtro input', 'zzzz');
+    verdade(/Nenhum curso/.test(await p.texto('.filtro-total')), 'aviso de nenhum curso');
+    await p.s('Emulation.setScriptExecutionDisabled', {value: true}); await p.recarregar();
+    igual(await p.avaliar(`document.querySelector('[data-filtro]').hidden`), true, 'sem script, campo escondido');
+    igual(await p.avaliar(`[...document.querySelectorAll('#cortes tbody tr')].filter(l => l.getClientRects().length).length`), total, 'sem script, todas as linhas');
+    await p.s('Emulation.setScriptExecutionDisabled', {value: false});
+  });
+}
+
+await item('obras: listas lado a lado no computador e uma embaixo da outra no celular', async () => {
+  await p.tamanho(1440, 900); await p.ir(BASE + '/obras-obrigatorias/');
+  const lado = await p.avaliar(`[...document.querySelectorAll('#ano-2027 .par-grade > div')].map(d => Math.round(d.getBoundingClientRect().top))`);
+  igual(lado[0], lado[1], 'mesma altura no computador');
+  await p.tamanho(390, 844); await dormir(100);
+  const pilha = await p.avaliar(`[...document.querySelectorAll('#ano-2027 .par-grade > div')].map(d => { const r = d.getBoundingClientRect(); return {top: r.top, bottom: r.bottom}; })`);
+  verdade(pilha[1].top >= pilha[0].bottom, 'uma embaixo da outra no celular');
+});
+
+if (FOTOS) {
+  fs.mkdirSync(FOTOS, {recursive: true});
+  for (const pagina of paginas) {
+    for (const largura of [390, 1440]) {
+      await p.tamanho(largura, largura < 800 ? 844 : 900); await p.ir(BASE + pagina.endereco); await p.avaliar('document.fonts.ready.then(() => true)'); await dormir(150);
+      const nome = pagina.endereco.replace(/^\/|\/$/g, '').replace(/\//g, '-') + `-${largura}.png`;
+      await p.captura(path.join(FOTOS, nome));
+    }
+  }
+  console.log('Fotos em ' + FOTOS);
+}
+
+await chrome.fechar(); servidor.close();
+console.log(`\n${feitos - falhas} de ${feitos} itens passaram.`);
+process.exit(falhas ? 1 : 0);
