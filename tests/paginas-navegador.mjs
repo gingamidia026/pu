@@ -77,13 +77,35 @@ await item('calendário: contagem calculada no aparelho e, sem JavaScript, as da
   const {identifier} = await p.s('Page.addScriptToEvaluateOnNewDocument', {source: `{ const Real = Date, fixo = Real.parse('2026-11-17T12:00:00-03:00');
     globalThis.Date = class extends Real { constructor(...a) { super(...(a.length ? a : [fixo])); } static now() { return fixo; } }; }`});
   await p.recarregar();
-  igual(await p.texto('[data-contagem-saida]'), 'Faltam 5 dias para Unesp, 1ª fase, em 22 de novembro de 2026.', 'contagem em 17/11/2026');
+  igual(await p.texto('[data-contagem-saida]'), 'Faltam 5 dias para a 1ª fase da Unesp, em 22 de novembro de 2026.', 'contagem em 17/11/2026');
   igual(await p.avaliar(`document.querySelectorAll('.datas-de-prova .passou').length`), 4, 'Enem (2 dias), Fuvest e Unicamp 1ª fase já passaram');
   await p.s('Page.removeScriptToEvaluateOnNewDocument', {identifier});
+  // Cada prova da lista, na véspera (singular) e no dia: artigo certo e nome da banca com a preposição certa.
+  const esperado = {
+    '2026-10-18': 'a 1ª fase da Unicamp', '2026-11-01': 'a 1ª fase da Fuvest', '2026-11-08': 'o 1º dia do Enem', '2026-11-15': 'o 2º dia do Enem',
+    '2026-11-22': 'a 1ª fase da Unesp', '2026-11-29': 'o 1º dia da 2ª fase da Unicamp', '2026-11-30': 'o 2º dia da 2ª fase da Unicamp',
+    '2026-12-06': 'o 1º dia da 2ª fase da Fuvest', '2026-12-07': 'o 2º dia da 2ª fase da Fuvest', '2026-12-10': 'a prova de Conhecimentos Gerais da Famerp',
+    '2026-12-11': 'a prova de Conhecimentos Específicos e Redação da Famerp', '2026-12-13': 'a 2ª fase da Unesp'};
+  igual(await p.avaliar(`[...document.querySelectorAll('.datas-de-prova li')].map(l => l.dataset.data)`), Object.keys(esperado), 'provas da lista');
+  const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  for (const [data, nome] of Object.entries(esperado)) {
+    const d = new Date(data + 'T12:00:00-03:00'), extenso = `${d.getUTCDate() === 1 ? '1º' : d.getUTCDate()} de ${MESES[d.getUTCMonth()]} de ${d.getUTCFullYear()}`;
+    const vespera = new Date(d.getTime() - 864e5).toISOString().slice(0, 10);
+    const casos = [[0, `A próxima prova é hoje: ${nome}.`]];
+    if (!(vespera in esperado)) casos.unshift([1, `Falta 1 dia para ${nome}, em ${extenso}.`]);  // véspera com outra prova mostra a outra
+    for (const [antes, frase] of casos) {
+      const fixo = d.getTime() - antes * 864e5;
+      const {identifier: id} = await p.s('Page.addScriptToEvaluateOnNewDocument', {source: `{ const Real = Date, fixo = ${fixo};
+        globalThis.Date = class extends Real { constructor(...a) { super(...(a.length ? a : [fixo])); } static now() { return fixo; } }; }`});
+      await p.recarregar();
+      igual(await p.texto('[data-contagem-saida]'), frase, `contagem em ${new Date(fixo).toISOString().slice(0, 10)}`);
+      await p.s('Page.removeScriptToEvaluateOnNewDocument', {identifier: id});
+    }
+  }
   await p.s('Emulation.setScriptExecutionDisabled', {value: true}); await p.recarregar();
   igual(await p.avaliar(`getComputedStyle(document.querySelector('[data-contagem-saida]')).display`), 'none', 'sem script, a frase vazia some');
   const datas = await p.avaliar(`[...document.querySelectorAll('.datas-de-prova time')].map(t => t.textContent)`);
-  verdade(datas.length >= 10 && datas.every(d => /^\d{1,2} de [a-zç]+ de \d{4}$/.test(d)), 'datas por extenso: ' + datas.join(' | '));
+  verdade(datas.length >= 10 && datas.every(d => /^(1º|\d{1,2}) de [a-zç]+ de \d{4}$/.test(d)), 'datas por extenso: ' + datas.join(' | '));
   verdade((await p.avaliar(`document.querySelectorAll('tr[data-aviso]').length`)) >= 8, 'avisos de data não encontrada visíveis');
   await p.s('Emulation.setScriptExecutionDisabled', {value: false});
 });

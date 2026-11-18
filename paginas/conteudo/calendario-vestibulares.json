@@ -113,7 +113,8 @@
      "conferido_em": "2026-11-17",
      "id": "enem-4",
      "contagem": "2026-11-08",
-     "rotulo_contagem": "Enem, 1º dia"
+     "artigo_contagem": "o",
+     "rotulo_contagem": "1º dia do Enem"
     },
     {
      "valores": [
@@ -126,7 +127,8 @@
      "conferido_em": "2026-11-17",
      "id": "enem-5",
      "contagem": "2026-11-15",
-     "rotulo_contagem": "Enem, 2º dia"
+     "artigo_contagem": "o",
+     "rotulo_contagem": "2º dia do Enem"
     },
     {
      "valores": [
@@ -191,7 +193,8 @@
      "conferido_em": "2026-11-17",
      "id": "fuvest-3",
      "contagem": "2026-11-01",
-     "rotulo_contagem": "Fuvest, 1ª fase"
+     "artigo_contagem": "a",
+     "rotulo_contagem": "1ª fase da Fuvest"
     },
     {
      "valores": [
@@ -223,7 +226,8 @@
       "Aviso conjunto Fuvest e Vunesp"
      ],
      "contagem": "2026-12-06",
-     "rotulo_contagem": "Fuvest, 2ª fase, 1º dia"
+     "artigo_contagem": "o",
+     "rotulo_contagem": "1º dia da 2ª fase da Fuvest"
     },
     {
      "valores": [
@@ -244,7 +248,8 @@
       "Aviso conjunto Fuvest e Vunesp"
      ],
      "contagem": "2026-12-07",
-     "rotulo_contagem": "Fuvest, 2ª fase, 2º dia"
+     "artigo_contagem": "o",
+     "rotulo_contagem": "2º dia da 2ª fase da Fuvest"
     },
     {
      "valores": [
@@ -300,7 +305,8 @@
      "conferido_em": "2026-11-17",
      "id": "unicamp-3",
      "contagem": "2026-10-18",
-     "rotulo_contagem": "Unicamp, 1ª fase"
+     "artigo_contagem": "a",
+     "rotulo_contagem": "1ª fase da Unicamp"
     },
     {
      "valores": [
@@ -324,7 +330,8 @@
      "conferido_em": "2026-11-17",
      "id": "unicamp-5",
      "contagem": "2026-11-29",
-     "rotulo_contagem": "Unicamp, 2ª fase, 1º dia"
+     "artigo_contagem": "o",
+     "rotulo_contagem": "1º dia da 2ª fase da Unicamp"
     },
     {
      "valores": [
@@ -337,7 +344,8 @@
      "conferido_em": "2026-11-17",
      "id": "unicamp-6",
      "contagem": "2026-11-30",
-     "rotulo_contagem": "Unicamp, 2ª fase, 2º dia"
+     "artigo_contagem": "o",
+     "rotulo_contagem": "2º dia da 2ª fase da Unicamp"
     },
     {
      "valores": [
@@ -472,7 +480,8 @@
      "conferido_em": "2026-11-17",
      "id": "unesp-4",
      "contagem": "2026-11-22",
-     "rotulo_contagem": "Unesp, 1ª fase"
+     "artigo_contagem": "a",
+     "rotulo_contagem": "1ª fase da Unesp"
     },
     {
      "valores": [
@@ -485,7 +494,8 @@
      "conferido_em": "2026-11-17",
      "id": "unesp-5",
      "contagem": "2026-12-13",
-     "rotulo_contagem": "Unesp, 2ª fase"
+     "artigo_contagem": "a",
+     "rotulo_contagem": "2ª fase da Unesp"
     },
     {
      "valores": [
@@ -556,7 +566,8 @@
      "conferido_em": "2026-11-17",
      "id": "famerp-3",
      "contagem": "2026-12-10",
-     "rotulo_contagem": "Famerp, prova de Conhecimentos Gerais"
+     "artigo_contagem": "a",
+     "rotulo_contagem": "Prova de Conhecimentos Gerais da Famerp"
     },
     {
      "valores": [
@@ -569,7 +580,8 @@
      "conferido_em": "2026-11-17",
      "id": "famerp-4",
      "contagem": "2026-12-11",
-     "rotulo_contagem": "Famerp, prova de Conhecimentos Específicos e Redação"
+     "artigo_contagem": "a",
+     "rotulo_contagem": "Prova de Conhecimentos Específicos e Redação da Famerp"
     },
     {
      "valores": [

@@ -395,6 +395,16 @@ class Recusa(unittest.TestCase):
         with self.assertRaises(gerar.Recusa):
             gerar.gerar(self.saida, conteudo=self.conteudo)
 
+    def test_contagem_sem_artigo_recusada(self):
+        # A frase "Faltam N dias para a 1ª fase da Unesp" precisa do artigo de cada prova.
+        dados = json.loads((self.conteudo / 'calendario-vestibulares.json').read_text(encoding='utf-8'))
+        linha = next(l for b in dados['blocos'] if b['tipo'] == 'dados' for l in b['linhas'] if l.get('contagem'))
+        del linha['artigo_contagem']
+        (self.conteudo / 'calendario-vestibulares.json').write_text(json.dumps(dados, ensure_ascii=False), encoding='utf-8')
+        with self.assertRaises(gerar.Recusa) as erro:
+            gerar.gerar(self.saida, conteudo=self.conteudo)
+        self.assertIn('artigo_contagem', str(erro.exception))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=1)

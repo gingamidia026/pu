@@ -154,6 +154,25 @@ def etapa_de(prova, evento):
     return etapa, NOTA_ETAPA.get((nome, etapa))
 
 
+# Nome da prova com a preposição certa ("do Enem", "da Fuvest") para a contagem do calendário.
+DO_VESTIBULAR = {'Enem': 'do Enem', 'Fuvest': 'da Fuvest', 'Unicamp': 'da Unicamp', 'Unesp': 'da Unesp', 'Famerp': 'da Famerp'}
+
+
+def rotulo_da_prova(nome, etapa):
+    """('Unesp', 'Prova, 1ª fase') -> ('a', '1ª fase da Unesp'). O artigo vai na frase "Faltam N dias para a 1ª fase da Unesp"."""
+    curto = etapa.removeprefix('Prova, ')
+    do = DO_VESTIBULAR[nome]
+    if m := re.fullmatch(r'(\dª fase), (\dº dia)', curto):
+        return 'o', f'{m[2]} da {m[1]} {do}'
+    if re.fullmatch(r'\dª fase', curto):
+        return 'a', f'{curto} {do}'
+    if re.fullmatch(r'\dº dia', curto):
+        return 'o', f'{curto} {do}'
+    if curto.startswith('Prova de '):
+        return 'a', f'{curto} {do}'
+    raise Erro(f'{nome}, {etapa}: etapa de prova sem forma conhecida para a contagem; acrescente em rotulo_da_prova')
+
+
 def calendario(coleta):
     dados = ler(coleta / 'calendario/dados.json')
     linhas = []
@@ -190,8 +209,7 @@ def calendario(coleta):
                 linha['textos_outras_fontes'] = [nome_da_fonte(u) for u in urls[1:]]
             if evento['tipo'] == 'prova':
                 linha['contagem'] = inicio
-                curto = etapa.removeprefix('Prova, ')
-                linha['rotulo_contagem'] = f'{nome}, {curto[0].lower() + curto[1:]}'
+                linha['artigo_contagem'], linha['rotulo_contagem'] = rotulo_da_prova(nome, etapa)
             linhas.append(linha)
     return {
         'tipo': 'leitura', 'endereco': '/calendario-vestibulares/',
@@ -484,7 +502,7 @@ def temas(coleta):
         'titulo': f'Temas de redação do Enem de {primeiro} a {ultimo}',
         'descricao': f'Todos os temas de redação do Enem de {primeiro} a {ultimo}, ano a ano, com o link da prova no Inep e a fonte de cada tema. Para treinar a escrita com temas reais.',
         'migalha': 'Temas de redação do Enem', 'h1': 'Temas de redação do Enem',
-        'apoio': f'O tema de cada ano, de {ultimo} até {primeiro}, tirado do caderno oficial do Inep. Use para treinar a escrita com propostas que já caíram.',
+        'apoio': f'O tema de cada ano, de {ultimo} até {primeiro}, tirado de fonte oficial do Inep: o caderno da prova ou, quando ele ainda não saiu, a notícia oficial. Use para treinar a escrita com propostas que já caíram.',
         'tom': 'boia', 'atualizada_em': d['coletado_em'], 'menu': True, 'sumario': True,
         'relacionadas': ['/provas-anteriores/', '/calendario-vestibulares/', '/obras-obrigatorias/'],
         'blocos': [

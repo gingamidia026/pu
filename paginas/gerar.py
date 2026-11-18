@@ -152,6 +152,8 @@ def problemas_de_fonte(pagina, hoje):
                 problemas.append(f'{onde}: data de conferência no futuro')
             if linha.get('contagem') and not DATA.fullmatch(linha['contagem']):
                 problemas.append(f'{onde}: contagem no formato AAAA-MM-DD')
+            if linha.get('contagem') and linha.get('artigo_contagem') not in ('a', 'o'):
+                problemas.append(f'{onde}: contagem sem artigo_contagem ("a" ou "o")')
     return problemas
 
 
@@ -189,7 +191,8 @@ def meta_do_index(texto, chave):
 # ---------- Página de leitura e 404 ----------
 def data_por_extenso(iso):
     d = datetime.date.fromisoformat(iso)
-    return f'{d.day} de {MESES[d.month - 1]} de {d.year}'
+    dia = '1º' if d.day == 1 else d.day  # "1º de novembro", como se escreve data em português
+    return f'{dia} de {MESES[d.month - 1]} de {d.year}'
 
 
 def id_do_titulo(bloco):
@@ -277,7 +280,7 @@ def contagem_de(bloco, pagina):
     eventos = sorted((l for l in origem['linhas'] if l.get('contagem') and not l.get('aviso')), key=lambda l: l['contagem'])
     if not eventos or any(not l.get('id') for l in eventos):
         raise Recusa(f"{pagina['_arquivo']}: contagem sem datas, ou linha com contagem sem id")
-    itens = ''.join(f'<li data-data="{l["contagem"]}"><time datetime="{l["contagem"]}">{data_por_extenso(l["contagem"])}</time> '
+    itens = ''.join(f'<li data-data="{l["contagem"]}" data-artigo="{l["artigo_contagem"]}"><time datetime="{l["contagem"]}">{data_por_extenso(l["contagem"])}</time> '
                     f'<a href="#{e(l["id"])}">{e(l["rotulo_contagem"])}</a></li>' for l in eventos)
     titulo_id = id_do_titulo(bloco)
     texto = ''.join(f'<p>{texto_com_links(p)}</p>\n' for p in bloco.get('paragrafos', []))

@@ -29,7 +29,11 @@
     return;
   }
   proxima.item.classList.add('proxima');
-  var nome = proxima.item.querySelector('a').textContent;
+  // Rótulo da lista ("1ª fase da Unesp", "Prova de Conhecimentos Gerais da Famerp") com o artigo dado pelo gerador
+  // (data-artigo): "a 1ª fase da Unesp", "o 1º dia do Enem", "a prova de Conhecimentos Gerais da Famerp".
+  var rotulo = proxima.item.querySelector('a').textContent;
+  if (/^[A-ZÀ-Ý][a-zà-ý]/.test(rotulo)) rotulo = rotulo.charAt(0).toLowerCase() + rotulo.slice(1);
+  var nome = (proxima.item.getAttribute('data-artigo') || 'a') + ' ' + rotulo;
   var quando = proxima.item.querySelector('time').textContent;
   if (proxima.dias === 0) {
     saida.textContent = 'A próxima prova é hoje: ' + nome + '.';
