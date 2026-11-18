@@ -1,0 +1,13 @@
+# Projeto de teste do proxy (tests/caddy_endurecido.py): o proxy do compose.yaml, igual ao da publicação, em outra
+# porta e com uma aplicação falsa no lugar da real (sem banco, sem catálogo, sem segredo). Nunca use na publicação.
+services:
+  aplicacao:
+    build: !reset null
+    image: python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+    user: '10001:10001'
+    command: [python, -c, "import http.server as h\nclass A(h.BaseHTTPRequestHandler):\n    def do_GET(s):\n        s.send_response(200); s.end_headers(); s.wfile.write(b'aplicacao falsa do teste')\nh.HTTPServer(('', 8000), A).serve_forever()"]
+    environment: !reset {}
+    volumes: !reset []
+    depends_on: !reset {}
+  proxy:
+    ports: !override ["127.0.0.1:${PU_TESTE_PORTA:-18089}:80"]

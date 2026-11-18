@@ -4,7 +4,7 @@ services:
   # (fora do git, da imagem e das cópias do banco), permissão 600, dona o usuário 10001 da aplicação; depois só é lida.
   # No Docker sem root, o root deste contêiner é o usuário do PC; ele só cria a pasta, a chave e passa a dona.
   chave-limites:
-    image: python:3.13-slim
+    image: python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
     user: '0:0'
     command: [python, -c, "import os, secrets, pathlib; d = pathlib.Path('/segredos'); d.chmod(0o711); c = d / 'chave'\nif not c.exists():\n    f = os.open(c, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600); os.write(f, secrets.token_hex(32).encode()); os.close(f); os.chown(c, 10001, 10001)"]
     volumes:
@@ -47,8 +47,16 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+  # Imagem fixada pelo resumo sha256 do índice da etiqueta 2-alpine (registro do Docker Hub, 17/11/2026), como a medição.
+  # Usuário próprio (10002, sem conta na imagem) e raiz só leitura (achado U5): só /config e /data, que o Caddy grava,
+  # ficam em memória, com dono 10002. A porta 80 dentro do contêiner não pede privilégio (Docker libera portas baixas).
   proxy:
-    image: caddy:2-alpine
+    image: caddy:2-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0
+    user: '10002:10002'
+    read_only: true
+    tmpfs:
+      - /config:size=1m,uid=10002,gid=10002,mode=0700
+      - /data:size=1m,uid=10002,gid=10002,mode=0700
     ports: ["127.0.0.1:8088:80"]
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
