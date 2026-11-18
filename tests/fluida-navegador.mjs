@@ -839,7 +839,13 @@ await item('diagnóstico: aluno sem respostas vê o convite a responder, em 390 
 });
 await item('diagnóstico: com respostas de teste, assuntos na ordem certa, sem porcentagem abaixo de 5 e treino direto do assunto', async () => {
   // Respostas gravadas direto no banco temporário, na primeira tentativa de cada questão (catálogo do teste: 8 questões por assunto).
-  const conta = sql("SELECT id FROM contas WHERE nome='Diagnostico'")[0][0]; const inicio = Date.now() / 1000 - 3600; let n = 0;
+  // As respostas precisam cair no dia de hoje no fuso do servidor (UTC-3, app/acompanhamento.py). "Uma hora atrás" falhava
+  // quando o teste rodava entre 0h e 1h: as respostas iam para ontem, os erros viravam revisão vencida e o próximo passo
+  // passava a ser "Revise". Perto da meia-noite, espera o dia virar para o item não atravessar a troca de data.
+  const FUSO_S = -3 * 3600; const segundosNoDia = () => (((Date.now() / 1000 + FUSO_S) % 86400) + 86400) % 86400;
+  if (86400 - segundosNoDia() < 120) await dormir((86400 - segundosNoDia() + 2) * 1000);
+  const agora = Date.now() / 1000; const meiaNoite = agora - segundosNoDia();
+  const conta = sql("SELECT id FROM contas WHERE nome='Diagnostico'")[0][0]; const inicio = Math.max(meiaNoite + 1, agora - 3600); let n = 0;
   const lote = (ids, erradas) => ids.map((id, i) => `(${conta},${id},0,${i < erradas ? 0 : 1},${inicio + n++},0)`);
   sql(`INSERT INTO respostas(conta,questao,alternativa,acerto,criada,chute) VALUES ${[...lote([2, 6, 10, 14, 18, 26], 5), ...lote([1, 5, 9, 13, 17], 3), ...lote([4, 8, 12, 16, 20], 1), ...lote([3, 7], 2)].join(',')}`);
   // Repetir uma questão depois de ver a correção não muda o diagnóstico.
@@ -857,7 +863,7 @@ await item('diagnóstico: com respostas de teste, assuntos na ordem certa, sem p
   certo(await p.avaliar('document.querySelector("#diagnostico-acao").getBoundingClientRect().bottom <= document.querySelector("#menu").getBoundingClientRect().top'), 'botão do primeiro assunto na primeira tela');
   igual(await p.avaliar('[...document.querySelectorAll(".assunto-diagnostico button")].map(b => b.textContent)'), ['Treinar Assunto par de Física', 'Treinar Assunto ímpar de Matemática', 'Treinar Assunto ímpar de História', 'Treinar Assunto par de Português'], 'cada Treinar diz o assunto ao leitor de tela');
   for (const largura of [390, 768, 1440]) await tirarFoto('dados', largura);
-  await p.tamanho(390, 844); await p.avaliar('location.hash = "#progresso"'); await p.esperar('document.querySelector(".passo")');
+  await p.tamanho(390, 844); await p.avaliar('location.hash = "#progresso"'); await p.esperar('document.querySelector(".passo:not(.comece)")', 4000, 'progresso no lugar do diagnóstico');
   certo((await p.texto('.passo h2')).includes('Comece por Assunto par de Física (Física).'), 'próximo passo do progresso vem do diagnóstico');
   igual(await p.avaliar('document.querySelector("#ver-diagnostico")?.getAttribute("href")'), '#diagnostico', 'entrada do progresso para o diagnóstico');
   await p.clicar('#ver-diagnostico'); await p.esperar('document.querySelector(".comece")');
