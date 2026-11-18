@@ -184,10 +184,23 @@ class Paginas(unittest.TestCase):
                 lida = ler(ARQUIVO[pagina['endereco']])
                 self.assertEqual([r for r in lida.recursos if not r.startswith('/') or r.startswith('//')], [], 'recurso de terceiros')
                 self.assertNotRegex(lida.texto, INTERMEDIARIO)
-                self.assertNotIn('<script src', lida.texto)
                 politica = lida.metas['Content-Security-Policy']
-                for trecho in ("default-src 'self'", "script-src 'none'", "connect-src 'none'", "form-action 'none'"):
+                for trecho in ("default-src 'self'", "connect-src 'none'", "form-action 'none'"):
                     self.assertIn(trecho, politica)
+                scripts = re.findall(r'<script\b([^>]*)>', lida.texto)
+                externos = [a for a in scripts if 'application/ld+json' not in a]
+                if pagina.get('script'):
+                    # Só o arquivo que a página declara, do próprio site, e a política passa a 'self' (nada embutido).
+                    self.assertIn("script-src 'self'", politica)
+                    self.assertNotIn('unsafe-inline', politica)
+                    self.assertEqual(len(externos), 1, externos)
+                    self.assertRegex(externos[0], r'^ src="/paginas/' + re.escape(pagina['script']) + r'\?v=[0-9a-f]{10}" defer$')
+                else:
+                    self.assertIn("script-src 'none'", politica)
+                    self.assertEqual(externos, [], 'script numa página que não declara')
+                # Nenhum script embutido executável: só o bloco de dados estruturados.
+                self.assertEqual(len(re.findall(r'<script type="application/ld\+json">', lida.texto)), 1)
+                self.assertNotRegex(lida.texto, r'\son[a-z]+="', 'atributo de evento embutido')
         estilo = (RAIZ / 'paginas/estilo.css').read_text(encoding='utf-8')
         self.assertNotRegex(estilo, r'url\(["\']?(https?:)?//', 'estilo com recurso de terceiros')
         self.assertNotIn('@import', estilo)
@@ -197,7 +210,7 @@ class Paginas(unittest.TestCase):
     def test_cada_dado_tem_fonte_e_data(self):
         hoje = datetime.date.today()
         for pagina in LEITURA:
-            esperadas = sum(len(b['linhas']) for b in pagina['blocos'] if b['tipo'] == 'dados')
+            esperadas = sum(1 for b in gerar.blocos_de_dados(pagina) for l in b['linhas'] if not l.get('aviso'))
             with self.subTest(pagina=pagina['endereco']):
                 lida = ler(ARQUIVO[pagina['endereco']])
                 self.assertEqual(len(lida.dados), esperadas, 'cada linha de dado vira uma linha marcada')
@@ -254,6 +267,83 @@ class Paginas(unittest.TestCase):
                 self.assertIn('href="/criar-conta/"', ARQUIVO[pagina['endereco']].read_text(encoding='utf-8'))
 
 
+class PaginasUteis(unittest.TestCase):
+    """Calendário, notas de corte, obras e temas de redação (paginas/importar-coleta.py)."""
+    NOVAS = ['/calendario-vestibulares/', '/notas-de-corte/fuvest/', '/notas-de-corte/unicamp/', '/obras-obrigatorias/', '/temas-de-redacao-enem/']
+
+    def pagina(self, endereco):
+        return next(p for p in PAGINAS if p['endereco'] == endereco), ler(ARQUIVO[endereco])
+
+    def test_cinco_paginas_no_mapa_no_menu_e_na_404(self):
+        mapa = (RAIZ / 'sitemap.xml').read_text(encoding='utf-8')
+        erro = ler(RAIZ / '404.html')
+        for endereco in self.NOVAS:
+            self.assertIn(f'<loc>{DOMINIO}{endereco}</loc>', mapa)
+            self.assertIn(endereco, erro.links)
+            for outra in self.NOVAS:  # menu comum no rodapé de todas
+                self.assertIn(outra, ler(ARQUIVO[endereco]).links)
+
+    def test_script_so_nas_paginas_que_declaram(self):
+        com_script = {p['endereco']: p['script'] for p in PAGINAS if p.get('script')}
+        self.assertEqual(com_script, {'/calendario-vestibulares/': 'calendario.js', '/notas-de-corte/fuvest/': 'notas-de-corte.js',
+                                      '/notas-de-corte/unicamp/': 'notas-de-corte.js'})
+        for nome in set(com_script.values()):
+            codigo = (RAIZ / 'paginas' / nome).read_text(encoding='utf-8')
+            self.assertNotRegex(codigo, r'fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|import\(|https?://|innerHTML|eval\(|new Function',
+                                'o script não fala com a rede nem monta HTML')
+
+    def test_avisos_no_lugar_de_data_inventada(self):
+        pagina, lida = self.pagina('/calendario-vestibulares/')
+        avisos = [l for b in gerar.blocos_de_dados(pagina) for l in b['linhas'] if l.get('aviso')]
+        self.assertEqual(lida.texto.count('Data ainda não encontrada em fonte oficial'), len(avisos))
+        etapas = {(l['valores'][0], l['valores'][1]) for l in avisos}
+        for esperado in [('Enem 2026', 'Resultado: notas individuais'), ('Enem 2026', 'Chamadas do Sisu'), ('Unesp 2027', 'Inscrição'),
+                         ('Unesp 2027', 'Resultado'), ('Unesp 2027', 'Chamadas'), ('Famerp 2027', 'Resultado da 1ª fase')]:
+            self.assertIn(esperado, etapas)
+        self.assertEqual(lida.texto.count('<tr data-aviso'), len(avisos))
+        # Isenção do Enem: a prorrogação do MEC, citando as duas fontes.
+        linha = next(l for b in gerar.blocos_de_dados(pagina) for l in b['linhas'] if l['valores'][0] == 'Enem 2026' and 'isenção da taxa' in str(l['valores'][1]))
+        self.assertEqual(linha['valores'][2], '13/04 a 30/04/2026')
+        self.assertIn('/mec/', linha['fonte'])
+        self.assertTrue(any('/inep/' in u for u in linha['outras_fontes']))
+        self.assertIn('class="datas-de-prova"', lida.texto)
+
+    def test_notas_de_corte(self):
+        fuvest, lida = self.pagina('/notas-de-corte/fuvest/')
+        self.assertEqual(len(next(gerar.blocos_de_dados(fuvest))['linhas']), 77)
+        self.assertIn('data-filtro="cortes" hidden', lida.texto)
+        unicamp, lida = self.pagina('/notas-de-corte/unicamp/')
+        blocos = {b['id']: b for b in gerar.blocos_de_dados(unicamp)}
+        self.assertEqual(len(blocos['cortes']['colunas']), 9)
+        self.assertEqual(len(blocos['cortes']['linhas']), 64)  # 63 lidas e 1 com aviso
+        self.assertIn('Não lido no PDF, ver o documento oficial', lida.texto)
+        self.assertEqual(len(blocos['musica']['linhas']), 22)
+        self.assertIn('VU2027-Manual-do-Ingresso.pdf', lida.texto, 'legenda do PAAIS com a fonte oficial')
+        for texto in (ler(ARQUIVO['/notas-de-corte/fuvest/']).texto, lida.texto):
+            self.assertRegex(texto, r'não diz (qual é a nota máxima|quantas questões)')
+
+    def test_obras(self):
+        _, lida = self.pagina('/obras-obrigatorias/')
+        for recusado in ('archive.org', 'biblioteca.torres.rs.gov.br'):
+            self.assertNotIn(recusado, lida.texto)
+        for link in ('machado.mec.gov.br', 'digital.bbm.usp.br/bitstream/bbm/4800', 'Mem%C3%B3rias_de_Martha', 'bbm/7743'):
+            self.assertIn(link, lida.texto)
+        self.assertIn('lista não encontrada em fonte oficial', lida.texto)
+        self.assertIn('Vários Escritos', lida.texto)
+        self.assertIn('cálculo', lida.texto)
+        self.assertEqual(lida.texto.count('class="par-grade"'), 2)
+
+    def test_temas(self):
+        pagina, lida = self.pagina('/temas-de-redacao-enem/')
+        anos = [l['valores'][0] for b in gerar.blocos_de_dados(pagina) for l in b['linhas']]
+        self.assertEqual(anos, [str(a) for a in range(2026, 1997, -1)])
+        self.assertIn('O PU não corrige redação', lida.texto)
+        self.assertIn('Em 2008 a prova não deu título ao tema', lida.texto)
+        self.assertIn('ainda não publicou o caderno', lida.texto)
+        self.assertNotIn('O MOVIMENTO IMIGRATÓRIO', lida.texto)
+        self.assertIn('O movimento imigratório para o Brasil no século XXI', lida.texto)
+
+
 class Recusa(unittest.TestCase):
     """O gerador recusa dado sem fonte; com --marcar-a-confirmar, grava com o aviso visível."""
     def setUp(self):
@@ -289,6 +379,21 @@ class Recusa(unittest.TestCase):
         (self.conteudo / '404.json').write_text(json.dumps(dados, ensure_ascii=False), encoding='utf-8')
         with self.assertRaises(gerar.Recusa):
             gerar.gerar(self.saida, marcar=True, conteudo=self.conteudo)
+
+    def test_script_fora_da_pasta_recusado(self):
+        dados = json.loads((self.conteudo / 'provas-anteriores.json').read_text(encoding='utf-8'))
+        dados['script'] = '../app/public/app.js'
+        (self.conteudo / 'provas-anteriores.json').write_text(json.dumps(dados, ensure_ascii=False), encoding='utf-8')
+        with self.assertRaises(gerar.Recusa):
+            gerar.gerar(self.saida, marcar=True, conteudo=self.conteudo)
+
+    def test_link_de_celula_sem_https_recusado(self):
+        dados = json.loads((self.conteudo / 'obras-obrigatorias.json').read_text(encoding='utf-8'))
+        linha = dados['blocos'][1]['blocos'][0]['linhas'][0]
+        linha['valores'][-1] = {'texto': 'PDF', 'link': 'http://exemplo.org/a.pdf'}
+        (self.conteudo / 'obras-obrigatorias.json').write_text(json.dumps(dados, ensure_ascii=False), encoding='utf-8')
+        with self.assertRaises(gerar.Recusa):
+            gerar.gerar(self.saida, conteudo=self.conteudo)
 
 
 if __name__ == '__main__':
