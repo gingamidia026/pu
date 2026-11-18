@@ -338,6 +338,7 @@ function normalizar(dados, guardado = false) {
   dados.estudo ||= {data: hojeLocal(), hoje: {respostas: 0, acertos: 0}, semana: [0, 0, 0, 0, 0, 0, 0], diaDaSemana: diaDaSemana(hojeLocal()), revisao: {vencidas: [], caderno: 0, intervalos: [1, 3, 7]}};
   dados.indice ||= {materias: [], curtas: [], conjuntos: []};
   dados.perfil ||= {assuntos: [], mediaGeral: null, atualizada: '', periodo: ''};
+  dados.diagnostico ||= {assuntos: [], respondidas: 0, foraEmRevisao: 0, minimo: 5, corte: 60, minimoAlunos: 5};
   dados.progresso ||= {total: 0, acertos: 0};
   // Só o painel guardado no aparelho envelhece; o que acaba de chegar do servidor vale como veio.
   if (guardado && dados.estudo.data < hojeLocal()) {
@@ -374,7 +375,7 @@ async function atualizar() {
 }
 function aplicarResultado(r) {
   estado.versao++;
-  if (r.acompanhamento) { painel.densidade = r.acompanhamento.densidade; painel.perfil = r.acompanhamento.perfil; }
+  if (r.acompanhamento) { painel.densidade = r.acompanhamento.densidade; painel.perfil = r.acompanhamento.perfil; if (r.acompanhamento.diagnostico) painel.diagnostico = r.acompanhamento.diagnostico; }
   if (r.progresso) painel.progresso = r.progresso;
   if (r.estudo) painel.estudo = r.estudo;
   painel.inicial = null;
@@ -693,8 +694,8 @@ function marcoPendente() { return prefs.alvo && painel.estudo.hoje.respostas >= 
 function verMarco() {
   const area = $('#area-questao'); const e = painel.estudo; const vencidas = e.revisao.vencidas.length;
   const primeira = prefs.alvo.valor <= prefs.meta; const dias = e.semana.filter(n => n > 0).length;
-  estado.atual = null;
-  area.innerHTML = `<section class="marco" data-tom="goiaba">${ilustracaoHtml('meta-cumprida', {texto: false, grande: true})}<h2>${primeira ? 'Meta de hoje cumprida.' : 'Bloco concluído.'}${seloHtml('peixe')}</h2><p>Você respondeu ${plural(e.hoje.respostas, 'questão', 'questões')} hoje e acertou ${e.hoje.acertos}. ${dias > 1 ? `É o seu ${dias}º dia de estudo nesta semana.` : ''}</p><p class="secundario">Parar aqui é uma boa escolha: o que você errou ou chutou volta na revisão nos próximos dias.${primeira && publico && !matchMedia('(display-mode: standalone)').matches ? ' Para voltar amanhã com um toque, use “Adicionar à tela inicial” no menu do navegador.' : ''}</p><div class="acoes"><button type="button" id="mais-cinco">Mais 5 questões</button>${vencidas && estado.modo !== 'revisao' ? `<button type="button" class="discreto" id="ir-revisao">Revisar ${plural(vencidas, 'questão', 'questões')}</button>` : '<a class="botao discreto" id="ir-simulado" href="#simulado">Fazer um simulado curto</a>'}<a class="botao discreto" id="encerrar" href="#progresso">Encerrar por hoje</a></div>${primeira ? '<p class="secundario lembrar">Quer um aviso para amanhã? <a href="#conta">Crie um lembrete diário</a> no calendário do celular.</p>' : ''}</section>`;
+  estado.atual = null; const fraco = comecePor();
+  area.innerHTML = `<section class="marco" data-tom="goiaba">${ilustracaoHtml('meta-cumprida', {texto: false, grande: true})}<h2>${primeira ? 'Meta de hoje cumprida.' : 'Bloco concluído.'}${seloHtml('peixe')}</h2><p>Você respondeu ${plural(e.hoje.respostas, 'questão', 'questões')} hoje e acertou ${e.hoje.acertos}. ${dias > 1 ? `É o seu ${dias}º dia de estudo nesta semana.` : ''}</p>${fraco ? `<p>Você erra mais em ${escapar(fraco.assunto)} (${escapar(fraco.materia)}). <a href="#diagnostico">Ver onde você mais erra</a></p>` : ''}<p class="secundario">Parar aqui é uma boa escolha: o que você errou ou chutou volta na revisão nos próximos dias.${primeira && publico && !matchMedia('(display-mode: standalone)').matches ? ' Para voltar amanhã com um toque, use “Adicionar à tela inicial” no menu do navegador.' : ''}</p><div class="acoes"><button type="button" id="mais-cinco">Mais 5 questões</button>${vencidas && estado.modo !== 'revisao' ? `<button type="button" class="discreto" id="ir-revisao">Revisar ${plural(vencidas, 'questão', 'questões')}</button>` : '<a class="botao discreto" id="ir-simulado" href="#simulado">Fazer um simulado curto</a>'}<a class="botao discreto" id="encerrar" href="#progresso">Encerrar por hoje</a></div>${primeira ? '<p class="secundario lembrar">Quer um aviso para amanhã? <a href="#conta">Crie um lembrete diário</a> no calendário do celular.</p>' : ''}</section>`;
   const seguir = bloco => { prefs.alvo.valor = painel.estudo.hoje.respostas + 5; prefs.alvo.bloco = bloco; salvarPrefs(); };
   $('#mais-cinco').onclick = () => { seguir(true); verEstudo(); };
   if ($('#ir-revisao')) $('#ir-revisao').onclick = () => { seguir(true); estado.modo = 'revisao'; prefs.foco = null; salvarPrefs(); verEstudo(); };
@@ -1027,8 +1028,8 @@ function porMateria() {
 function proximoPasso() {
   const vencidas = painel.estudo.revisao.vencidas.length;
   if (vencidas) return {titulo: `Revise ${plural(vencidas, 'questão', 'questões')} que você errou ou chutou.`, texto: 'São as que venceram hoje. Leva poucos minutos.', botao: 'Revisar agora', acao: () => { estado.modo = 'revisao'; prefs.foco = null; }};
-  const fraco = painel.perfil.assuntos.find(a => a.tentativas >= 3 && a.percentual < 60);
-  if (fraco) return {titulo: `Treine ${fraco.assunto} (${fraco.materia}).`, texto: `Você acertou ${fraco.acertos} de ${fraco.tentativas} neste assunto. É onde mais dá para crescer agora.`, botao: 'Treinar este assunto', acao: () => { estado.modo = 'misturado'; prefs.foco = {materia: fraco.materia, topico: fraco.assunto}; }};
+  const fraco = comecePor();
+  if (fraco) return {titulo: `Comece por ${fraco.assunto} (${fraco.materia}).`, texto: `${errosDoAssunto(fraco)} É onde você mais erra agora.`, botao: 'Treinar este assunto', diagnostico: true, acao: () => { estado.modo = 'misturado'; prefs.foco = {materia: fraco.materia, topico: fraco.assunto}; }};
   if (!painel.progresso.total) return {titulo: 'Responda a sua primeira questão.', texto: 'Com as primeiras respostas, esta página mostra onde você vai bem e onde treinar.', botao: 'Começar', acao: () => {}};
   return {titulo: 'Continue de onde parou.', texto: 'Nenhuma revisão vence hoje e nenhum assunto pede atenção especial.', botao: 'Continuar estudando', acao: () => {}};
 }
@@ -1040,7 +1041,7 @@ function verProgresso() {
   const encerrou = Boolean(prefs.alvo) && prefs.alvo.bloco === false && e.hoje.respostas >= prefs.meta;
   const cena = !total ? 'progresso-vazio' : encerrou ? 'encerrar-por-hoje' : e.hoje.respostas === 0 ? 'inicio-do-dia' : 'revisao';
   tela(`${cabecaHtml('Seu progresso', {selo: encerrou ? 'livro' : 'alvo', cena, textoDaCena: false})}
-<section class="passo"><p class="rotulo">Próximo passo</p><h2>${escapar(passo.titulo)}</h2><p>${escapar(passo.texto)}</p><button type="button" id="passo">${escapar(passo.botao)}</button></section>
+<section class="passo"><p class="rotulo">Próximo passo</p><h2>${escapar(passo.titulo)}</h2><p>${escapar(passo.texto)}</p><div class="acoes"><button type="button" id="passo">${escapar(passo.botao)}</button>${total ? `<a class="botao discreto" id="ver-diagnostico" href="#diagnostico">${passo.diagnostico ? 'Ver todos os assuntos' : 'Ver onde você mais erra'}</a>` : ''}</div></section>
 <div class="indicadores"><div class="indicador disco"><strong>${e.hoje.respostas}</strong><span>${e.hoje.respostas === 1 ? 'questão hoje' : 'questões hoje'} (meta: ${prefs.meta})</span></div><div class="indicador"><strong>${dias}</strong><span>${dias === 1 ? 'dia de estudo' : 'dias de estudo'} nesta semana, ${plural(semana, 'questão', 'questões')}</span></div><div class="indicador"><strong>${total ? Math.round(acertos / total * 100) + '%' : '—'}</strong><span>de acerto em ${plural(total, 'resposta', 'respostas')}</span></div></div>
 <ol class="pegadas-semana" aria-label="Dias desta semana">${e.semana.map((n, i) => `<li${n > 0 ? ' data-feito' : ''}${i === e.diaDaSemana ? ' data-hoje' : ''}><span class="pe" aria-hidden="true"></span><span class="dia" aria-hidden="true">${DIAS[i]}</span><span class="oculto">${NOMES_DIAS[i]}${i === e.diaDaSemana ? ', hoje' : ''}: ${n > 0 ? 'estudado' : 'sem estudo'}</span></li>`).join('')}</ol>
 <h2>Revisão</h2><p>${e.revisao.caderno ? `${plural(e.revisao.caderno, 'questão está', 'questões estão')} no seu caderno de revisão; ${e.revisao.vencidas.length ? plural(e.revisao.vencidas.length, 'vence hoje', 'vencem hoje') : 'nenhuma vence hoje'}.` : 'Seu caderno de revisão está vazio.'} Uma questão errada ou chutada volta depois de 1, 3 e 7 dias e sai do caderno quando você acerta com segurança nas três voltas.</p>
@@ -1049,6 +1050,55 @@ function verProgresso() {
 <p class="nota">Média geral dos usuários: ${p.mediaGeral === null || p.mediaGeral === undefined ? 'amostra insuficiente' : num(p.mediaGeral) + '%'}. ${p.atualizada ? `Atualização semanal: ${escapar(p.atualizada.slice(0, 10))}. ` : ''}${escapar(p.periodo || '')} Questões retiradas do catálogo não entram na classificação por assunto. Esses números representam tentativas e acertos nesta plataforma; não são nota TRI nem previsão de desempenho no Enem.</p>`, encerrou ? 'ipe' : 'mar');
   const ir = () => { salvarPrefs(); if (location.hash === '#estudar') navegar(); else location.hash = '#estudar'; };
   $('#passo').onclick = () => { passo.acao(); ir(); };
+  $$('[data-treinar-materia]').forEach(b => b.onclick = () => { estado.modo = 'misturado'; prefs.foco = {materia: b.dataset.treinarMateria, topico: b.dataset.treinarTopico}; ir(); });
+}
+
+// ---------- Diagnóstico de erros (docs/DIAGNOSTICO.md) ----------
+// O servidor já manda a lista na ordem: primeiro os assuntos que pedem treino, depois os que vão bem e por último os que ainda
+// têm menos de `minimo` questões. Aqui só se monta a tela, sem conta nova e sem chamada a mais ao intermediário.
+const comecePor = () => painel.diagnostico.assuntos.find(a => a.situacao === 'treinar') || null;
+function errosDoAssunto(a) {
+  const chutes = a.chutes ? ` e acertou ${a.chutes} no chute` : '';
+  return a.erros ? `Você errou ${a.erros} ${a.erros === 1 ? 'da' : 'das'} ${plural(a.respondidas, 'questão', 'questões')} que fez neste assunto${chutes}.` : `Você acertou ${a.acertos} de ${a.respondidas} questões neste assunto${chutes}.`;
+}
+const treinarHtml = a => `<button type="button" class="texto-botao" data-treinar-materia="${escapar(a.materia)}" data-treinar-topico="${escapar(a.assunto)}">Treinar<span class="oculto"> ${escapar(a.assunto)}</span></button>`;
+function linhaDiagnostico(a) {
+  const media = a.media === null || a.media === undefined ? '' : ` Média dos outros alunos: ${a.media}%.`;
+  const numeros = a.situacao === 'poucas'
+    ? `${a.respondidas} de ${a.respondidas + a.faltam} questões feitas. ${a.faltam === 1 ? 'Falta 1' : `Faltam ${a.faltam}`} para o resultado.`
+    : `Acertou ${a.acertos} de ${a.respondidas} (${a.acerto}%).${a.chutes ? ` ${a.chutes === 1 ? 'Mais 1 certa' : `Mais ${a.chutes} certas`} no chute.` : ''}${media}`;
+  const barra = a.situacao === 'poucas'
+    ? `<progress max="${a.respondidas + a.faltam}" value="${a.respondidas}" aria-hidden="true"></progress>`
+    : `<progress max="${a.respondidas}" value="${a.acertos}" aria-hidden="true"></progress>`;
+  return `<li class="assunto-diagnostico" data-situacao="${a.situacao}"><div class="sobre"><span class="rotulo">${escapar(a.materia)}</span><strong>${escapar(a.assunto)}</strong>${barra}<span class="secundario">${numeros}</span></div>${treinarHtml(a)}</li>`;
+}
+function verDiagnostico() {
+  const d = painel.diagnostico; const total = painel.progresso.total;
+  const treinar = d.assuntos.filter(a => a.situacao === 'treinar'); const bem = d.assuntos.filter(a => a.situacao === 'bem'); const poucas = d.assuntos.filter(a => a.situacao === 'poucas');
+  const primeiro = treinar[0]; const perto = [...poucas].sort((a, b) => a.faltam - b.faltam)[0];
+  let topo;
+  if (!d.respondidas && !d.foraEmRevisao) {
+    topo = `<section class="marco diagnostico-vazio">${ilustracaoHtml('progresso-vazio', {texto: false})}<h2>Ainda não há respostas para analisar.</h2><p>Responda algumas questões e esta tela mostra os assuntos em que você mais erra e por onde começar. Cada assunto aparece depois de ${d.minimo} questões.</p><div class="acoes"><button type="button" id="diagnostico-acao">Responder questões</button></div></section>`;
+  } else if (primeiro) {
+    const media = primeiro.media === null || primeiro.media === undefined ? '' : `<p class="secundario">Neste assunto você acerta ${primeiro.acerto}%. A média dos outros alunos do PU é ${primeiro.media}%.</p>`;
+    topo = `<section class="passo comece"><p class="rotulo">Comece por</p><h2>${escapar(primeiro.assunto)}</h2><p class="materia-do-assunto">${escapar(primeiro.materia)}</p><p>${errosDoAssunto(primeiro)}</p>${media}<div class="acoes"><button type="button" id="diagnostico-acao">Treinar este assunto</button></div></section>`;
+  } else if (!bem.length) {
+    topo = `<section class="passo comece"><p class="rotulo">Quase lá</p><h2>Ainda não dá para dizer onde você mais erra.</h2><p>${perto ? `${perto.faltam === 1 ? 'Falta 1 questão' : `Faltam ${perto.faltam} questões`} de ${escapar(perto.assunto)} (${escapar(perto.materia)}) para o primeiro resultado.` : 'Continue respondendo para o primeiro resultado.'}</p><div class="acoes"><button type="button" id="diagnostico-acao">${perto ? 'Treinar este assunto' : 'Continuar estudando'}</button></div></section>`;
+  } else {
+    topo = `<section class="passo comece"><p class="rotulo">Agora</p><h2>Nenhum assunto pede reforço agora.</h2><p>Nos assuntos com ${d.minimo} questões ou mais, você acerta pelo menos ${d.corte}%. Continue respondendo para o diagnóstico cobrir mais assuntos.</p><div class="acoes"><button type="button" id="diagnostico-acao">Continuar estudando</button></div></section>`;
+  }
+  const lista = (titulo, apoio, itens, ordenada = false) => itens.length ? `<h2>${titulo}</h2><p class="secundario">${apoio}</p><${ordenada ? 'ol' : 'ul'} class="lista-diagnostico">${itens.map(linhaDiagnostico).join('')}</${ordenada ? 'ol' : 'ul'}>` : '';
+  const revisao = d.foraEmRevisao ? ` ${plural(d.foraEmRevisao, 'resposta ficou', 'respostas ficaram')} de fora porque o assunto da questão ainda está em revisão.` : '';
+  tela(`${cabecaHtml('Onde você mais erra', {selo: 'alvo', cena: d.respondidas ? 'revisao' : '', textoDaCena: false, lide: d.respondidas ? `Pelas ${plural(d.respondidas, 'questão', 'questões')} que você respondeu.` : ''})}
+${topo}
+${lista('Você erra mais em', 'Na ordem para estudar: primeiro onde você mais erra, com mais respostas para confirmar.', treinar, true)}
+${lista('Ainda não dá para concluir', `Com menos de ${d.minimo} questões feitas, o resultado de um assunto ainda muda muito.`, poucas)}
+${lista('Você vai bem em', `Acerto de ${d.corte}% ou mais.`, bem)}
+${d.assuntos.length ? `<details class="materia como-calcula"><summary><span class="nome">Como esta lista é montada</span></summary><p>Conta a primeira vez que você respondeu cada questão, antes de ver a correção. Acerto marcado como chute conta como questão a treinar. Um assunto só entra na conta com ${d.minimo} questões ou mais. A ordem junta quanto você erra e quantas questões fez: com a mesma porcentagem de erro, passa à frente o assunto em que você fez mais questões, porque o resultado dele é mais firme. A média dos outros alunos aparece quando pelo menos ${d.minimoAlunos} alunos fizeram ${d.minimo} questões do assunto, e muda uma vez por semana.</p></details>` : ''}
+<p class="nota">Os assuntos seguem a classificação das questões do PU. Questões de provas desligadas na Conta não entram.${revisao} Esses números não são nota TRI nem previsão de resultado no Enem.</p>`, 'goiaba');
+  const ir = () => { salvarPrefs(); location.hash = '#estudar'; };
+  const alvo = primeiro || (!bem.length ? perto : null);
+  $('#diagnostico-acao').onclick = () => { estado.modo = 'misturado'; prefs.foco = alvo ? {materia: alvo.materia, topico: alvo.assunto} : null; ir(); };
   $$('[data-treinar-materia]').forEach(b => b.onclick = () => { estado.modo = 'misturado'; prefs.foco = {materia: b.dataset.treinarMateria, topico: b.dataset.treinarTopico}; ir(); });
 }
 
@@ -1267,7 +1317,7 @@ function verPrivacidade() {
 function verNota() { tela('', 'sol'); PUSimulador.mostrar(conteudo); }
 
 // ---------- Navegação ----------
-const ROTAS = {'#estudar': verEstudo, '#progresso': verProgresso, '#simulado': verSimulado, '#nota': verNota, '#conta': verConta, '#privacidade': verPrivacidade};
+const ROTAS = {'#estudar': verEstudo, '#progresso': verProgresso, '#diagnostico': verDiagnostico, '#simulado': verSimulado, '#nota': verNota, '#conta': verConta, '#privacidade': verPrivacidade};
 const APELIDOS = {'': '#estudar', '#inicio': '#estudar', '#questoes': '#estudar', '#dispositivos': '#conta', '#entrar': '#estudar', '#criar-conta': '#estudar'};
 // Endereço para links de outras páginas: /criar-conta/ (porta gravada por paginas/gerar.py, com data-abrir no <html>) e /?criar-conta
 // abrem a entrada já no cadastro (sem rota nova). Vale uma vez, ao abrir.
@@ -1276,7 +1326,7 @@ function navegar() {
   if (location.hash === '#principal') return;
   let destino = APELIDOS[location.hash] ?? location.hash;
   if (!ROTAS[destino]) destino = '#estudar';
-  marcarMenu(destino);
+  marcarMenu(destino === '#diagnostico' ? '#progresso' : destino);
   const pedido = pedidoDeCadastro; pedidoDeCadastro = false;
   if (destino === '#privacidade') { verPrivacidade(); return subir(); }
   if (!painel) {

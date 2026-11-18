@@ -262,6 +262,27 @@ progress.largo { height: 8px; margin-bottom: 1rem; }
 .assunto { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-top: 1px dashed var(--linha); }
 .assunto strong { display: block; font-weight: 600; font-size: .9375rem; }
 .assunto .secundario { display: block; font-size: .8125rem; }
+/* Diagnóstico de erros (#diagnostico, docs/DIAGNOSTICO.md): o assunto para começar em destaque e, embaixo, uma linha por assunto
+   com a matéria, o nome, a barra de acerto e os números; a ordem de estudo leva o número no círculo, como os passos da entrada. */
+.comece h2 { overflow-wrap: break-word; }
+.comece .materia-do-assunto { margin: .25rem 0 .75rem; font-weight: 600; }
+.lista-diagnostico { list-style: none; margin: 0 0 2.25rem; padding: 0; border-bottom: 1px solid var(--linha); counter-reset: erro; }
+.assunto-diagnostico { display: flex; align-items: center; gap: .875rem; padding: .875rem 0; border-top: 1px solid var(--linha); }
+ol.lista-diagnostico > .assunto-diagnostico { counter-increment: erro; }
+ol.lista-diagnostico > .assunto-diagnostico::before { content: counter(erro); box-sizing: border-box; flex-shrink: 0; align-self: flex-start; display: grid; place-items: center; width: 2rem; height: 2rem;
+  border: 1px solid var(--tinta); border-radius: 50%; font-family: var(--fonte-numeros); font-size: .875rem; font-weight: 650; color: var(--tinta); }
+ol.lista-diagnostico > .assunto-diagnostico:first-child::before { background: var(--tom-faixa); border-width: 2px; }
+.assunto-diagnostico .sobre { flex: 1; min-width: 0; display: grid; gap: .25rem; }
+.assunto-diagnostico strong { font-weight: 600; line-height: 1.3; overflow-wrap: break-word; }
+.assunto-diagnostico .secundario { font-size: .8125rem; line-height: 1.45; }
+.assunto-diagnostico progress { max-width: 18rem; margin: .25rem 0; }
+.assunto-diagnostico[data-situacao=poucas] progress::-webkit-progress-value { background: var(--secundario); }
+.assunto-diagnostico[data-situacao=poucas] progress::-moz-progress-bar { background: var(--secundario); }
+.assunto-diagnostico .texto-botao { flex-shrink: 0; white-space: nowrap; overflow-wrap: normal; }
+.diagnostico-vazio .ilustracao { margin-bottom: .75rem; }
+.como-calcula { margin-top: .5rem; }
+.como-calcula summary { grid-template-columns: 1fr; }
+.como-calcula > p { margin: 0 0 1rem; color: var(--secundario); font-size: .9375rem; }
 .lista-densidade { list-style: none; margin: 0; padding: 0 0 .75rem; }
 .lista-densidade li { display: flex; justify-content: space-between; gap: 1rem; padding: .375rem 0; font-variant-numeric: tabular-nums; }
 .resultado-simulado { list-style: none; margin: 0 0 1.5rem; padding: 0; }

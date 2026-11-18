@@ -16,7 +16,7 @@ from pathlib import Path
 from questoes import QUESTOES, CATALOGO, ARQUIVO_CATALOGO
 import base64
 from ambientes import AmbienteIndisponivel, ATIVO as INDIVIDUAIS, solicitar as ambiente, painel_individual
-from acompanhamento import preparar, ciclo, avancar, perfil, estudo, indice
+from acompanhamento import preparar, ciclo, avancar, perfil, estudo, indice, diagnostico
 from conjuntos import membros as membros_conjunto, responder as responder_conjunto
 import provas
 import estatisticas
@@ -194,7 +194,7 @@ class API(BaseHTTPRequestHandler):
         # O campo antigo `questoes` (lista do catálogo inteiro) saiu em 14/11/2026: com as cinco provas passaria de 100 KB,
         # e a interface atual não o usa. O índice e a densidade trazem os IDs das provas ativas.
         painel = {'densidade': densidade, 'estudo': ritmo, 'indice': recorte['indice'], 'inicial': publica(MAPA[primeira]) if primeira in MAPA else None,
-            'perfil': perfil(con, conta['id'], recorte['questoes'], todas=QUESTOES), 'conta': conta, 'progresso': dict(totais), 'questoes': [],
+            'perfil': perfil(con, conta['id'], recorte['questoes'], todas=QUESTOES), 'diagnostico': diagnostico(con, conta['id'], recorte['questoes'], todas=QUESTOES), 'conta': conta, 'progresso': dict(totais), 'questoes': [],
             'provas': {'disponiveis': DISPONIVEIS, 'ativas': ativas},
             'catalogo': {'origem':'cofre','total':len(QUESTOES),'ativas':len(recorte['questoes']),'anuladas':CATALOGO['anuladas'],'revisar':CATALOGO['revisar'],'versao':CATALOGO['versao']} if CATALOGO is not None else {'origem':'vazio','total':0,'ativas':0}}
 
@@ -424,7 +424,7 @@ class API(BaseHTTPRequestHandler):
                 resultado={'acerto':acerto,'correta':questao['correta'],'explicacao':questao['explicacao'],'densidadeConcluida':concluida,'estatisticaOriginal':estatisticas.da_questao(questao)}
                 if chave:
                     con.execute('INSERT INTO envios VALUES(?,?,?,?,?)',(conta['id'],chave,questao['id'],alternativa,json.dumps(resultado)))
-                resultado['acompanhamento']={'densidade':ciclo(con,conta['id'],recorte['questoes'],QUESTOES),'perfil':perfil(con,conta['id'],recorte['questoes'],todas=QUESTOES)}
+                resultado['acompanhamento']={'densidade':ciclo(con,conta['id'],recorte['questoes'],QUESTOES),'perfil':perfil(con,conta['id'],recorte['questoes'],todas=QUESTOES),'diagnostico':diagnostico(con,conta['id'],recorte['questoes'],todas=QUESTOES)}
                 totais=con.execute('SELECT COUNT(*) total,COALESCE(SUM(acerto),0) acertos FROM respostas WHERE conta=?',(conta['id'],)).fetchone()
                 resultado['progresso']=dict(totais)
                 resultado['estudo']=estudo(con,conta['id'],recorte['questoes'])

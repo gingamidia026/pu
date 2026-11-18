@@ -3,7 +3,7 @@ import hashlib
 import json
 import re
 import time
-from acompanhamento import avancar_conjunto, ciclo, perfil, estudo
+from acompanhamento import avancar_conjunto, ciclo, perfil, estudo, diagnostico
 
 def membros(questao, questoes):
     if not questao.get('grupo'): return [questao]
@@ -42,7 +42,7 @@ def responder(con, conta, questao, questoes, dados, ativas=None):
         resultados.append({'id':q['id'],'acerto':acerto,'correta':q['correta'],'explicacao':q['explicacao']})
     terminou=avancar_conjunto(con,conta,list(mapa),ativas,questoes)
     resultado={'resultados':resultados,'densidadeConcluida':terminou,
-               'acompanhamento':{'densidade':ciclo(con,conta,ativas,questoes),'perfil':perfil(con,conta,ativas,todas=questoes)},
+               'acompanhamento':{'densidade':ciclo(con,conta,ativas,questoes),'perfil':perfil(con,conta,ativas,todas=questoes),'diagnostico':diagnostico(con,conta,ativas,todas=questoes)},
                'progresso':dict(con.execute('SELECT COUNT(*) total,COALESCE(SUM(acerto),0) acertos FROM respostas WHERE conta=?',(conta,)).fetchone()),
                'estudo':estudo(con,conta,ativas)}
     con.execute('INSERT INTO envios_conjuntos VALUES(?,?,?,?)',(conta,envio,assinatura,json.dumps(resultado)))

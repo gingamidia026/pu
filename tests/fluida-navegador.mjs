@@ -477,7 +477,7 @@ await item('teclado no computador: letra marca, Enter confere e segue', async ()
   certo(await p.semRolagemLateral(), 'sem rolagem lateral');
 });
 await item('telas de estudo sem rolagem lateral em 320, 768 e 390', async () => {
-  for (const largura of [320, 768, 390]) { await p.tamanho(largura, 844); await dormir(120); for (const destino of ['#estudar', '#progresso', '#simulado', '#conta']) { await p.avaliar(`location.hash = "${destino}"`); await dormir(250); certo(await p.semRolagemLateral(), `rolagem lateral em ${destino} a ${largura}`); } }
+  for (const largura of [320, 768, 390]) { await p.tamanho(largura, 844); await dormir(120); for (const destino of ['#estudar', '#progresso', '#diagnostico', '#simulado', '#conta']) { await p.avaliar(`location.hash = "${destino}"`); await dormir(250); certo(await p.semRolagemLateral(), `rolagem lateral em ${destino} a ${largura}`); } }
   await p.avaliar('location.hash = "#estudar"'); await questaoPronta();
   await dormir(400);
   const medida = await p.avaliar('(() => { const b = document.querySelector(".barra-acao").getBoundingClientRect(), m = document.querySelector("#menu").getBoundingClientRect(); return {barra: Math.round(b.bottom), menu: Math.round(m.top), janela: innerHeight, rolagem: Math.round(scrollY)}; })()');
@@ -485,7 +485,7 @@ await item('telas de estudo sem rolagem lateral em 320, 768 e 390', async () => 
   if (CAPTURAS) await p.captura(path.join(CAPTURAS, 'estudar-390.png'), false);
 });
 await item('telas de estudo sem faixa que corre e sem movimento acima de 0,4 s', async () => {
-  for (const destino of ['#estudar', '#progresso', '#simulado', '#conta']) {
+  for (const destino of ['#estudar', '#progresso', '#diagnostico', '#simulado', '#conta']) {
     await p.avaliar(`location.hash = "${destino}"`); await dormir(250);
     igual(await p.avaliar('Boolean(document.querySelector(".faixa-corre, .selos-cartaz"))'), false, 'faixa ou selos em ' + destino);
   }
@@ -496,7 +496,7 @@ await item('telas de estudo sem faixa que corre e sem movimento acima de 0,4 s',
 });
 // Telas de dentro na direção de 14/11/2026 (frente dentro): passagem com faixa da cor da tela, onda, título de cartaz em Bricolage,
 // selo e ilustração; Estudar e a folha da questão contidas, só com a Atkinson. Substitui o item de 12/11 (areia, serifada e selo em imagem).
-const TONS = {'#progresso': 'mar', '#simulado': 'boia', '#nota': 'sol', '#conta': 'ipe', '#privacidade': 'mar'};
+const TONS = {'#progresso': 'mar', '#diagnostico': 'goiaba', '#simulado': 'boia', '#nota': 'sol', '#conta': 'ipe', '#privacidade': 'mar'};
 const leituraDaTela = () => p.avaliar(`(() => {
   const c = (e, pseudo) => getComputedStyle(e, pseudo);
   const visiveis = [...document.querySelectorAll('body *')].filter(e => e.getClientRects().length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()));
@@ -515,10 +515,10 @@ const leituraDaTela = () => p.avaliar(`(() => {
     corre: Boolean(document.querySelector('.faixa-corre')), lateral: document.documentElement.scrollWidth <= document.documentElement.clientWidth};
 })()`);
 await item('telas de dentro de 14/11: faixa da cor de cada tela com onda, título de cartaz, selo e ilustração; Estudar e a folha contidas', async () => {
-  const TEXTO = 'rgb(47, 52, 55)'; const FAIXAS = {mar: 'rgb(227, 233, 255)', boia: 'rgb(255, 233, 222)', sol: 'rgb(255, 243, 204)', ipe: 'rgb(238, 231, 255)'};
+  const TEXTO = 'rgb(47, 52, 55)'; const FAIXAS = {mar: 'rgb(227, 233, 255)', boia: 'rgb(255, 233, 222)', sol: 'rgb(255, 243, 204)', ipe: 'rgb(238, 231, 255)', goiaba: 'rgb(255, 229, 238)'};
   for (const largura of [390, 1280]) {
     await p.tamanho(largura, 900); await dormir(120);
-    for (const destino of ['#estudar', '#progresso', '#simulado', '#nota', '#conta', '#privacidade']) {
+    for (const destino of ['#estudar', '#progresso', '#diagnostico', '#simulado', '#nota', '#conta', '#privacidade']) {
       await p.avaliar(`location.hash = "${destino}"`); await dormir(450);
       if (destino === '#estudar') await questaoPronta();
       const m = await leituraDaTela();
@@ -816,6 +816,49 @@ await item('capturas da conta e da questão corrigida em diurno e noturno, em 39
   certo(await p.avaliar('!document.querySelector("#bloco-fuso").hidden'), 'fuso no automático');
   if (CAPTURAS) await p.captura(path.join(CAPTURAS, 'tema-conta-automatico-390.png'));
 });
+// ---------- Diagnóstico de erros (frente diagnóstico, 17/11/2026, docs/DIAGNOSTICO.md) ----------
+const tirarFoto = async (nome, largura) => { await p.tamanho(largura, largura < 800 ? 844 : 900); await dormir(350); certo(await p.semRolagemLateral(), `sem rolagem lateral em ${nome} a ${largura}`); if (CAPTURAS) await p.captura(path.join(CAPTURAS, `diagnostico-${nome}-${largura}.png`)); };
+await item('diagnóstico: aluno sem respostas vê o convite a responder, em 390 e 1440, e o menu marca Progresso', async () => {
+  await p.tamanho(390, 844); await abrirConta(); await p.clicar('#sair'); await p.esperar('document.querySelector("#acesso")'); await cadastrar('Diagnostico');
+  await p.avaliar('location.hash = "#diagnostico"'); await p.esperar('document.querySelector(".diagnostico-vazio")', 4000, 'estado vazio');
+  igual((await p.texto('h1')).trim(), 'Onde você mais erra', 'título');
+  certo((await p.texto('.diagnostico-vazio')).includes('Ainda não há respostas para analisar.'), 'texto do estado vazio');
+  igual(await p.avaliar('document.querySelector("#menu a[aria-current=page]")?.hash'), '#progresso', 'menu marca Progresso');
+  igual(await p.avaliar('document.querySelectorAll(".assunto-diagnostico").length'), 0, 'nenhum assunto sem resposta');
+  for (const largura of [390, 1440]) await tirarFoto('vazio', largura);
+  await p.tamanho(390, 844); await p.clicar('#diagnostico-acao'); await questaoPronta();
+  igual(await p.avaliar('location.hash'), '#estudar', 'convite leva às questões');
+});
+await item('diagnóstico: com respostas de teste, assuntos na ordem certa, sem porcentagem abaixo de 5 e treino direto do assunto', async () => {
+  // Respostas gravadas direto no banco temporário, na primeira tentativa de cada questão (catálogo do teste: 8 questões por assunto).
+  const conta = sql("SELECT id FROM contas WHERE nome='Diagnostico'")[0][0]; const inicio = Date.now() / 1000 - 3600; let n = 0;
+  const lote = (ids, erradas) => ids.map((id, i) => `(${conta},${id},0,${i < erradas ? 0 : 1},${inicio + n++},0)`);
+  sql(`INSERT INTO respostas(conta,questao,alternativa,acerto,criada,chute) VALUES ${[...lote([2, 6, 10, 14, 18, 26], 5), ...lote([1, 5, 9, 13, 17], 3), ...lote([4, 8, 12, 16, 20], 1), ...lote([3, 7], 2)].join(',')}`);
+  // Repetir uma questão depois de ver a correção não muda o diagnóstico.
+  sql(`INSERT INTO respostas(conta,questao,alternativa,acerto,criada,chute) VALUES (${conta},2,0,1,${inicio + n++},0)`);
+  await p.avaliar('(async () => { await atualizar(); location.hash = "#diagnostico"; })()'); await p.esperar('document.querySelector(".comece")', 4000, 'diagnóstico com dados');
+  igual((await p.texto('.comece h2')).trim(), 'Assunto par de Física', 'comece por');
+  certo((await p.texto('.comece')).includes('Você errou 5 das 6 questões que fez neste assunto.'), 'erros do primeiro assunto');
+  igual(await p.avaliar('[...document.querySelectorAll(".assunto-diagnostico strong")].map(e => e.textContent)'), ['Assunto par de Física', 'Assunto ímpar de Matemática', 'Assunto ímpar de História', 'Assunto par de Português'], 'ordem: treinar, poucas respostas, vai bem');
+  igual(await p.avaliar('[...document.querySelectorAll("ol.lista-diagnostico .assunto-diagnostico")].map(e => e.dataset.situacao)'), ['treinar', 'treinar'], 'lista numerada só com o que pede treino');
+  const poucas = await p.texto('[data-situacao=poucas]');
+  certo(poucas.includes('2 de 5 questões feitas') && poucas.includes('Faltam 3') && !poucas.includes('%'), 'abaixo do mínimo: número de respostas, sem porcentagem: ' + poucas);
+  certo((await p.texto('[data-situacao=bem]')).includes('Acertou 4 de 5 (80%)'), 'assunto que vai bem');
+  certo(!(await p.texto('#conteudo')).includes('Média dos outros'), 'sem média com menos de cinco outros alunos');
+  // Em 5 segundos no celular: o assunto e o botão de treino cabem na primeira tela, acima do menu.
+  certo(await p.avaliar('document.querySelector("#diagnostico-acao").getBoundingClientRect().bottom <= document.querySelector("#menu").getBoundingClientRect().top'), 'botão do primeiro assunto na primeira tela');
+  igual(await p.avaliar('[...document.querySelectorAll(".assunto-diagnostico button")].map(b => b.textContent)'), ['Treinar Assunto par de Física', 'Treinar Assunto ímpar de Matemática', 'Treinar Assunto ímpar de História', 'Treinar Assunto par de Português'], 'cada Treinar diz o assunto ao leitor de tela');
+  for (const largura of [390, 768, 1440]) await tirarFoto('dados', largura);
+  await p.tamanho(390, 844); await p.avaliar('location.hash = "#progresso"'); await p.esperar('document.querySelector(".passo")');
+  certo((await p.texto('.passo h2')).includes('Comece por Assunto par de Física (Física).'), 'próximo passo do progresso vem do diagnóstico');
+  igual(await p.avaliar('document.querySelector("#ver-diagnostico")?.getAttribute("href")'), '#diagnostico', 'entrada do progresso para o diagnóstico');
+  await p.clicar('#ver-diagnostico'); await p.esperar('document.querySelector(".comece")');
+  // As 19 respostas gravadas contam como de hoje: a meta já está cumprida, então o teste pede mais questões antes do treino.
+  await p.avaliar('prefs.alvo.valor = 999'); await p.clicar('#diagnostico-acao'); await questaoPronta();
+  igual(await p.avaliar('prefs.foco'), {materia: 'Física', topico: 'Assunto par de Física'}, 'treino no assunto');
+  igual(await p.avaliar('Number(document.querySelector(".questao").dataset.id) % 4'), 2, 'questão de Física');
+  await p.clicar('.modos [data-modo="misturado"]'); await questaoPronta();
+});
 // ---------- Provas que a pessoa vai prestar (frente provas-interface, 14/11/2026) ----------
 // Contrato da frente provas (docs/PROVAS.md). No catálogo do teste: Enem 1–24, Fuvest 25–27, Unicamp 28–30, Unesp 31–32, Famerp 33–34.
 // Pedidos feitos pela página a cada rota (contagem do Resource Timing), para provar quantas viagens a troca custa.
@@ -946,11 +989,20 @@ await item('provas: ligar de novo traz as questões de volta, e cada questão mo
 const PARES_TEXTO = PARES_NOTURNO.filter(([a, b]) => !['--linha', '--divisa'].includes(a) && !(a === '--secundario' && /-fundo$/.test(b)))
   .map(([a, b]) => [a, b, ['--fio', '--foco'].includes(a) ? 3 : 4.5]);
 const PARES_TOM = ['mar', 'boia', 'ipe', 'goiaba', 'sol'].flatMap(tom => [[tom, '--tinta', '--tom-faixa', 4.5], [tom, '--texto', '--tom-faixa', 4.5], ...(['mar', 'ipe'].includes(tom) ? [[tom, '--tom', '--fundo', 3]] : [])]);
+// Diagnóstico montado só na página, com nomes longos como os do catálogo real, para a varredura de contraste e de largura.
+const DIAGNOSTICO_DE_TESTE = {minimo: 5, corte: 60, minimoAlunos: 5, respondidas: 31, foraEmRevisao: 2, atualizada: '2099-01-05T00:00:00+00:00', assuntos: [
+  {materia: 'Matemática', assunto: 'Conhecimentos numéricos', respondidas: 12, acertos: 3, chutes: 1, erros: 8, acerto: 25, faltam: 0, media: 58, situacao: 'treinar'},
+  {materia: 'História', assunto: 'Formas de organização social, movimentos sociais, pensamento político e ação do Estado', respondidas: 6, acertos: 2, chutes: 0, erros: 4, acerto: 33, faltam: 0, media: null, situacao: 'treinar'},
+  {materia: 'Português', assunto: 'Estudo do texto', respondidas: 8, acertos: 7, chutes: 0, erros: 1, acerto: 88, faltam: 0, media: 71, situacao: 'bem'},
+  {materia: 'Física', assunto: 'Oscilações, ondas, óptica e radiação', respondidas: 3, acertos: 1, chutes: 0, erros: 2, acerto: null, faltam: 2, media: null, situacao: 'poucas'},
+  {materia: 'Química', assunto: 'Água', respondidas: 2, acertos: 2, chutes: 0, erros: 0, acerto: null, faltam: 3, media: null, situacao: 'poucas'}]};
 const TELAS_DE_DENTRO = [
   ['progresso', 'location.hash = "#progresso"'], ['simulado', 'location.hash = "#simulado"'], ['nota', 'location.hash = "#nota"'], ['conta', 'location.hash = "#conta"'], ['dados', 'location.hash = "#privacidade"'],
   ['meta-cumprida', '(() => { location.hash = "#estudar"; prefs.alvo = {valor: 0, bloco: false}; verEstudo(); })()'],
   ['revisao-vazia', '(() => { prefs.alvo = null; estado.modo = "revisao"; painel.estudo.revisao.vencidas = []; verEstudo(); })()'],
   ['progresso-vazio', '(() => { location.hash = "#progresso"; painel.progresso.total = 0; verProgresso(); })()'],
+  ['diagnostico', `(() => { location.hash = "#diagnostico"; painel.diagnostico = ${JSON.stringify(DIAGNOSTICO_DE_TESTE)}; verDiagnostico(); })()`],
+  ['diagnostico-vazio', '(() => { location.hash = "#diagnostico"; painel.diagnostico = {...painel.diagnostico, assuntos: [], respondidas: 0, foraEmRevisao: 0}; verDiagnostico(); })()'],
   ['progresso-encerrado', '(async () => { await atualizar(); prefs.meta = 3; prefs.alvo = {valor: 3, bloco: false}; verProgresso(); })()'],
   ['corrigindo', `tela(cabecaHtml("Corrigindo seu simulado…", {cena: "simulado", textoDaCena: false}) + '<p class="espera" role="status">Conferindo as respostas no servidor.</p>', "boia")`],
   ['espera', 'tela(esperaHtml("Abrindo o PU…"))'],
@@ -988,7 +1040,7 @@ await item('paleta final nos dois temas: contraste AA em todo par e em todo text
       await p.tamanho(390, 844); await dormir(200);
       if (CAPTURAS) {
         await p.captura(path.join(CAPTURAS, `dentro-${nome}-${tema}-390.png`));
-        if (['progresso', 'simulado', 'conta', 'meta-cumprida', 'estudar'].includes(nome)) for (const largura of [768, 1440]) {
+        if (['progresso', 'diagnostico', 'diagnostico-vazio', 'simulado', 'conta', 'meta-cumprida', 'estudar'].includes(nome)) for (const largura of [768, 1440]) {
           await p.tamanho(largura, largura < 800 ? 1024 : 900); await dormir(350); certo(await p.semRolagemLateral(), `sem rolagem lateral em ${nome} a ${largura}`);
           await p.captura(path.join(CAPTURAS, `dentro-${nome}-${tema}-${largura}.png`)); await p.tamanho(390, 844); await dormir(200);
         }

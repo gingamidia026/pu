@@ -3,6 +3,7 @@ Dominique-Oliveira-ChatGPT🤖💚; ordem intercalada, revisão e ritmo por Domi
 import json
 import time
 import hashlib
+import math
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 
@@ -182,3 +183,79 @@ def perfil(con,conta,questoes,agora=None,todas=None):
         media=medias.get(m+'\n'+a,{}).get('percentual')
         itens.append({'materia':m,'assunto':a,'tentativas':n,'acertos':s,'erros':n-s,'percentual':round(100*s/n,1),'media':media})
     return {'assuntos':sorted(itens,key=lambda x:(x['percentual'],x['materia'],x['assunto'])),'atualizada':semana,'periodo':'Histórico anterior à segunda-feira desta semana, em UTC. Média dos percentuais por usuário; mínimo de cinco usuários. Conta de teste excluída.','mediaGeral':medias.get('*\n*',{}).get('percentual')}
+
+# ---------- Diagnóstico de erros (docs/DIAGNOSTICO.md) ----------
+# Dominique-Oliveira-Claude🤖🧡, 17/11/2026. Só com as respostas da própria conta e a classificação por assunto do catálogo.
+MINIMO_DIAGNOSTICO = 5   # questões diferentes no assunto antes de dizer qualquer coisa sobre ele
+CORTE_TREINO = 60        # acerto seguro abaixo disso (em %) pede treino; o mesmo corte do "próximo passo" anterior
+MINIMO_ALUNOS = 5        # outros alunos com o mínimo no assunto para mostrar a média deles
+Z_WILSON = 1.96          # intervalo de 95%
+
+def wilson_inferior(tropecos, n, z=Z_WILSON):
+    """Limite inferior do intervalo de Wilson da taxa de tropeço: com poucas respostas, o valor cai e o assunto não salta à frente."""
+    if not n: return 0.0
+    p=tropecos/n; z2=z*z
+    return (p+z2/(2*n)-z*math.sqrt(p*(1-p)/n+z2/(4*n*n)))/(1+z2/n)
+
+def primeiras_tentativas(con, conta=None, antes=None):
+    """Primeira tentativa de cada questão, por conta: {(conta, questao): (acerto, chute)}. As seguintes vêm depois de ver a correção."""
+    filtro=[];valores=[]
+    if conta is not None: filtro.append('conta=?');valores.append(conta)
+    if antes is not None: filtro.append('criada<?');valores.append(antes)
+    sql='SELECT conta,questao,acerto,chute FROM respostas'+(' WHERE '+' AND '.join(filtro) if filtro else '')+' ORDER BY criada,rowid'
+    primeiras={}
+    for r in con.execute(sql,valores):
+        primeiras.setdefault((r['conta'],r['questao']),(bool(r['acerto']),bool(r['chute'])))
+    return primeiras
+
+def _contagem(primeiras, mapa):
+    """{(conta, materia, assunto): [questões, acertos seguros]} e as questões em revisão deixadas de fora, por conta."""
+    grupos=defaultdict(lambda:[0,0,0,0]); fora=defaultdict(int)
+    for (conta,questao),(acerto,chute) in primeiras.items():
+        q=mapa.get(questao)
+        if q is None: continue
+        if q.get('revisar'): fora[conta]+=1; continue
+        v=grupos[(conta,materia(q),assunto(q))]
+        v[0]+=1; v[1]+=int(acerto and not chute); v[2]+=int(acerto and chute); v[3]+=int(not acerto)
+    return grupos,fora
+
+def _medias_diagnostico(con, inicio, mapa):
+    """Soma dos percentuais de acerto seguro por assunto, de quem tem o mínimo nele, com respostas até a segunda-feira. Em cache por semana."""
+    chave='diagnostico:'+inicio.isoformat()
+    cache=con.execute('SELECT dados FROM medias WHERE semana=?',(chave,)).fetchone()
+    if cache: return json.loads(cache[0])
+    reais={r[0] for r in con.execute("SELECT id FROM contas WHERE email!='teste'")}
+    grupos,_=_contagem({k:v for k,v in primeiras_tentativas(con,antes=inicio.timestamp()).items() if k[0] in reais},mapa)
+    medias=defaultdict(lambda:[0,0.0])
+    for (_,m,a),(n,seguros,_c,_e) in grupos.items():
+        if n>=MINIMO_DIAGNOSTICO: v=medias[m+'\n'+a]; v[0]+=1; v[1]+=100*seguros/n
+    medias=dict(medias)
+    con.execute('INSERT OR IGNORE INTO medias VALUES(?,?)',(chave,json.dumps(medias)))
+    return medias
+
+def diagnostico(con, conta, questoes, agora=None, todas=None):
+    """Assuntos em que a conta mais tropeça e a ordem do que estudar primeiro. Nada de outra conta sai daqui além da média de cinco ou mais."""
+    agora=agora or datetime.now(timezone.utc)
+    inicio=(agora-timedelta(days=agora.weekday())).replace(hour=0,minute=0,second=0,microsecond=0)
+    catalogo={q['id']:q for q in (questoes if todas is None else todas)}
+    medias=_medias_diagnostico(con,inicio,catalogo)
+    # A média é dos outros: a contribuição da própria conta na semana do cache sai da soma.
+    proprio={}
+    if con.execute("SELECT 1 FROM contas WHERE id=? AND email!='teste'",(conta,)).fetchone():
+        antigos,_=_contagem(primeiras_tentativas(con,conta,inicio.timestamp()),catalogo)
+        proprio={m+'\n'+a:100*s/n for (_,m,a),(n,s,_c,_e) in antigos.items() if n>=MINIMO_DIAGNOSTICO}
+    grupos,fora=_contagem(primeiras_tentativas(con,conta),{q['id']:q for q in questoes})
+    treinar=[];bem=[];poucas=[]
+    for (_,m,a),(n,seguros,chutes,erros) in grupos.items():
+        k=m+'\n'+a; usuarios,soma=medias.get(k,[0,0.0])
+        if k in proprio: usuarios-=1; soma-=proprio[k]
+        item={'materia':m,'assunto':a,'respondidas':n,'acertos':seguros,'chutes':chutes,'erros':erros,
+              'acerto':round(100*seguros/n) if n>=MINIMO_DIAGNOSTICO else None,'faltam':max(0,MINIMO_DIAGNOSTICO-n),
+              'media':round(soma/usuarios) if n>=MINIMO_DIAGNOSTICO and usuarios>=MINIMO_ALUNOS else None}
+        peso=wilson_inferior(chutes+erros,n)
+        if n<MINIMO_DIAGNOSTICO: poucas.append((-n,m,a,item)); item['situacao']='poucas'
+        elif 100*seguros/n<CORTE_TREINO: treinar.append((-peso,-(chutes+erros),-n,m,a,item)); item['situacao']='treinar'
+        else: bem.append((-peso,-(chutes+erros),-n,m,a,item)); item['situacao']='bem'
+    assuntos=[x[-1] for x in sorted(treinar,key=lambda x:x[:-1])+sorted(bem,key=lambda x:x[:-1])+sorted(poucas,key=lambda x:x[:-1])]
+    return {'assuntos':assuntos,'respondidas':sum(x['respondidas'] for x in assuntos),'foraEmRevisao':fora.get(conta,0),
+            'minimo':MINIMO_DIAGNOSTICO,'corte':CORTE_TREINO,'minimoAlunos':MINIMO_ALUNOS,'atualizada':inicio.isoformat()}

@@ -2,7 +2,7 @@ import sys,sqlite3,unittest,json
 from pathlib import Path
 from datetime import datetime,timezone,timedelta
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'app'))
-from acompanhamento import preparar,ciclo,avancar,perfil,estudo,indice,ordem_intercalada,FUSO
+from acompanhamento import preparar,ciclo,avancar,perfil,estudo,indice,ordem_intercalada,diagnostico,wilson_inferior,MINIMO_DIAGNOSTICO,FUSO
 class Acompanhamento(unittest.TestCase):
  def setUp(self):
   self.c=sqlite3.connect(':memory:');self.c.row_factory=sqlite3.Row
@@ -88,4 +88,103 @@ class Acompanhamento(unittest.TestCase):
   self.c.execute('INSERT INTO respostas(conta,questao,acerto,criada) VALUES(1,1,0,1)')
   self.assertEqual(perfil(self.c,1,self.q,datetime(2026,11,10,tzinfo=timezone.utc))['mediaGeral'],80)
   self.assertNotEqual(perfil(self.c,1,self.q,datetime(2026,11,16,tzinfo=timezone.utc))['atualizada'],p['atualizada'])
+class Diagnostico(unittest.TestCase):
+ """Diagnóstico de erros (docs/DIAGNOSTICO.md): ordem, mínimo de respostas, assunto em revisão, aluno sem respostas e isolamento."""
+ AGORA=datetime(2026,11,18,12,tzinfo=timezone.utc)
+ def setUp(self):
+  self.c=sqlite3.connect(':memory:');self.c.row_factory=sqlite3.Row
+  self.c.executescript('CREATE TABLE contas(id INTEGER PRIMARY KEY,email TEXT);CREATE TABLE respostas(conta INTEGER,questao INTEGER,alternativa INTEGER,acerto INTEGER,criada REAL);')
+  preparar(self.c)
+  self.q=[];self.relogio=0
+  # Assuntos com 30 questões cada, para caber qualquer combinação de respostas.
+  for n,(m,a) in enumerate([('Matemática','Funções'),('Matemática','Geometria'),('Física','Ondas'),('Química','Soluções'),('História','Brasil'),('Biologia','Células'),('Português','Leitura')]):
+   for k in range(30): self.q.append({'id':100*n+k,'area':m,'materia':m,'topico':a})
+  self.c.execute("INSERT INTO contas VALUES(1,'aluna@example.com')");self.c.execute("INSERT INTO contas VALUES(2,'outra@example.com')")
+ def ids(self,assunto): return [q['id'] for q in self.q if q['topico']==assunto]
+ def resp(self,conta,questao,acerto,chute=0,quando=None):
+  self.relogio+=1
+  self.c.execute('INSERT INTO respostas(conta,questao,alternativa,acerto,criada,chute) VALUES(?,?,0,?,?,?)',(conta,questao,acerto,quando if quando is not None else self.AGORA.timestamp()-100000+self.relogio,chute))
+ def lote(self,conta,assunto,acertos,erros,chutes=0,quando=None):
+  ids=iter(self.ids(assunto))
+  for _ in range(acertos): self.resp(conta,next(ids),1,quando=quando)
+  for _ in range(chutes): self.resp(conta,next(ids),1,1,quando=quando)
+  for _ in range(erros): self.resp(conta,next(ids),0,quando=quando)
+ def d(self,conta=1,questoes=None): return diagnostico(self.c,conta,questoes or self.q,self.AGORA)
+ def test_sem_respostas(self):
+  d=self.d()
+  self.assertEqual(d['assuntos'],[]);self.assertEqual(d['respondidas'],0);self.assertEqual(d['foraEmRevisao'],0);self.assertEqual(d['minimo'],5)
+ def test_ordem_pesada_pelo_numero_de_respostas(self):
+  self.lote(1,'Funções',1,4)      # 80% de tropeço em 5: incerto
+  self.lote(1,'Ondas',6,14)       # 70% em 20: mais certo, vem antes
+  self.lote(1,'Soluções',4,6)     # 60% em 10
+  self.lote(1,'Células',4,1)      # 80% de acerto: vai bem
+  self.lote(1,'Brasil',0,3)       # só 3: ainda não dá para concluir
+  d=self.d();nomes=[a['assunto'] for a in d['assuntos']]
+  self.assertGreater(wilson_inferior(14,20),wilson_inferior(4,5))
+  self.assertEqual(nomes,['Ondas','Funções','Soluções','Células','Brasil'])
+  self.assertEqual([a['situacao'] for a in d['assuntos']],['treinar','treinar','treinar','bem','poucas'])
+  ondas=d['assuntos'][0]
+  self.assertEqual((ondas['respondidas'],ondas['acertos'],ondas['erros'],ondas['chutes'],ondas['acerto']),(20,6,14,0,30))
+  brasil=d['assuntos'][-1]
+  # Abaixo do mínimo, nada de porcentagem: só o número de respostas e quantas faltam.
+  self.assertIsNone(brasil['acerto']);self.assertEqual((brasil['respondidas'],brasil['faltam']),(3,2));self.assertIsNone(brasil['media'])
+  self.assertEqual(d['respondidas'],5+20+10+5+3)
+ def test_minimo_exato_e_empate(self):
+  self.lote(1,'Funções',1,3)
+  self.assertEqual(self.d()['assuntos'][0]['situacao'],'poucas')
+  self.lote(1,'Geometria',1,4);self.resp(1,self.ids('Funções')[4],0)
+  d=self.d()
+  self.assertEqual([(a['assunto'],a['situacao']) for a in d['assuntos']],[('Funções','treinar'),('Geometria','treinar')])
+  self.assertEqual(MINIMO_DIAGNOSTICO,5)
+ def test_primeira_tentativa_e_chute(self):
+  ids=self.ids('Funções')
+  for i in ids[:5]: self.resp(1,i,0)
+  # Acertar de novo depois de ver a correção não apaga o erro da primeira vez.
+  for i in ids[:5]: self.resp(1,i,1)
+  a=self.d()['assuntos'][0]
+  self.assertEqual((a['respondidas'],a['erros'],a['acerto']),(5,5,0))
+  # Acerto no "chutei" não conta como acerto seguro.
+  self.lote(1,'Leitura',3,0,chutes=2)
+  leitura=[x for x in self.d()['assuntos'] if x['assunto']=='Leitura'][0]
+  self.assertEqual((leitura['acertos'],leitura['chutes'],leitura['acerto'],leitura['situacao']),(3,2,60,'bem'))
+  self.lote(1,'Células',2,0,chutes=3)
+  celulas=[x for x in self.d()['assuntos'] if x['assunto']=='Células'][0]
+  self.assertEqual((celulas['acerto'],celulas['situacao']),(40,'treinar'))
+ def test_assunto_em_revisao_fica_de_fora(self):
+  for q in self.q[:2]: q['revisar']=True
+  self.lote(1,'Funções',0,7)
+  d=self.d();a=d['assuntos'][0]
+  self.assertEqual(d['foraEmRevisao'],2);self.assertEqual(a['respondidas'],5);self.assertEqual(a['erros'],5)
+ def test_prova_desligada_e_questao_removida(self):
+  self.lote(1,'Funções',0,5);self.lote(1,'Ondas',0,5);self.resp(1,99999,0)
+  so_matematica=[q for q in self.q if q['materia']=='Matemática']
+  self.assertEqual([a['assunto'] for a in self.d(questoes=so_matematica)['assuntos']],['Funções'])
+ def test_isolamento_e_media_dos_outros(self):
+  self.lote(2,'Funções',0,10)
+  self.assertEqual(self.d(1)['assuntos'],[])
+  self.lote(1,'Funções',2,3)
+  d1=self.d(1);d2=self.d(2)
+  self.assertEqual((d1['assuntos'][0]['respondidas'],d1['assuntos'][0]['erros']),(5,3))
+  self.assertEqual((d2['assuntos'][0]['respondidas'],d2['assuntos'][0]['erros']),(10,10))
+  self.assertIsNone(d1['assuntos'][0]['media'])
+  # Média: só com cinco outros alunos que têm o mínimo no assunto, respostas até a segunda-feira, sem a conta de teste.
+  antes=datetime(2026,11,10,tzinfo=timezone.utc).timestamp()
+  for conta in range(3,9):
+   self.c.execute('INSERT INTO contas VALUES(?,?)',(conta,'teste' if conta==8 else f'{conta}@example.com'))
+   self.lote(conta,'Funções',5 if conta<8 else 0,0 if conta<8 else 5,quando=antes)
+  self.lote(9,'Funções',5,0,quando=antes)   # conta sem cadastro em contas: fora
+  self.c.execute('DELETE FROM medias')
+  d1=self.d(1)
+  # A conta 2 respondeu nesta semana e fica fora do cache; contam as contas 3 a 7, cinco alunos com 100%.
+  self.assertEqual(d1['assuntos'][0]['media'],100)
+  # Com a conta 10 (0%), o cache tem seis alunos; a conta 3 vê a média dos outros cinco, sem a dela.
+  self.c.execute("INSERT INTO contas VALUES(10,'dez@example.com')");self.lote(10,'Funções',0,5,quando=antes);self.c.execute('DELETE FROM medias')
+  self.assertEqual(self.d(1)['assuntos'][0]['media'],round(500/6))
+  d3=self.d(3);self.assertEqual(d3['assuntos'][0]['media'],round(400/5))
+  # A resposta leva só números agregados: nenhuma conta, e-mail ou questão de outro aluno.
+  texto=json.dumps(d1)
+  for proibido in ['example.com','conta','questao','"id"']: self.assertNotIn(proibido,texto)
+  # Cache semanal: resposta nova de outro aluno só entra na média da semana seguinte.
+  self.c.execute("INSERT INTO contas VALUES(11,'onze@example.com')");self.lote(11,'Funções',0,5,quando=antes)
+  self.assertEqual(self.d(1)['assuntos'][0]['media'],round(500/6))
 if __name__=='__main__':unittest.main()
