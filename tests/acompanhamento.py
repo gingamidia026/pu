@@ -88,6 +88,28 @@ class Acompanhamento(unittest.TestCase):
   self.c.execute('INSERT INTO respostas(conta,questao,acerto,criada) VALUES(1,1,0,1)')
   self.assertEqual(perfil(self.c,1,self.q,datetime(2026,11,10,tzinfo=timezone.utc))['mediaGeral'],80)
   self.assertNotEqual(perfil(self.c,1,self.q,datetime(2026,11,16,tzinfo=timezone.utc))['atualizada'],p['atualizada'])
+ def test_media_semanal_sem_amostra_e_grupo_pequeno(self):
+  # Dominique-Oliveira-Claude🤖🧡, 18/11/2026: sem amostra não vira média fictícia; com menos de cinco usuários reais, nada sai.
+  segunda=datetime(2026,11,16,tzinfo=timezone.utc); antes=segunda.timestamp()-3600
+  self.c.execute("INSERT INTO contas VALUES(1,'1')")
+  self.c.execute('INSERT INTO respostas(conta,questao,acerto,criada) VALUES(1,1,1,?)',(segunda.timestamp()+60,))
+  p=perfil(self.c,1,self.q,segunda)
+  self.assertIsNone(p['mediaGeral']);self.assertEqual([a['media'] for a in p['assuntos']],[None])
+  # Quatro contas reais e a conta de teste, todas antes da segunda-feira: ainda abaixo do mínimo de cinco.
+  for i in range(2,7):
+   self.c.execute('INSERT INTO contas VALUES(?,?)',(i,'teste' if i==6 else str(i)))
+  for i in [1,2,3,4,6]:
+   self.c.execute('INSERT INTO respostas(conta,questao,acerto,criada) VALUES(?,1,1,?)',(i,antes))
+  p=perfil(self.c,1,self.q,segunda+timedelta(weeks=1))
+  self.assertIsNone(p['mediaGeral']);self.assertEqual([a['media'] for a in p['assuntos']],[None])
+  # A quinta conta real libera a média na semana seguinte (a desta semana já ficou guardada).
+  self.c.execute('INSERT INTO respostas(conta,questao,acerto,criada) VALUES(5,1,0,?)',(antes,))
+  self.assertIsNone(perfil(self.c,1,self.q,segunda+timedelta(weeks=1,days=2))['mediaGeral'])
+  p=perfil(self.c,1,self.q,segunda+timedelta(weeks=2))
+  self.assertEqual(p['mediaGeral'],80);self.assertEqual(p['assuntos'][0]['media'],80)
+  # O que sai para a conta: só os próprios números e a média; nem quantos usuários, nem contas.
+  self.assertEqual(set(p),{'assuntos','atualizada','periodo','mediaGeral'})
+  self.assertEqual(set(p['assuntos'][0]),{'materia','assunto','tentativas','acertos','erros','percentual','media'})
 class Diagnostico(unittest.TestCase):
  """Diagnóstico de erros (docs/DIAGNOSTICO.md): ordem, mínimo de respostas, assunto em revisão, aluno sem respostas e isolamento."""
  AGORA=datetime(2026,11,18,12,tzinfo=timezone.utc)

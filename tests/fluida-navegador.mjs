@@ -873,6 +873,58 @@ await item('diagnóstico: com respostas de teste, assuntos na ordem certa, sem p
   igual(await p.avaliar('Number(document.querySelector(".questao").dataset.id) % 4'), 2, 'questão de Física');
   await p.clicar('.modos [data-modo="misturado"]'); await questaoPronta();
 });
+// ---------- Densidades e perfil (nota "Alterações do PU - densidades e perfil", 09/11/2026; frente perfil, 18/11/2026) ----------
+// Conta só com a Famerp (questões 33, Matemática, e 34, Física): a volta completa cabe em duas respostas.
+const densidadeNaTela = () => p.avaliar('({numero: document.querySelector(".densidade .numero")?.textContent.replace(/\\s+/g, " ").trim(), materias: [...document.querySelectorAll(".lista-densidade li")].map(l => l.textContent.replace(/\\s+/g, " ").trim()).sort(), texto: document.querySelector(".densidade")?.textContent || "", nota: document.querySelector(".nota")?.textContent || ""})');
+await item('densidade: erro conta como feita, progresso por matéria, aviso de volta completa e média sem amostra', async () => {
+  await p.tamanho(390, 844); await abrirConta(); await p.clicar('#sair'); await p.esperar('document.querySelector("#acesso")'); await cadastrar('Densidade');
+  sql(`INSERT INTO provas_ativas(conta, ativas) VALUES ((SELECT id FROM contas WHERE nome='Densidade'), '["famerp"]')`);
+  await p.avaliar('(async () => { await atualizar(); location.hash = "#estudar"; })()'); await questaoPronta();
+  await abrir(33); await marcar(33, errada(33)); await p.clicar('#conferir'); await p.esperar('document.querySelector("#ver-resposta")'); await p.clicar('#ver-resposta'); await p.esperar('document.querySelector("#proxima")');
+  igual(await p.existe('.volta-completa'), false, 'sem aviso antes do fim da volta');
+  await p.avaliar('location.hash = "#progresso"'); await p.esperar('document.querySelector(".densidade")');
+  let d = await densidadeNaTela();
+  igual([d.numero, d.materias], ['1 de 2', ['Física0 de 1', 'Matemática1 de 1']], 'erro conta como feita e progresso por matéria');
+  certo(d.texto.includes('0 densidades completas'), 'nenhuma volta completa ainda: ' + d.texto.slice(0, 120));
+  // Nenhuma resposta deste teste é anterior à segunda-feira desta semana: a média dos usuários não pode aparecer.
+  certo(d.nota.includes('Média geral dos usuários: amostra insuficiente'), 'média sem amostra: ' + d.nota.slice(0, 80));
+  certo(await p.avaliar('document.querySelector("#conteudo").textContent.includes("Comparação disponível quando houver respostas de pelo menos cinco usuários nesse assunto.")'), 'assunto sem média');
+  await p.avaliar('location.hash = "#estudar"'); await questaoPronta();
+  await abrir(34); await marcar(34, q(34).correta); await p.clicar('#conferir'); await p.esperar('document.querySelector("#proxima")');
+  const aviso = await p.texto('.volta-completa');
+  certo(aviso.includes('Densidade completa!') && aviso.includes('primeira volta completa'), 'aviso de volta completa: ' + aviso);
+  igual(await p.avaliar('document.querySelector(".volta-completa").getAttribute("role")'), 'status', 'aviso anunciado ao leitor de tela');
+  certo(await p.semRolagemLateral(), 'aviso sem rolagem lateral em 390');
+  if (CAPTURAS) await p.captura(path.join(CAPTURAS, 'densidade-completa-390.png'));
+  await p.avaliar('location.hash = "#progresso"'); await p.esperar('document.querySelector(".densidade")');
+  d = await densidadeNaTela();
+  igual(d.numero, '0 de 2', 'volta nova começa do zero'); certo(d.texto.includes('1 densidade completa'), 'uma volta completa');
+  igual(sql(`SELECT concluidos FROM ciclos WHERE conta=(SELECT id FROM contas WHERE nome='Densidade')`)[0][0], 1, 'volta gravada no servidor');
+});
+await item('falha de rede depois de gravar: a volta da resposta se perde, o reenvio usa a mesma chave e conta uma vez', async () => {
+  const conta = sql(`SELECT id FROM contas WHERE nome='Densidade'`)[0][0];
+  const contar = tabela => sql(`SELECT COUNT(*) FROM ${tabela} WHERE conta=${conta}`)[0][0];
+  // Depois da volta completa as duas questões da Famerp já foram feitas nesta sessão: a fila fica vazia e o teste abre a 33.
+  await p.avaliar('location.hash = "#estudar"'); await p.esperar('document.querySelector("#area-questao")'); await abrir(33); const antes = [contar('respostas'), contar('envios')]; const errosAntes = p.erros.length;
+  // O servidor recebe e grava; o Chrome derruba a resposta antes de ela chegar à página.
+  let cortar = true; const cortes = [];
+  p.aoEvento('Fetch.requestPaused', async ev => {
+    if (cortar && ev.request.method === 'POST') { cortar = false; cortes.push(ev.request.url); await p.s('Fetch.failRequest', {requestId: ev.requestId, errorReason: 'ConnectionReset'}); }
+    else await p.s('Fetch.continueRequest', {requestId: ev.requestId});
+  });
+  await p.s('Fetch.enable', {patterns: [{urlPattern: '*/api/questoes/*', requestStage: 'Response'}]});
+  try {
+    await marcar(33, q(33).correta); await p.clicar('#conferir'); await p.esperar('document.querySelector("#retorno .engano")', 8000, 'aviso de falha');
+    igual(cortes.length, 1, 'uma resposta derrubada'); igual(contar('respostas'), antes[0] + 1, 'o servidor gravou antes da falha');
+    certo(!(await p.existe('#proxima')), 'sem confirmação antes da resposta do servidor');
+    await p.clicar('#conferir'); await p.esperar('document.querySelector("#proxima")');
+    igual([contar('respostas'), contar('envios')], [antes[0] + 1, antes[1] + 1], 'reenvio com a mesma chave não conta de novo');
+  } finally {
+    cortar = false; await p.s('Fetch.disable');
+    // O aviso da conexão derrubada de propósito sai da conta de erros do item seguinte; qualquer outro erro fica.
+    await dormir(200); for (let i = p.erros.length - 1; i >= errosAntes; i--) if (/ERR_CONNECTION_RESET.*\/api\/questoes\/33/.test(p.erros[i])) p.erros.splice(i, 1);
+  }
+});
 // ---------- Provas que a pessoa vai prestar (frente provas-interface, 14/11/2026) ----------
 // Contrato da frente provas (docs/PROVAS.md). No catálogo do teste: Enem 1–24, Fuvest 25–27, Unicamp 28–30, Unesp 31–32, Famerp 33–34.
 // Pedidos feitos pela página a cada rota (contagem do Resource Timing), para provar quantas viagens a troca custa.

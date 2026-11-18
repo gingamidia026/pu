@@ -222,6 +222,7 @@ fieldset:disabled .alternativa { cursor: default; }
 .correcao p, .retorno p { margin: 0 0 .75rem; }
 .acerto, .engano, .dica { padding: .75rem 1rem; border-radius: 8px; }
 .acerto { background: var(--verde-fundo); color: var(--texto-acerto); }
+.volta-completa { padding: .75rem 1rem; border-radius: 8px; border: 2px solid var(--verde); background: var(--verde-fundo); color: var(--texto-acerto); }
 .engano { background: var(--vermelho-fundo); color: var(--texto-engano); }
 .dica { background: var(--azul-fundo); color: var(--texto-dica); font-size: .9375rem; }
 .retorno:not(:empty) { margin-top: 1rem; }

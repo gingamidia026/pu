@@ -16,6 +16,8 @@ jobs:
       - run: python tests/testar.py
       - run: python tests/sincronizacao.py
       - run: python tests/conjuntos.py
+      - run: python tests/acompanhamento.py
+      - run: python tests/densidades.py
       - run: python tests/paginas.py
       - run: python tests/estatisticas.py
       - run: python tests/acertos.py

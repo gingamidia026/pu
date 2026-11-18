@@ -870,13 +870,16 @@ ${temImagens ? '<div class="originais"><p id="estado-original" class="secundario
     const assuntoDe = item => item.topico ? `<p class="secundario">Assunto: ${escapar(item.topico)}.${item.conteudo ? ` Conteúdo cobrado: ${escapar(item.conteudo)}.` : ''}</p>` : '';
     const mais = item => item.materia && item.topico && idsDoFoco({materia: item.materia, topico: item.topico}).size > 1 ? `<button type="button" class="texto-botao" data-treinar="${item.id}">Treinar mais deste assunto</button>` : '';
     const ligarTreino = () => $$('[data-treinar]', area).forEach(b => b.onclick = () => { const item = itens.find(x => x.id === Number(b.dataset.treinar)); prefs.foco = {materia: item.materia, topico: item.topico}; estado.modo = 'misturado'; salvarPrefs(); subir(); verEstudo(); });
+    // Aviso de densidade completa (requisito de 09/11/2026): sai uma vez, junto da correção, quando o servidor diz que a volta terminou.
+    let voltaCompleta = resultados.some(r => r.densidadeConcluida);
+    const avisoVolta = () => { if (!voltaCompleta) return ''; voltaCompleta = false; return avisoDensidadeHtml(); };
     const revelar = (resultado, item, cabecalho) => {
       const secao = $(`[data-questao="${item.id}"]`, form);
       $('fieldset', secao).disabled = true;
       marcarCorrecao(area, item.id, {escolhida: enviadas.find(x => x.id === item.id).alternativa, correta: resultado.correta});
       const seguro = resultado.acerto && !chute;
       const comentada = resultado.explicacao && !SEM_SOLUCAO.test(resultado.explicacao);
-      $('.correcao', secao).innerHTML = `${cabecalho}${comentada ? `<p class="explicacao">${escapar(resultado.explicacao)}</p>` : seguro ? '' : `<p>Ainda não há solução comentada para esta questão. Tente dizer, em uma frase, por que a ${letra(resultado.correta)} responde ao que foi pedido. Se não fizer sentido, veja uma resolução:</p>${buscaResolucao(item)}`}${seguro ? '' : '<p class="secundario">Ela volta na sua revisão amanhã.</p>'}${assuntoDe(item)}${origemHtml(item)}${estatisticaHtml(resultado.estatisticaOriginal)}${seguro ? '' : mais(item)}`;
+      $('.correcao', secao).innerHTML = `${cabecalho}${avisoVolta()}${comentada ? `<p class="explicacao">${escapar(resultado.explicacao)}</p>` : seguro ? '' : `<p>Ainda não há solução comentada para esta questão. Tente dizer, em uma frase, por que a ${letra(resultado.correta)} responde ao que foi pedido. Se não fizer sentido, veja uma resolução:</p>${buscaResolucao(item)}`}${seguro ? '' : '<p class="secundario">Ela volta na sua revisão amanhã.</p>'}${assuntoDe(item)}${origemHtml(item)}${estatisticaHtml(resultado.estatisticaOriginal)}${seguro ? '' : mais(item)}`;
       ligarTreino();
     };
     retorno.textContent = '';
@@ -916,6 +919,10 @@ ${temImagens ? '<div class="originais"><p id="estado-original" class="secundario
     form.onchange = evento => { const entrada = evento.target.closest('input[type=radio]'); if (entrada) fechar(Number(entrada.value)); };
     $('#ver-resposta', area).onclick = () => fechar(null);
   }
+}
+function avisoDensidadeHtml() {
+  const n = painel.densidade.concluidas;
+  return `<p class="volta-completa" role="status"><strong>Densidade completa!</strong> Você fez todas as questões das provas que escolheu, de todas as matérias. ${n === 1 ? 'É a sua primeira volta completa pelo banco.' : `Já são ${n} voltas completas pelo banco.`} A próxima começa agora.</p>`;
 }
 function marcarCorrecao(area, id, {escolhida, correta}) {
   const secao = $(`[data-questao="${id}"]`, area);
@@ -969,7 +976,7 @@ function enviarSimulado(id) {
       try {
         const r = await api('/api/questoes/' + id, {alternativa: resposta.alternativa, envio: resposta.envio, chute: false});
         if (painel) aplicarResultado(r);
-        resposta.resultado = {acerto: r.acerto, correta: r.correta};
+        resposta.resultado = {acerto: r.acerto, correta: r.correta, ...(r.densidadeConcluida ? {densidade: true} : {})};
         if (simulado === rodada) salvarSimulado();
       } catch { /* Fica pendente; o resultado tenta de novo. */ }
       finally { enviosSimulado.delete(id); }
@@ -1016,7 +1023,7 @@ async function resultadoSimulado() {
   const acertos = respondidas.filter(id => s.respostas[id].resultado.acerto).length;
   const media = respondidas.length ? Math.round(s.gasto / respondidas.length) : 0;
   const linhas = respondidas.map((id, n) => { const q = questoes.get(id); const r = s.respostas[id]; return `<li class="linha-resultado" data-acerto="${r.resultado.acerto}"><span class="marca-resultado" aria-hidden="true">${r.resultado.acerto ? '✓' : '✗'}</span><div><strong>${n + 1}. ${escapar(q ? `${q.materia || q.area} · ${q.titulo}` : 'Questão ' + id)}</strong><span class="secundario">${r.resultado.acerto ? `Certa: ${letra(r.resultado.correta)}` : `Você marcou ${letra(r.alternativa)}; a certa é a ${letra(r.resultado.correta)}`}</span></div><button type="button" class="texto-botao" data-rever="${id}">Rever</button></li>`; }).join('');
-  tela(`${cabecaHtml(`Você acertou ${acertos} de ${respondidas.length}.`, {selo: 'cronometro', cena: 'simulado', textoDaCena: false})}<div class="indicadores"><div class="indicador"><strong>${respondidas.length ? Math.round(acertos / respondidas.length * 100) : 0}%</strong><span>de acerto nesta rodada</span></div><div class="indicador"><strong>${tempo(s.gasto)}</strong><span>tempo total</span></div><div class="indicador"><strong>${tempo(media)}</strong><span>por questão (no Enem, cerca de 3 minutos)</span></div></div><h2>Questão por questão</h2><ol class="resultado-simulado">${linhas}</ol><p class="secundario">${acertos < respondidas.length ? 'As erradas entram na sua revisão a partir de amanhã.' : 'Nenhuma errada nesta rodada.'} Esta contagem é de prática e não equivale à nota TRI.</p><div class="acoes"><button type="button" id="novo-simulado">Fazer outro simulado</button><a class="botao discreto" href="#progresso">Ver meu progresso</a></div>`, 'boia');
+  tela(`${cabecaHtml(`Você acertou ${acertos} de ${respondidas.length}.`, {selo: 'cronometro', cena: 'simulado', textoDaCena: false})}<div class="indicadores"><div class="indicador"><strong>${respondidas.length ? Math.round(acertos / respondidas.length * 100) : 0}%</strong><span>de acerto nesta rodada</span></div><div class="indicador"><strong>${tempo(s.gasto)}</strong><span>tempo total</span></div><div class="indicador"><strong>${tempo(media)}</strong><span>por questão (no Enem, cerca de 3 minutos)</span></div></div>${respondidas.some(id => s.respostas[id].resultado.densidade) ? avisoDensidadeHtml() : ''}<h2>Questão por questão</h2><ol class="resultado-simulado">${linhas}</ol><p class="secundario">${acertos < respondidas.length ? 'As erradas entram na sua revisão a partir de amanhã.' : 'Nenhuma errada nesta rodada.'} Esta contagem é de prática e não equivale à nota TRI.</p><div class="acoes"><button type="button" id="novo-simulado">Fazer outro simulado</button><a class="botao discreto" href="#progresso">Ver meu progresso</a></div>`, 'boia');
   $('#novo-simulado').onclick = () => { simulado = null; salvarSimulado(); introSimulado(); };
   $$('[data-rever]').forEach(b => b.onclick = async () => {
     const id = Number(b.dataset.rever); b.disabled = true;
