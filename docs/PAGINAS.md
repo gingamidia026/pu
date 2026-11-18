@@ -50,6 +50,20 @@ Regra **dado-inventado**: linha sem fonte https ou sem data de conferência (ou 
 
 Depois de mexer no `index.html` da raiz (texto da entrada, `?v=`), rode o gerador de novo: a porta `/criar-conta/` é cópia dele. `python3 paginas/gerar.py --conferir` e o `tests/paginas.py` acusam quando a cópia ficou para trás.
 
+## Pesos e notas de corte do Sisu no simulador
+
+O simulador (o de dentro, tela `#nota`, e a calculadora pública) tem em cada opção o campo "Procure o curso no Sisu 2026". Ao digitar, ele carrega `pesos-sisu.js` (ao lado do `simulador.js`: `/app/public/pesos-sisu.js` no Pages, `/pesos-sisu.js` no `app/servidor.py`), procura sem acento por curso, universidade, campus e cidade e mostra até 8 cursos. O curso escolhido preenche instituição, curso, modalidade, edição, nota de corte e pesos (todos continuam editáveis) e abre uma caixa com a modalidade (lista), o corte, as vagas, os pesos, as notas mínimas da planilha, a fonte com os links oficiais e a data, e o aviso de que o corte muda a cada edição; se o estudante muda um peso ou o corte, a caixa avisa que a conta usa os números dele. "Limpar esta opção" volta ao vazio.
+
+Os dados saem das planilhas oficiais do MEC na [página de legislação e relatórios do Sisu](https://sisu.mec.gov.br/#/legislacao): "Sisu 2026_Vagas ofertadas" (pesos e notas mínimas por curso, turno e modalidade) e "Sisu 2026_Inscrições e notas de corte" (`NU_NOTACORTE`, nota do último classificado na chamada regular; 0 = sem nota de corte, mostrado como "Sem nota de corte nesta modalidade"). Hoje: 13 universidades federais (Unifesp, UFSCar e UFABC, do estado de São Paulo, e UFRJ, UFMG, UnB, UFRGS, UFPE, UFBA, UFC, UFPR, UFSC, UFF), 1.222 cursos, só modalidades com vaga. Para atualizar ou acrescentar instituições (lista `INSTITUICOES`):
+
+```
+B=~/craft/Enem-frentes/dados/coleta/pesos/baixados/sisu-arquivos
+python3 -I scripts/importar-pesos-sisu.py --vagas "$B/Portal_Sisu_2026_Vagas ofertadas.xlsx" --cortes "$B/Portal Sisu_ Sisu2026_inscrições e notas de corte.xlsx" --coleta ~/craft/Enem-frentes/dados/coleta/pesos
+python3 tests/pesos_sisu.py      # formato; com as planilhas no PC, 10 cursos sorteados contra elas e o arquivo igual ao importador
+```
+
+O importador grava `app/public/pesos-sisu.js`, a coleta inteira (`pesos-sisu-2026.json`, com os valores literais das planilhas, os endereços e o sha256) e o `VERSAO_SISU` do `simulador.js` (começo do sha256 do arquivo, usado no `?v=` da carga). Depois, troque o `?v=` do `simulador.js` nos dois `index.html` e rode o gerador. Para outra edição, troque os endereços e o nome da edição no topo do importador e confira o dicionário das planilhas. Todo texto da lista passa por `escapar()` antes de virar HTML, e só links que começam com `https://sisu.mec.gov.br/` viram link. O ambiente individual (`ambiente/Dockerfile`) precisa ser reconstruído para servir `/pesos-sisu.js`.
+
 ## Acertos e nota (`/acertos-e-nota-enem/`)
 
 `paginas/importar-acertos.py` conta, nos microdados do Inep (`RESULTADOS_<ano>.csv`), os acertos de cada participante em cada prova objetiva e grava, por número de acertos, quantos participantes houve e a faixa das notas (menor, P10, P25, mediana, P75, P90, maior). Regras: presentes com nota nos quatro cadernos regulares da 1ª aplicação (os códigos de `scripts/estatisticas-inep.py`); questão anulada (gabarito X) fora; em Linguagens, as 5 questões da língua escolhida; prova inteira em branco (todas com nota 0) fora da tabela e contada no texto; linha com menos de 30 participantes mostra só menor e maior nota. A tabela agregada fica em `paginas/tabelas/acertos-nota-<ano>.json` (com o sha256 do arquivo do Inep) e a página sai dela:

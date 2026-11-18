@@ -466,6 +466,14 @@ await item('dados e segurança abre sem sessão e simulador de nota continua fun
   certo((await p.texto('#conteudo')).includes('Chutei'), 'texto atualizado');
   await cadastrar('Segunda'); await p.avaliar('location.hash = "#nota"'); await p.esperar('document.querySelector(".simulador")');
   certo(await p.semRolagemLateral(), 'simulador sem rolagem lateral');
+  // Lista do Sisu dentro do PU: o servidor entrega pesos-sisu.js e o curso escolhido preenche pesos, corte e edição.
+  await p.preencher('#sisu-0', 'medicina ufscar'); await p.esperar('document.querySelector("#sisu-lista-0 button")', 8000, 'busca do Sisu');
+  await p.avaliar(`[...document.querySelectorAll('#sisu-lista-0 button')].find(b => b.textContent.startsWith('MEDICINA ')).click()`);
+  await p.esperar('document.querySelector("#sisu-modalidade-0")');
+  igual(await p.avaliar(`[document.querySelector('#peso-0-natureza').value, document.querySelector('#corte-0').value, document.querySelector('#edicao-0').value]`), ['2', '816,55', 'Sisu 2026, chamada regular'], 'curso do Sisu preenchido');
+  certo((await p.texto('#sisu-escolhido-0')).includes('muda a cada edição'), 'aviso de que o corte muda');
+  certo(await p.semRolagemLateral(), 'simulador com o curso escolhido sem rolagem lateral');
+  await p.clicar('.limpar-sisu');
 });
 await item('teclado no computador: letra marca, Enter confere e segue', async () => {
   await p.tamanho(1280, 900); await p.avaliar('location.hash = "#estudar"'); await questaoPronta();

@@ -179,6 +179,45 @@ await item('calculadora: média com os pesos, quanto falta, erro de campo, texto
   await p.s('Emulation.setScriptExecutionDisabled', {value: false});
 });
 
+await item('calculadora: lista do Sisu preenche pesos e corte com fonte, edição e aviso; modalidade troca o corte; dá para limpar', async () => {
+  pedidos.length = 0; violacoes.length = 0; p.erros.length = 0;
+  await p.tamanho(390, 844); await p.ir(BASE + '/calculadora-nota-enem/');
+  await p.esperar('document.querySelector("#sisu-0")');
+  igual(pedidos.filter(u => u.includes('pesos-sisu.js')), [], 'a lista só carrega quando o estudante procura');
+  await p.preencher('#sisu-0', 'medicina ufscar');
+  await p.esperar('document.querySelector("#sisu-lista-0 button")', 8000, 'resultados da busca');
+  verdade(/curso/.test(await p.texto('#sisu-estado-0')), 'quantos cursos foram achados');
+  igual(pedidos.filter(u => u.includes('pesos-sisu.js')).length, 1, 'lista carregada uma vez, do próprio site');
+  verdade((await p.avaliar(`document.querySelector('#sisu-lista-0 button').getBoundingClientRect().height`)) >= 44, 'botão do resultado com 44 px');
+  await p.avaliar(`[...document.querySelectorAll('#sisu-lista-0 button')].find(b => b.textContent.startsWith('MEDICINA ')).click()`);
+  await p.esperar('document.querySelector("#sisu-modalidade-0")');
+  igual(await p.avaliar(`['linguagens','humanas','natureza','matematica','redacao'].map(a => document.querySelector('#peso-0-' + a).value)`), ['2', '1', '2', '1', '2'], 'pesos da UFSCar em Medicina');
+  igual(await p.avaliar(`document.querySelector('#corte-0').value`), '816,55', 'nota de corte da ampla concorrência');
+  igual(await p.avaliar(`document.querySelector('#edicao-0').value`), 'Sisu 2026, chamada regular', 'edição preenchida');
+  const caixa = await p.texto('#sisu-escolhido-0');
+  verdade(caixa.includes('muda a cada edição') && caixa.includes('Fonte: planilhas oficiais do MEC do Sisu 2026') && caixa.includes('Conferidas em 18/11/2026'), 'fonte, data e aviso visíveis: ' + caixa.slice(0, 120));
+  igual(await p.avaliar(`[...document.querySelectorAll('#sisu-escolhido-0 a')].map(a => a.href).every(h => h.startsWith('https://sisu.mec.gov.br/'))`), true, 'links só para o site oficial do Sisu');
+  // Outra modalidade: o corte muda para o dela.
+  const outra = await p.avaliar(`(() => { const s = document.querySelector('#sisu-modalidade-0'); s.value = '1'; s.dispatchEvent(new Event('change', {bubbles: true})); return s.options[1].textContent; })()`);
+  await p.esperar(`document.querySelector('#sisu-modalidade-0') && document.querySelector('#sisu-modalidade-0').value === '1'`);
+  verdade(await p.avaliar(`document.querySelector('#corte-0').value !== '816,55'`) || /Sem nota/.test(await p.texto('#sisu-escolhido-0')), 'corte da modalidade ' + outra);
+  // Mudar o peso à mão mostra o aviso de que os números não são mais os do Sisu.
+  await p.preencher('#peso-0-redacao', '5');
+  igual(await p.avaliar(`document.querySelector('[data-sisu-mudou]').hidden`), false, 'aviso de número mudado');
+  for (const [id, v] of Object.entries({linguagens: '700', humanas: '700', natureza: '700', matematica: '700', redacao: '900'})) await p.preencher('#nota-' + id, v);
+  await p.clicar('button[type=submit]'); await p.esperar('document.querySelector(".resultado-opcao")');
+  verdade((await p.texto('.resultado-opcao h3')).includes('Sisu 2026, chamada regular'), 'resultado diz a edição');
+  verdade(await p.semRolagemLateral(), 'sem rolagem lateral com o curso escolhido');
+  igual(await p.avaliar(CONTRASTE), [], 'contraste AA com o curso escolhido');
+  if (FOTOS) { await p.captura(path.join(FOTOS, 'calculadora-sisu-390.png')); await p.tamanho(1440, 900); await dormir(150); await p.captura(path.join(FOTOS, 'calculadora-sisu-1440.png')); await p.tamanho(390, 844); }
+  await p.clicar('.limpar-sisu'); await p.esperar('!document.querySelector("#sisu-modalidade-0")');
+  igual(await p.avaliar(`document.querySelector('#corte-0').value`), '', 'limpar devolve a opção vazia');
+  await p.preencher('#sisu-0', 'zzzz qqqq');
+  await p.esperar(`/Nenhum curso/.test(document.querySelector('#sisu-estado-0').textContent)`, 8000, 'aviso de nenhum curso');
+  igual(p.erros, [], 'erros no console'); igual(violacoes, [], 'violação da política de conteúdo');
+  igual(pedidos.filter(u => /^(https?|wss?):/.test(u) && !u.startsWith(BASE + '/')), [], 'nenhum pedido a outro endereço');
+});
+
 await item('acertos e nota: quatro tabelas com rolagem só dentro da caixa, 1ª coluna fixa e sem script', async () => {
   await p.tamanho(390, 844); await p.ir(BASE + '/acertos-e-nota-enem/');
   igual(await p.avaliar(`['linguagens', 'humanas', 'natureza', 'matematica'].map(id => document.querySelectorAll('#' + id + ' tbody tr').length)`), [46, 46, 44, 45], 'linhas de 0 ao máximo de acertos');

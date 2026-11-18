@@ -206,6 +206,22 @@ footer p { margin: 0; }
 .simulador dd { margin: .25rem 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 #resultado-nota .nota, #resultado-nota small { color: var(--texto); }
 .metodo-nota { margin-top: 2rem; }
+/* Lista de cursos do Sisu na calculadora (o mesmo simulador). */
+.busca-sisu { margin: 0 0 1rem; }
+.busca-sisu > .nota { margin: .375rem 0 0; font-size: .875rem; }
+.estado-sisu { margin: .5rem 0 0; font-size: .9375rem; color: var(--texto); }
+.estado-sisu:empty, .lista-sisu:empty { display: none; }
+.lista-sisu { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .375rem; }
+.simulador .lista-sisu button { width: 100%; min-height: 2.75rem; text-align: left; justify-content: flex-start; flex-wrap: wrap; gap: 0 .5rem; padding: .5rem .75rem; overflow-wrap: anywhere; }
+.lista-sisu small { display: inline; margin: 0; font-weight: 400; color: var(--texto); font-size: .9375rem; }
+.sisu-escolhido:not(:empty) { margin-top: 1rem; padding: 1rem; border: 1px solid var(--tinta); border-radius: 8px; background: var(--tom-faixa); overflow-wrap: anywhere; }
+.sisu-escolhido select { width: 100%; min-height: 3rem; padding: .625rem .75rem; border: 1px solid var(--tinta); border-radius: 8px; font: inherit; color: var(--texto); background: #FFFFFF; }
+.sisu-titulo { margin: 0; }
+.sisu-dados { margin: .75rem 0; }
+.sisu-dados > div { border-top: 1px solid var(--tinta); padding-block: .5rem; }
+.aviso-sisu { font-weight: 700; color: var(--tinta); margin: .75rem 0; }
+.aviso-sisu[hidden] { display: none; }
+.sisu-escolhido .nota { color: var(--texto); font-size: .9375rem; }
 @media (min-width: 32rem) { .campos-notas, .campos-pesos, .campos-opcao { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (hover: hover) and (pointer: fine) {
   .simulador button:not(:disabled):hover { background: var(--destaque-passar); }

@@ -2,10 +2,10 @@
   "tipo": "leitura",
   "endereco": "/calculadora-nota-enem/",
   "titulo": "Calculadora de nota do Enem com pesos do curso (Sisu)",
-  "descricao": "Digite as cinco notas do Enem e os pesos do curso para ver a média ponderada e quanto falta para uma nota de corte. Sem cadastro, de graça e sem enviar nada.",
+  "descricao": "Digite as notas do Enem e escolha o curso: pesos e nota de corte do Sisu 2026 já preenchidos, com a fonte do MEC. Veja a média ponderada e quanto falta. Sem cadastro e de graça.",
   "migalha": "Calculadora de nota do Enem",
   "h1": "Calculadora de nota do Enem com pesos",
-  "apoio": "Digite as suas cinco notas e os pesos do curso. A calculadora faz a média ponderada e mostra quanto falta para a nota de corte que você informar. A conta acontece no seu aparelho, sem cadastro.",
+  "apoio": "Digite as suas cinco notas e escolha um curso da lista do Sisu 2026, ou digite os pesos do edital. A calculadora faz a média ponderada e mostra quanto falta para a nota de corte. A conta acontece no seu aparelho, sem cadastro.",
   "tom": "sol",
   "atualizada_em": "2026-11-18",
   "menu": true,
@@ -48,6 +48,7 @@
       "titulo": "Onde achar os pesos e a nota de corte",
       "paragrafos": [
         "Os pesos e as notas mínimas de cada curso estão no edital da instituição. No Sisu, cada instituição informa no Termo de Adesão os pesos e as notas mínimas de cada curso e turno ([Portaria Normativa MEC nº 21/2012, art. 5º](https://sisu.mec.gov.br/static/pdf/Portaria%2021.12,%20com%20altera%C3%A7%C3%B5es%20da%20PN%20704.25.pdf)). O MEC junta todos numa planilha por edição, a de vagas ofertadas, na [página de legislação e relatórios do Sisu](https://sisu.mec.gov.br/#/legislacao).",
+        "A lista da calculadora traz os pesos, as notas mínimas e a nota de corte da chamada regular do Sisu 2026 de 1.222 cursos de 13 universidades federais: Unifesp, UFSCar e UFABC, no estado de São Paulo, e UFRJ, UFMG, UnB, UFRGS, UFPE, UFBA, UFC, UFPR, UFSC e UFF. Os números vêm das planilhas do MEC \"Sisu 2026_Vagas ofertadas\" e \"Sisu 2026_Inscrições e notas de corte\", conferidas em 18/11/2026. Para outros cursos, digite os pesos do edital.",
         "No Sisu, a nota de corte é a menor nota que fica dentro do número de vagas de um curso e de uma modalidade durante as inscrições. O [edital do Sisu 2026](https://sisu.mec.gov.br/static/pdf/SEI_6417071_Edital_29.pdf) (item 1.10.1) diz que ela não garante seleção e serve só de referência. Ela é atualizada enquanto as inscrições correm e muda a cada edição.",
         "Compare sempre com a nota de corte da mesma modalidade em que você vai concorrer: ampla concorrência e cada tipo de cota têm notas de corte diferentes."
       ]

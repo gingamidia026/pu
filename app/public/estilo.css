@@ -531,6 +531,25 @@ small.legenda { color: inherit; }
 .simulador dt { font-weight: 600; }
 .simulador dd { margin: .25rem 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .metodo-nota { margin-top: 2rem; }
+
+/* Lista de cursos do Sisu no simulador (pesos-sisu.js): busca, resultados e o curso escolhido. */
+.busca-sisu { margin: 0 0 1rem; }
+.busca-sisu > .nota { margin: .375rem 0 0; font-size: .875rem; }
+.estado-sisu { margin: .5rem 0 0; font-size: .9375rem; }
+.estado-sisu:empty { display: none; }
+.lista-sisu { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .375rem; }
+.lista-sisu:empty { display: none; }
+.lista-sisu button { width: 100%; min-height: 2.75rem; text-align: left; justify-content: flex-start; flex-wrap: wrap; gap: 0 .5rem; padding: .5rem .75rem; font-weight: 600; overflow-wrap: anywhere; }
+.lista-sisu small { font-weight: 400; color: var(--texto); }
+.sisu-escolhido:not(:empty) { margin-top: 1rem; padding: 1rem; border: 1px solid var(--texto); border-radius: 8px; background: var(--suave); overflow-wrap: anywhere; }
+.sisu-escolhido label { margin-top: .75rem; }
+.sisu-escolhido select { width: 100%; }
+.sisu-titulo { margin: 0; }
+.sisu-dados { margin: .75rem 0; }
+.sisu-dados > div { border-top: 1px solid var(--linha); padding-block: .5rem; }
+.aviso-sisu { font-weight: 600; margin: .75rem 0; }
+.aviso-sisu[hidden] { display: none; }
+.sisu-escolhido .nota { font-size: .875rem; }
 @media(max-width:500px) { .campos-notas,.campos-pesos,.campos-opcao { grid-template-columns: minmax(0,1fr); } }
 
 /* ---------- Telas de dentro: direção de 14/11/2026 (frente dentro) ----------

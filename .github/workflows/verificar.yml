@@ -19,6 +19,7 @@ jobs:
       - run: python tests/paginas.py
       - run: python tests/estatisticas.py
       - run: python tests/acertos.py
+      - run: python tests/pesos_sisu.py
       - run: python tests/sessao_documentada.py
       - run: python tests/limites_com_chave.py
       - run: python tests/caddy_endurecido.py
