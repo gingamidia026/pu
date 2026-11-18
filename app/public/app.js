@@ -3,6 +3,19 @@
    Dominique-Oliveira-Claude🤖🧡, 12/11/2026, a pedido de Dominique Oliveira. Desenho em docs/PLATAFORMA-FLUIDA.md.
    Princípios: abrir já na questão, sessões curtas com ponto de parada, revisão espaçada dos erros,
    retorno imediato e nenhuma decisão obrigatória antes de começar. O gabarito continua só no servidor. */
+// Proteção contra enquadramento (achado N5 da revisão de 14/11/2026). O GitHub Pages não manda X-Frame-Options nem
+// frame-ancestors (a política em <meta> não aceita frame-ancestors), então outro site poderia abrir o PU num quadro
+// invisível e induzir cliques. Dentro de quadro de outra origem, a página some e tenta abrir o PU na janela inteira; o
+// resto do script não roda. Quadro da mesma origem (moldura de conferência em 390 px) continua funcionando.
+(() => {
+  if (window.top === window.self) return;
+  let mesmaOrigem = false;
+  try { mesmaOrigem = window.top.location.origin === window.location.origin; } catch { /* outra origem: o navegador recusa a leitura */ }
+  if (mesmaOrigem) return;
+  document.documentElement.style.display = 'none';
+  try { window.top.location.replace(window.location.href); } catch { /* quadro com sandbox ou bloqueio do navegador: segue escondido */ }
+  throw new Error('PU aberto dentro de um quadro de outro site: interface desligada.');
+})();
 const conteudo = document.querySelector('#conteudo');
 const aviso = document.querySelector('#aviso');
 const menu = document.querySelector('#menu');
