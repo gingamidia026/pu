@@ -393,6 +393,29 @@ class Calculadora(unittest.TestCase):
             shutil.rmtree(pasta, ignore_errors=True)
 
 
+class AcertosENota(unittest.TestCase):
+    """Faixa de notas por número de acertos (paginas/importar-acertos.py; a conta é testada em tests/acertos.py)."""
+    ENDERECO = '/acertos-e-nota-enem/'
+
+    def test_no_mapa_no_menu_e_ligada_a_calculadora(self):
+        self.assertIn(f'<loc>{DOMINIO}{self.ENDERECO}</loc>', (RAIZ / 'sitemap.xml').read_text(encoding='utf-8'))
+        self.assertIn(self.ENDERECO, ler(RAIZ / '404.html').links)
+        self.assertIn(self.ENDERECO, ler(ARQUIVO['/calculadora-nota-enem/']).links)
+        self.assertIn('/calculadora-nota-enem/', ler(ARQUIVO[self.ENDERECO]).links)
+
+    def test_quatro_provas_com_faixa_amostra_edicao_e_fonte(self):
+        lida = ler(ARQUIVO[self.ENDERECO])
+        for prova in ('linguagens', 'humanas', 'natureza', 'matematica'):
+            self.assertIn(f'id="{prova}"', lida.texto)
+        for coluna in ('Participantes', 'Menor nota', 'P10', 'P25', 'Mediana', 'P75', 'P90', 'Maior nota'):
+            self.assertIn(f'<th scope="col">{coluna}</th>', lida.texto)
+        self.assertIn('Teoria de Resposta ao Item', lida.texto)
+        self.assertIn('Enem 2025', lida.texto)
+        self.assertIn('muda a cada prova', lida.texto)
+        self.assertIn('https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem', lida.links)
+        self.assertGreater(lida.texto.count('data-dado'), 150)
+
+
 class Recusa(unittest.TestCase):
     """O gerador recusa dado sem fonte; com --marcar-a-confirmar, grava com o aviso visível."""
     def setUp(self):

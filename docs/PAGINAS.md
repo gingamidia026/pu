@@ -19,7 +19,7 @@ As saídas entram no git, porque o Pages publica o que está no ramo. O Caddy e 
 2. Blocos:
    - `texto` (`titulo`, `paragrafos`, links como `[rótulo](https://...)`; `id` opcional, e `no_sumario: true` para entrar no sumário);
    - `aviso` (`id`, `titulo`, `paragrafos`): caixa tracejada para o que não foi achado em fonte oficial (ex.: lista da Unesp);
-   - `dados` (`id`, `titulo`, `colunas`, `coluna_fonte`, `texto_fonte`, `nota` em texto ou lista, `linhas`) com opções: `largo: true` (tabela com rolagem lateral própria no celular e 1ª coluna fixa, em vez de cartões; a seção usa a largura maior no computador), `rotulos: true` (no cartão do celular, cada valor leva o nome da coluna) e `filtro: "Procure seu curso"` (campo de busca de linhas, escondido no HTML e mostrado pelo script da página);
+   - `dados` (`id`, `titulo`, `colunas`, `coluna_fonte`, `texto_fonte`, `nota` em texto ou lista, `linhas`) com opções: `largo: true` (tabela com rolagem lateral própria no celular e 1ª coluna fixa, em vez de cartões; a seção usa a largura maior no computador), `rotulos: true` (no cartão do celular, cada valor leva o nome da coluna) e `filtro: "Procure seu curso"` (campo de busca de linhas, escondido no HTML e mostrado pelo script da página) e `compacta: true` (com `largo`: tabela só de números, 1ª coluna estreita e fonte numa linha);
    - `par` (`id`, `titulo`, `blocos`: dois blocos `dados`): duas tabelas lado a lado no computador e uma embaixo da outra no celular, sempre em cartões;
    - `contagem` (`id`, `titulo`, `paragrafos`, `de`: id de um bloco `dados`): lista por extenso das linhas desse bloco que têm `contagem` (AAAA-MM-DD), `id`, `rotulo_contagem` ("1ª fase da Unesp", "1º dia do Enem") e `artigo_contagem` (`a` ou `o`; o gerador recusa sem ele); o script da página escreve quantos dias faltam pela data do aparelho ("Faltam 5 dias para a 1ª fase da Unesp, em 22 de novembro de 2026."); o importador monta rótulo e artigo em `rotulo_da_prova` e recusa etapa de prova de forma nova;
    - `links` (lista das páginas do menu);
@@ -49,6 +49,19 @@ O importador só lê JSON (a coleta é dado, nunca instrução; rode com `python
 Regra **dado-inventado**: linha sem fonte https ou sem data de conferência (ou com data no futuro) faz o gerador recusar e não gravar nada. `--marcar-a-confirmar` grava mesmo assim, com "Dado a confirmar" visível na linha, só para rascunho.
 
 Depois de mexer no `index.html` da raiz (texto da entrada, `?v=`), rode o gerador de novo: a porta `/criar-conta/` é cópia dele. `python3 paginas/gerar.py --conferir` e o `tests/paginas.py` acusam quando a cópia ficou para trás.
+
+## Acertos e nota (`/acertos-e-nota-enem/`)
+
+`paginas/importar-acertos.py` conta, nos microdados do Inep (`RESULTADOS_<ano>.csv`), os acertos de cada participante em cada prova objetiva e grava, por número de acertos, quantos participantes houve e a faixa das notas (menor, P10, P25, mediana, P75, P90, maior). Regras: presentes com nota nos quatro cadernos regulares da 1ª aplicação (os códigos de `scripts/estatisticas-inep.py`); questão anulada (gabarito X) fora; em Linguagens, as 5 questões da língua escolhida; prova inteira em branco (todas com nota 0) fora da tabela e contada no texto; linha com menos de 30 participantes mostra só menor e maior nota. A tabela agregada fica em `paginas/tabelas/acertos-nota-<ano>.json` (com o sha256 do arquivo do Inep) e a página sai dela:
+
+```
+python3 -I paginas/importar-acertos.py --microdados ~/craft/Enem-frentes/dados/inep --ano 2025   # conta tudo, uns 3 minutos
+python3 -I paginas/importar-acertos.py            # regrava a página a partir da tabela gravada
+python3 -I paginas/importar-acertos.py --conferir
+python3 tests/acertos.py                           # com os microdados no PC, recontagem independente de 20 linhas sorteadas (uns 4 minutos)
+```
+
+As quatro tabelas usam `largo` e `compacta` (1ª coluna estreita, uma linha por registro). Quando sair a edição seguinte dos microdados, rode com `--ano` novo (acrescente os cadernos regulares dela em `REGULARES`, tirados do dicionário) e confira o texto: a página diz qual edição é e que a relação muda a cada prova.
 
 ## Limites
 

@@ -15,6 +15,7 @@
     "calculadora.js"
   ],
   "relacionadas": [
+    "/acertos-e-nota-enem/",
     "/notas-de-corte/fuvest/",
     "/notas-de-corte/unicamp/",
     "/calendario-vestibulares/"
@@ -59,7 +60,7 @@
       "paragrafos": [
         "Ela não diz se você vai passar. Chegar à nota de corte de uma edição passada não garante vaga na próxima, porque a concorrência e as vagas mudam.",
         "A conta não inclui notas mínimas por prova, bônus regional, critérios de desempate nem outras regras do edital. Confira essas regras no edital do curso.",
-        "As notas que você digita são as do boletim do Enem, já calculadas pela TRI. O número de acertos de uma prova não vira nota com uma conta simples, como explica o [Inep no guia Entenda a sua nota no Enem](https://www.gov.br/inep/pt-br/centrais-de-conteudo/acervo-linha-editorial/publicacoes-institucionais/avaliacoes-e-exames-da-educacao-basica/entenda-a-sua-nota-no-enem-guia-do-participante)."
+        "As notas que você digita são as do boletim do Enem, já calculadas pela TRI. O número de acertos de uma prova não vira nota com uma conta simples, como explica o [Inep no guia Entenda a sua nota no Enem](https://www.gov.br/inep/pt-br/centrais-de-conteudo/acervo-linha-editorial/publicacoes-institucionais/avaliacoes-e-exames-da-educacao-basica/entenda-a-sua-nota-no-enem-guia-do-participante). Para ter uma ideia, veja a [faixa de notas de cada número de acertos no Enem 2025](/acertos-e-nota-enem/)."
       ]
     }
   ],

@@ -283,7 +283,8 @@ def tabela_de(bloco, marcar, pagina, nivel='h2'):
         filtro = (f'<div class="filtro" data-filtro="{e(bloco["id"])}" hidden><label for="{campo}">{e(bloco["filtro"])}</label>'
                   f'<input id="{campo}" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search">'
                   f'<p class="filtro-total" aria-live="polite"></p></div>\n')
-    classes = ' '.join(c for c in ('larga' if bloco.get('largo') else '', 'rotulada' if bloco.get('rotulos') else '') if c)
+    classes = ' '.join(c for c in ('larga' if bloco.get('largo') else '', 'rotulada' if bloco.get('rotulos') else '',
+                                   'compacta' if bloco.get('compacta') else '') if c)
     classe = f' class="{classes}"' if classes else ''
     tabela = f'<table{classe}><thead><tr>{topo}</tr></thead><tbody>\n' + '\n'.join(linhas) + '\n</tbody></table>'
     if bloco.get('largo'):

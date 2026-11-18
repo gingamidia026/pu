@@ -118,6 +118,12 @@ table.larga td:last-child small { display: block; }
 table.rotulada { table-layout: auto; }
 table.rotulada th:first-child { width: auto; }
 table.larga tr[data-aviso] td.sem-dado { text-align: left; white-space: normal; }
+/* Tabela compacta (só números, ex.: acertos e nota): 1ª coluna estreita, uma linha por registro, fonte numa linha só. */
+table.compacta { min-width: 52rem; }
+table.compacta th, table.compacta td { padding: .375rem .5rem; }
+table.compacta th:first-child, table.compacta td:first-child { min-width: 4.5rem; max-width: 6rem; text-align: right; }
+table.compacta td:last-child small { display: inline; margin-left: .25rem; }
+table.compacta td a { padding-block: 0; }
 
 /* Campo de busca de curso (aparece só com o script da página). */
 .filtro { margin: 0 0 1rem; }

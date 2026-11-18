@@ -179,6 +179,16 @@ await item('calculadora: média com os pesos, quanto falta, erro de campo, texto
   await p.s('Emulation.setScriptExecutionDisabled', {value: false});
 });
 
+await item('acertos e nota: quatro tabelas com rolagem só dentro da caixa, 1ª coluna fixa e sem script', async () => {
+  await p.tamanho(390, 844); await p.ir(BASE + '/acertos-e-nota-enem/');
+  igual(await p.avaliar(`['linguagens', 'humanas', 'natureza', 'matematica'].map(id => document.querySelectorAll('#' + id + ' tbody tr').length)`), [46, 46, 44, 45], 'linhas de 0 ao máximo de acertos');
+  igual(await p.avaliar(`[...document.querySelectorAll('.rolagem')].every(c => c.scrollWidth > c.clientWidth)`), true, 'tabela larga rola dentro da caixa no celular');
+  verdade(await p.semRolagemLateral(), 'a página não rola para o lado');
+  const fixa = await p.avaliar(`(() => { const caixa = document.querySelector('#matematica .rolagem'); const celula = caixa.querySelector('tbody td'); const antes = celula.getBoundingClientRect().left; caixa.scrollLeft = 300; return [antes, celula.getBoundingClientRect().left]; })()`);
+  igual(fixa[0], fixa[1], '1ª coluna fica no lugar ao rolar a tabela');
+  igual(await p.avaliar(`document.querySelectorAll('script[src]').length`), 0, 'página sem script');
+});
+
 if (FOTOS) {
   fs.mkdirSync(FOTOS, {recursive: true});
   for (const pagina of paginas) {
