@@ -38,6 +38,8 @@ MARCA_INICIO, MARCA_FIM = '<!-- dados-estruturados:inicio -->', '<!-- dados-estr
 LINK = re.compile(r'\[([^\]]+)\]\(([^)\s]+)\)')
 DATA = re.compile(r'\d{4}-\d{2}-\d{2}')
 SCRIPT = re.compile(r'[a-z0-9-]+\.js')
+# Módulo compartilhado com as telas de dentro (ex.: a conta do simulador de nota), servido pelo Pages em /app/public/.
+MODULO = re.compile(r'/app/public/[a-z0-9-]+\.js')
 MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 
 
@@ -94,11 +96,14 @@ def carregar(pasta_conteudo):
         if pagina.get('atualizada_em') and not DATA.fullmatch(pagina['atualizada_em']):
             raise Recusa(f'{arquivo.name}: atualizada_em no formato AAAA-MM-DD')
         if 'script' in pagina:
-            # Script só do próprio site, na pasta paginas/, e só em página de leitura que o declara.
-            if pagina['tipo'] != 'leitura' or not SCRIPT.fullmatch(str(pagina['script'])):
-                raise Recusa(f'{arquivo.name}: script deve ser nome-do-arquivo.js da pasta paginas/, só em página de leitura')
-            if not (PASTA / pagina['script']).is_file():
-                raise Recusa(f'{arquivo.name}: script {pagina["script"]} não existe em paginas/')
+            # Script só do próprio site e só em página de leitura que o declara: nome.js da pasta paginas/ ou,
+            # numa lista, também um módulo de /app/public/ que as telas de dentro já usam (carregado na ordem da lista).
+            lista = pagina['script'] if isinstance(pagina['script'], list) else [pagina['script']]
+            if pagina['tipo'] != 'leitura' or not lista or not all(isinstance(s, str) and (SCRIPT.fullmatch(s) or MODULO.fullmatch(s)) for s in lista):
+                raise Recusa(f'{arquivo.name}: script deve ser nome-do-arquivo.js da pasta paginas/ (ou /app/public/nome.js numa lista), só em página de leitura')
+            for s in lista:
+                if not arquivo_do_script(s).is_file():
+                    raise Recusa(f'{arquivo.name}: script {s} não existe')
         paginas.append(pagina)
     # Ordem do menu e do mapa: a entrada, as páginas de leitura (pelo nome do arquivo), a porta do cadastro e a 404.
     paginas.sort(key=lambda p: ['entrada', 'leitura', 'cadastro', 'erro'].index(p['tipo']))
@@ -114,6 +119,21 @@ def carregar(pasta_conteudo):
             if endereco not in enderecos or endereco == pagina['endereco']:
                 raise Recusa(f"{pagina['_arquivo']}: página relacionada que não existe: {endereco}")
     return paginas
+
+
+def scripts_de(pagina):
+    """Os scripts da página na ordem: nome.js (pasta paginas/) ou /app/public/nome.js (módulo das telas de dentro)."""
+    if not pagina.get('script'):
+        return []
+    return pagina['script'] if isinstance(pagina['script'], list) else [pagina['script']]
+
+
+def arquivo_do_script(nome):
+    return RAIZ / nome.lstrip('/') if nome.startswith('/') else PASTA / nome
+
+
+def endereco_do_script(nome):
+    return nome if nome.startswith('/') else '/paginas/' + nome
 
 
 def blocos_de_dados(pagina):
@@ -292,7 +312,7 @@ def contagem_de(bloco, pagina):
 def html_bloco(bloco, paginas, marcar, pagina):
     tipo = bloco.get('tipo')
     titulo_id = id_do_titulo(bloco)
-    cabeca = f'<h2 id="{titulo_id}">{e(bloco["titulo"])}</h2>\n'
+    cabeca = f'<h2 id="{titulo_id}">{e(bloco["titulo"])}</h2>\n' if bloco.get('titulo') else ''
     if tipo == 'texto':
         corpo = ''.join(f'<p>{texto_com_links(p)}</p>\n' for p in bloco['paragrafos'])
         id_secao = f' id="{e(bloco["id"])}"' if bloco.get('id') else ''
@@ -317,6 +337,14 @@ def html_bloco(bloco, paginas, marcar, pagina):
                 f'{cabeca}{nota}<div class="par-grade">\n{partes}</div>\n</section></div>')
     if tipo == 'contagem':
         return contagem_de(bloco, pagina)
+    if tipo == 'calculadora':
+        # Caixa que o script da página preenche com o formulário; sem script, os parágrafos (a conta por extenso).
+        if 'calculadora.js' not in scripts_de(pagina):
+            raise Recusa(f"{pagina['_arquivo']}: bloco calculadora sem o script calculadora.js")
+        # Sem título próprio: os títulos (Suas notas por área, Compare suas opções) vêm do formulário, logo abaixo do h1.
+        corpo = ''.join(f'<p>{texto_com_links(p)}</p>\n' for p in bloco['paragrafos'])
+        return (f'<div class="faixa"><section class="miolo bloco calculadora" id="{e(bloco.get("id", "calculadora"))}" aria-label="{e(bloco.get("rotulo", "Calculadora"))}">\n'
+                f'<div data-calculadora>\n<div class="sem-script">\n{corpo}</div>\n</div>\n</section></div>')
     raise Recusa(f"{pagina['_arquivo']}: bloco de tipo desconhecido {tipo}")
 
 
@@ -359,8 +387,7 @@ def pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, ima
         'chamada': relacionadas_de(pagina, paginas) + chamada_de(pagina), 'menu': menu,
         # Página sem script: script-src 'none'. Com o campo "script": só o arquivo do próprio site, nada embutido.
         'script_src': "'self'" if pagina.get('script') else "'none'",
-        'script': (f'<script src="/paginas/{pagina["script"]}?v={(versoes_script or {})[pagina["script"]]}" defer></script>\n'
-                   if pagina.get('script') else ''),
+        'script': ''.join(f'<script src="{endereco_do_script(s)}?v={(versoes_script or {})[s]}" defer></script>\n' for s in scripts_de(pagina)),
     }
     return Template(molde).substitute(valores)
 
@@ -426,7 +453,7 @@ def gerar(saida, marcar=False, raiz=RAIZ, conteudo=None, hoje=None):
     inicio = next(p for p in paginas if p['tipo'] == 'entrada')
     molde = (PASTA / 'molde.html').read_text(encoding='utf-8')
     versao_estilo = hashlib.sha256((PASTA / 'estilo.css').read_bytes()).hexdigest()[:10]
-    versoes_script = {p['script']: hashlib.sha256((PASTA / p['script']).read_bytes()).hexdigest()[:10] for p in paginas if p.get('script')}
+    versoes_script = {s: hashlib.sha256(arquivo_do_script(s).read_bytes()).hexdigest()[:10] for p in paginas for s in scripts_de(p)}
     index_raiz = com_bloco((raiz / 'index.html').read_text(encoding='utf-8'), bloco_jsonld(inicio, inicio))
     index_app = com_bloco((raiz / 'app/public/index.html').read_text(encoding='utf-8'), bloco_jsonld(inicio, inicio))
     imagem = urlparse_caminho(meta_do_index(index_raiz, 'og:image'))

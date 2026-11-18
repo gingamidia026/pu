@@ -31,4 +31,10 @@ for(let i=0;i<50;i++) {
  const ps=obj([i+1,2,0,4,3]);
  perto(calcular(ns,ps).media,calcular(ns,obj([i+1,2,0,4,3].map(p=>p*7))).media);
 }
-console.log('OK: média simples/ponderada, exemplo da planilha, inversão por área, pesos zero, metas vazias/zero/impossíveis, decimais e entradas inválidas.');
+// Modo público (/calculadora-nota-enem/): sem h1 próprio e sem o texto da conta; o de dentro continua com os dois.
+const {mostrar,limpar}=require('../app/public/simulador.js');
+const desenhar=opcoes=>{const vazio=()=>({addEventListener(){},focus(){},replaceChildren(){},elements:{},dataset:{}});const c={innerHTML:'',querySelector:vazio,querySelectorAll:()=>[]};limpar();mostrar(c,opcoes);return c.innerHTML;};
+const dentro=desenhar(), publica=desenhar({publica:true});
+assert(dentro.includes('<h1 id="titulo-nota">')&&dentro.includes('sair da conta')&&dentro.includes('<details><summary>Pesos'));
+assert(!publica.includes('<h1')&&!publica.includes('sair da conta')&&publica.includes('<details open><summary>Pesos')&&publica.includes('simulador-publico'));
+console.log('OK: média simples/ponderada, exemplo da planilha, inversão por área, pesos zero, metas vazias/zero/impossíveis, decimais, entradas inválidas e modo público da calculadora.');

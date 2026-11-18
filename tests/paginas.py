@@ -190,11 +190,13 @@ class Paginas(unittest.TestCase):
                 scripts = re.findall(r'<script\b([^>]*)>', lida.texto)
                 externos = [a for a in scripts if 'application/ld+json' not in a]
                 if pagina.get('script'):
-                    # Só o arquivo que a página declara, do próprio site, e a política passa a 'self' (nada embutido).
+                    # Só os arquivos que a página declara, do próprio site, na ordem, e a política passa a 'self' (nada embutido).
                     self.assertIn("script-src 'self'", politica)
                     self.assertNotIn('unsafe-inline', politica)
-                    self.assertEqual(len(externos), 1, externos)
-                    self.assertRegex(externos[0], r'^ src="/paginas/' + re.escape(pagina['script']) + r'\?v=[0-9a-f]{10}" defer$')
+                    declarados = gerar.scripts_de(pagina)
+                    self.assertEqual(len(externos), len(declarados), externos)
+                    for atributos, nome in zip(externos, declarados):
+                        self.assertRegex(atributos, r'^ src="' + re.escape(gerar.endereco_do_script(nome)) + r'\?v=[0-9a-f]{10}" defer$')
                 else:
                     self.assertIn("script-src 'none'", politica)
                     self.assertEqual(externos, [], 'script numa página que não declara')
@@ -284,10 +286,11 @@ class PaginasUteis(unittest.TestCase):
                 self.assertIn(outra, ler(ARQUIVO[endereco]).links)
 
     def test_script_so_nas_paginas_que_declaram(self):
-        com_script = {p['endereco']: p['script'] for p in PAGINAS if p.get('script')}
-        self.assertEqual(com_script, {'/calendario-vestibulares/': 'calendario.js', '/notas-de-corte/fuvest/': 'notas-de-corte.js',
-                                      '/notas-de-corte/unicamp/': 'notas-de-corte.js'})
-        for nome in set(com_script.values()):
+        com_script = {p['endereco']: gerar.scripts_de(p) for p in PAGINAS if p.get('script')}
+        self.assertEqual(com_script, {'/calendario-vestibulares/': ['calendario.js'], '/notas-de-corte/fuvest/': ['notas-de-corte.js'],
+                                      '/notas-de-corte/unicamp/': ['notas-de-corte.js'],
+                                      '/calculadora-nota-enem/': ['/app/public/simulador.js', 'calculadora.js']})
+        for nome in {s for lista in com_script.values() for s in lista if not s.startswith('/')}:
             codigo = (RAIZ / 'paginas' / nome).read_text(encoding='utf-8')
             self.assertNotRegex(codigo, r'fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|import\(|https?://|innerHTML|eval\(|new Function',
                                 'o script não fala com a rede nem monta HTML')
@@ -342,6 +345,52 @@ class PaginasUteis(unittest.TestCase):
         self.assertIn('ainda não publicou o caderno', lida.texto)
         self.assertNotIn('O MOVIMENTO IMIGRATÓRIO', lida.texto)
         self.assertIn('O movimento imigratório para o Brasil no século XXI', lida.texto)
+
+
+class Calculadora(unittest.TestCase):
+    """Calculadora de média aberta: a conta é a do simulador de dentro (app/public/simulador.js), sem conta e sem rede."""
+    ENDERECO = '/calculadora-nota-enem/'
+
+    def test_no_mapa_no_menu_e_na_404(self):
+        self.assertIn(f'<loc>{DOMINIO}{self.ENDERECO}</loc>', (RAIZ / 'sitemap.xml').read_text(encoding='utf-8'))
+        self.assertIn(self.ENDERECO, ler(RAIZ / '404.html').links)
+        for pagina in PAGINAS:
+            if pagina['tipo'] == 'leitura':
+                self.assertIn(self.ENDERECO, ler(ARQUIVO[pagina['endereco']]).links, pagina['endereco'])
+
+    def test_usa_a_conta_do_simulador_sem_copiar(self):
+        lida = ler(ARQUIVO[self.ENDERECO])
+        self.assertIn('data-calculadora', lida.texto)
+        self.assertIn('A calculadora precisa do JavaScript', lida.texto)  # sem script, a conta por extenso
+        codigo = (RAIZ / 'paginas/calculadora.js').read_text(encoding='utf-8')
+        self.assertIn('PUSimulador.mostrar(caixa, {publica: true})', codigo)
+        self.assertNotRegex(codigo, r'reduce|peso\s*\*|/\s*soma', 'a conta não é copiada para a página')
+        simulador = (RAIZ / 'app/public/simulador.js').read_text(encoding='utf-8')
+        self.assertNotRegex(simulador, r'fetch\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon|https?://(?!www\.gov\.br/inep/)', 'o simulador não fala com a rede')
+
+    def test_sem_promessa_de_aprovacao(self):
+        lida = ler(ARQUIVO[self.ENDERECO])
+        self.assertNotRegex(lida.texto.lower(), r'chance|garantid|você passa|aprovação garantida')
+        self.assertIn('não diz se você vai passar', lida.texto)
+        self.assertIn('não garante seleção', lida.texto)
+
+    def test_bloco_calculadora_exige_o_script(self):
+        pasta = Path(tempfile.mkdtemp(prefix='pu-paginas-'))
+        try:
+            shutil.copytree(RAIZ / 'paginas/conteudo', pasta / 'conteudo')
+            arquivo = pasta / 'conteudo/calculadora-nota-enem.json'
+            dados = json.loads(arquivo.read_text(encoding='utf-8'))
+            dados['script'] = ['/app/public/simulador.js']
+            arquivo.write_text(json.dumps(dados, ensure_ascii=False), encoding='utf-8')
+            with self.assertRaises(gerar.Recusa):
+                gerar.gerar(pasta / 'saida', conteudo=pasta / 'conteudo')
+            dados['script'] = ['/app/public/../servidor.js', 'calculadora.js']
+            arquivo.write_text(json.dumps(dados, ensure_ascii=False), encoding='utf-8')
+            with self.assertRaises(gerar.Recusa):
+                gerar.gerar(pasta / 'saida', conteudo=pasta / 'conteudo')
+            self.assertFalse((pasta / 'saida').exists())
+        finally:
+            shutil.rmtree(pasta, ignore_errors=True)
 
 
 class Recusa(unittest.TestCase):

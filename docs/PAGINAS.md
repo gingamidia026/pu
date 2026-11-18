@@ -1,6 +1,6 @@
 # Páginas públicas do PU (endereços próprios)
 
-Autora: Dominique-Oliveira-Claude🤖🧡, 17/11/2026 (blocos novos e campo `script` na frente páginas úteis, no mesmo dia). Afazer "Endereços próprios no PU" do plano de páginas úteis do cofre (`5 Bases/Plano de páginas úteis do PU.md`).
+Autora: Dominique-Oliveira-Claude🤖🧡, 17/11/2026 (blocos novos e campo `script` na frente páginas úteis, no mesmo dia; calculadora e lista de scripts em 18/11/2026, frente calculadoras). Afazer "Endereços próprios no PU" do plano de páginas úteis do cofre (`5 Bases/Plano de páginas úteis do PU.md`).
 
 ## Como funciona
 
@@ -22,10 +22,15 @@ As saídas entram no git, porque o Pages publica o que está no ramo. O Caddy e 
    - `dados` (`id`, `titulo`, `colunas`, `coluna_fonte`, `texto_fonte`, `nota` em texto ou lista, `linhas`) com opções: `largo: true` (tabela com rolagem lateral própria no celular e 1ª coluna fixa, em vez de cartões; a seção usa a largura maior no computador), `rotulos: true` (no cartão do celular, cada valor leva o nome da coluna) e `filtro: "Procure seu curso"` (campo de busca de linhas, escondido no HTML e mostrado pelo script da página);
    - `par` (`id`, `titulo`, `blocos`: dois blocos `dados`): duas tabelas lado a lado no computador e uma embaixo da outra no celular, sempre em cartões;
    - `contagem` (`id`, `titulo`, `paragrafos`, `de`: id de um bloco `dados`): lista por extenso das linhas desse bloco que têm `contagem` (AAAA-MM-DD), `id`, `rotulo_contagem` ("1ª fase da Unesp", "1º dia do Enem") e `artigo_contagem` (`a` ou `o`; o gerador recusa sem ele); o script da página escreve quantos dias faltam pela data do aparelho ("Faltam 5 dias para a 1ª fase da Unesp, em 22 de novembro de 2026."); o importador monta rótulo e artigo em `rotulo_da_prova` e recusa etapa de prova de forma nova;
-   - `links` (lista das páginas do menu).
+   - `links` (lista das páginas do menu);
+   - `calculadora` (`id`, `rotulo` para leitores de tela, `paragrafos`): caixa sem título que o script `calculadora.js` troca pelo formulário do simulador; sem script, ficam os parágrafos (a conta por extenso). O gerador recusa o bloco se a página não carrega `calculadora.js`.
 
    Cada linha de `dados` leva `valores`, `fonte` (endereço https oficial) e `conferido_em`; opcionais: `texto_fonte`, `outras_fontes` com `textos_outras_fontes` (mais de uma fonte oficial na mesma linha, todas https), `id` (âncora). Valor de célula é texto ou `{"texto", "link" (https), "nota"}`. Linha de **aviso**: `{"valores": [só as primeiras colunas], "aviso": "Data ainda não encontrada em fonte oficial", "fonte": link opcional da página oficial}`; ela não é dado (sem `data-dado`) e mostra o aviso no lugar das colunas que faltam.
-3. Campos opcionais da página: `relacionadas` (lista de endereços de outras páginas, vira o bloco "Veja também" antes da chamada; o gerador recusa endereço que não existe) e `script` (nome de um arquivo `.js` da pasta `paginas/`). Com `script`, a página carrega só esse arquivo (`<script src="/paginas/nome.js?v=..." defer>`) e a política de conteúdo dela passa a `script-src 'self'`; `connect-src` continua `'none'` e nada é embutido. As outras páginas continuam com `script-src 'none'`. Hoje: `calendario.js` (contagem) e `notas-de-corte.js` (busca). Sem o script a página segue completa.
+3. Campos opcionais da página: `relacionadas` (lista de endereços de outras páginas, vira o bloco "Veja também" antes da chamada; o gerador recusa endereço que não existe) e `script` (nome de um arquivo `.js` da pasta `paginas/`). Com `script`, a página carrega só esse arquivo (`<script src="/paginas/nome.js?v=..." defer>`) e a política de conteúdo dela passa a `script-src 'self'`; `connect-src` continua `'none'` e nada é embutido. As outras páginas continuam com `script-src 'none'`. `script` também aceita uma lista, carregada na ordem, com `nome.js` da pasta `paginas/` e módulos de `/app/public/` (o Pages já os serve, porque a entrada da raiz os usa). Hoje: `calendario.js` (contagem), `notas-de-corte.js` (busca) e `["/app/public/simulador.js", "calculadora.js"]` na calculadora. Sem o script a página segue completa.
+
+## Calculadora de média (`/calculadora-nota-enem/`)
+
+A conta e o formulário são os do simulador de dentro (`app/public/simulador.js`, tela `#nota`). `paginas/calculadora.js` só chama `PUSimulador.mostrar(caixa, {publica: true})`. O modo público tira o h1 e a introdução (a página tem os dela), abre os pesos da 1ª opção e tira a caixa "Como a simulação é calculada" (a página explica a conta em blocos de texto). Sem a opção, o HTML do simulador de dentro é o mesmo de antes (conferido byte a byte contra 390dc0c). Nada é enviado: a página tem `connect-src 'none'` e o simulador não usa rede. Ao mexer no `simulador.js`, troque o `?v=` dele nos dois `index.html` e rode o gerador (a página pública usa o resumo do arquivo).
 4. Rode `python3 paginas/gerar.py` e `python3 tests/paginas.py`. A chamada do fim (`chamada`) sempre leva a `/criar-conta/`.
 
 ## Páginas que vêm da coleta

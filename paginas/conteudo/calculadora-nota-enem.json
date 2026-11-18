@@ -1,0 +1,70 @@
+{
+  "tipo": "leitura",
+  "endereco": "/calculadora-nota-enem/",
+  "titulo": "Calculadora de nota do Enem com pesos do curso (Sisu)",
+  "descricao": "Digite as cinco notas do Enem e os pesos do curso para ver a média ponderada e quanto falta para uma nota de corte. Sem cadastro, de graça e sem enviar nada.",
+  "migalha": "Calculadora de nota do Enem",
+  "h1": "Calculadora de nota do Enem com pesos",
+  "apoio": "Digite as suas cinco notas e os pesos do curso. A calculadora faz a média ponderada e mostra quanto falta para a nota de corte que você informar. A conta acontece no seu aparelho, sem cadastro.",
+  "tom": "sol",
+  "atualizada_em": "2026-11-18",
+  "menu": true,
+  "sumario": true,
+  "script": [
+    "/app/public/simulador.js",
+    "calculadora.js"
+  ],
+  "relacionadas": [
+    "/notas-de-corte/fuvest/",
+    "/notas-de-corte/unicamp/",
+    "/calendario-vestibulares/"
+  ],
+  "blocos": [
+    {
+      "tipo": "calculadora",
+      "id": "calculadora",
+      "rotulo": "Calculadora de média",
+      "paragrafos": [
+        "A calculadora precisa do JavaScript ligado no navegador. Sem ele, dá para fazer a mesma conta à mão: multiplique cada nota pelo peso da área, some os cinco resultados e divida pela soma dos pesos. O passo a passo está logo abaixo."
+      ]
+    },
+    {
+      "tipo": "texto",
+      "id": "como-calcula",
+      "no_sumario": true,
+      "titulo": "Como a média é calculada",
+      "paragrafos": [
+        "A média ponderada é a soma de cada nota multiplicada pelo peso da área, dividida pela soma dos pesos. Com todos os pesos iguais a 1, o resultado é a média simples das cinco notas.",
+        "Exemplo de conta, com notas só de ilustração: Linguagens 600, Ciências Humanas 650, Ciências da Natureza 550, Matemática 700 e Redação 800, num curso com peso 1 em Linguagens, 1 em Humanas, 2 em Natureza, 3 em Matemática e 1 em Redação.",
+        "Multiplicando: 600 + 650 + 1.100 + 2.100 + 800 = 5.250. A soma dos pesos é 8. A média ponderada é 5.250 ÷ 8 = 656,25. A média simples das mesmas notas seria 660: o peso alto em Matemática e Natureza muda o resultado.",
+        "Para saber quanto falta numa área, a calculadora mantém as outras quatro notas e resolve a mesma conta para a nota de corte que você digitou. Cada área é um cenário separado."
+      ]
+    },
+    {
+      "tipo": "texto",
+      "id": "pesos-e-corte",
+      "no_sumario": true,
+      "titulo": "Onde achar os pesos e a nota de corte",
+      "paragrafos": [
+        "Os pesos e as notas mínimas de cada curso estão no edital da instituição. No Sisu, cada instituição informa no Termo de Adesão os pesos e as notas mínimas de cada curso e turno ([Portaria Normativa MEC nº 21/2012, art. 5º](https://sisu.mec.gov.br/static/pdf/Portaria%2021.12,%20com%20altera%C3%A7%C3%B5es%20da%20PN%20704.25.pdf)). O MEC junta todos numa planilha por edição, a de vagas ofertadas, na [página de legislação e relatórios do Sisu](https://sisu.mec.gov.br/#/legislacao).",
+        "No Sisu, a nota de corte é a menor nota que fica dentro do número de vagas de um curso e de uma modalidade durante as inscrições. O [edital do Sisu 2026](https://sisu.mec.gov.br/static/pdf/SEI_6417071_Edital_29.pdf) (item 1.10.1) diz que ela não garante seleção e serve só de referência. Ela é atualizada enquanto as inscrições correm e muda a cada edição.",
+        "Compare sempre com a nota de corte da mesma modalidade em que você vai concorrer: ampla concorrência e cada tipo de cota têm notas de corte diferentes."
+      ]
+    },
+    {
+      "tipo": "texto",
+      "id": "limites",
+      "no_sumario": true,
+      "titulo": "O que a calculadora não diz",
+      "paragrafos": [
+        "Ela não diz se você vai passar. Chegar à nota de corte de uma edição passada não garante vaga na próxima, porque a concorrência e as vagas mudam.",
+        "A conta não inclui notas mínimas por prova, bônus regional, critérios de desempate nem outras regras do edital. Confira essas regras no edital do curso.",
+        "As notas que você digita são as do boletim do Enem, já calculadas pela TRI. O número de acertos de uma prova não vira nota com uma conta simples, como explica o [Inep no guia Entenda a sua nota no Enem](https://www.gov.br/inep/pt-br/centrais-de-conteudo/acervo-linha-editorial/publicacoes-institucionais/avaliacoes-e-exames-da-educacao-basica/entenda-a-sua-nota-no-enem-guia-do-participante)."
+      ]
+    }
+  ],
+  "chamada": {
+    "titulo": "Treine para subir a sua nota",
+    "texto": "No PU você resolve questões oficiais do Enem e dos vestibulares, uma por vez. O que você errar volta para a revisão em 1, 3 e 7 dias. É gratuito."
+  }
+}

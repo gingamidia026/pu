@@ -64,7 +64,8 @@ for (const pagina of paginas) {
     igual(violacoes, [], 'violação da política de conteúdo');
     igual(pedidos.filter(u => /^(https?|wss?):/.test(u) && !u.startsWith(BASE + '/')), [], 'pedido a outro endereço');
     const scripts = [...new Set(pedidos.filter(u => u.startsWith(BASE + '/') && /\.js(\?|$)/.test(u)).map(u => new URL(u).pathname))];
-    igual(scripts, pagina.script ? ['/paginas/' + pagina.script] : [], 'só o script que a página declara');
+    const declarados = (Array.isArray(pagina.script) ? pagina.script : pagina.script ? [pagina.script] : []).map(s => s.startsWith('/') ? s : '/paginas/' + s);
+    igual(scripts, declarados, 'só os scripts que a página declara');
   });
 }
 
@@ -136,6 +137,46 @@ await item('obras: listas lado a lado no computador e uma embaixo da outra no ce
   await p.tamanho(390, 844); await dormir(100);
   const pilha = await p.avaliar(`[...document.querySelectorAll('#ano-2027 .par-grade > div')].map(d => { const r = d.getBoundingClientRect(); return {top: r.top, bottom: r.bottom}; })`);
   verdade(pilha[1].top >= pilha[0].bottom, 'uma embaixo da outra no celular');
+});
+
+await item('calculadora: média com os pesos, quanto falta, erro de campo, texto do estudante sem virar HTML e nada enviado', async () => {
+  pedidos.length = 0;
+  await p.tamanho(390, 844); await p.ir(BASE + '/calculadora-nota-enem/');
+  await p.esperar('document.querySelector("#simular-nota")');
+  igual(await p.avaliar(`document.querySelectorAll('h1').length`), 1, 'um h1 só (o da página)');
+  igual(await p.avaliar(`!!document.querySelector('.sem-script')`), false, 'aviso sem script some quando a calculadora abre');
+  // Exemplo do texto da página: 600, 650, 550, 700, 800 com pesos 1, 1, 2, 3, 1 dá 656,25; média simples 660.
+  const notas = {linguagens: '600', humanas: '650', natureza: '550', matematica: '700', redacao: '800'};
+  const pesos = {linguagens: '1', humanas: '1', natureza: '2', matematica: '3', redacao: '1'};
+  for (const [id, v] of Object.entries(notas)) await p.preencher('#nota-' + id, v);
+  for (const [id, v] of Object.entries(pesos)) await p.preencher('#peso-0-' + id, v);
+  await p.preencher('#instituicao-0', '<img src=x onerror="window.invadiu=1">');
+  await p.preencher('#corte-0', '700');
+  await p.clicar('button[type=submit]');
+  await p.esperar('document.querySelector(".resultado-opcao")');
+  const r = await p.texto('#resultado-nota');
+  verdade(r.includes('656,25') && r.includes('660,00'), 'média ponderada 656,25 e simples 660,00: ' + r.slice(0, 160));
+  verdade(r.includes('Faltam 43,75 pontos'), 'falta 43,75 para 700');
+  verdade(r.includes('não garante aprovação'), 'aviso de que não garante aprovação');
+  igual(await p.avaliar(`[!!document.querySelector('#resultado-nota img'), window.invadiu || 0, document.querySelector('.resultado-opcao h3').textContent.includes('<img')]`), [false, 0, true], 'texto do estudante mostrado como texto');
+  verdade(!/chance|aprovad[oa] com/i.test(await p.texto('main')), 'sem promessa de chance ou aprovação');
+  verdade(await p.semRolagemLateral(), 'sem rolagem lateral com o resultado');
+  igual(await p.avaliar(CONTRASTE), [], 'contraste AA com o resultado');
+  if (FOTOS) {
+    await p.captura(path.join(FOTOS, 'calculadora-resultado-390.png'));
+    await p.tamanho(1440, 900); await dormir(150);
+    verdade(await p.semRolagemLateral(), 'sem rolagem lateral com o resultado em 1440');
+    await p.captura(path.join(FOTOS, 'calculadora-resultado-1440.png')); await p.tamanho(390, 844);
+  }
+  await p.preencher('#nota-redacao', '1200'); await p.clicar('button[type=submit]');
+  verdade(/Redação/.test(await p.texto('#erro-nota')), 'erro de redação acima de 1.000');
+  await p.clicar('#adicionar-opcao'); await p.esperar('document.querySelector("#instituicao-1")');
+  igual(await p.avaliar(`document.querySelector('#nota-matematica').value`), '700', 'notas mantidas ao adicionar opção');
+  igual(await p.avaliar(`document.querySelectorAll('h1').length`), 1, 'continua com um h1 depois de redesenhar');
+  igual(pedidos.filter(u => /^(https?|wss?):/.test(u) && !(u.startsWith(BASE + '/') && /\.(js|css|woff2|png|svg|webmanifest)(\?|$)/.test(u)) && !u.endsWith('/calculadora-nota-enem/')), [], 'nenhum pedido além dos arquivos da página');
+  await p.s('Emulation.setScriptExecutionDisabled', {value: true}); await p.recarregar();
+  verdade(/JavaScript/.test(await p.texto('.sem-script')), 'sem script, a conta por extenso');
+  await p.s('Emulation.setScriptExecutionDisabled', {value: false});
 });
 
 if (FOTOS) {
