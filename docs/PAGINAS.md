@@ -6,7 +6,7 @@ Autora: Dominique-Oliveira-Claude🤖🧡, 17/11/2026 (blocos novos e campo `scr
 
 O GitHub Pages serve a raiz do repositório em https://pu.gingamidia.com. O gerador `paginas/gerar.py` (só Python padrão, sem etapa de construção) lê `paginas/conteudo/*.json`, um arquivo por página, aplica o molde `paginas/molde.html` com a folha `paginas/estilo.css` e grava na raiz:
 
-- uma pasta com `index.html` para cada página de leitura (hoje `/provas-anteriores/`, `/calendario-vestibulares/`, `/notas-de-corte/fuvest/`, `/notas-de-corte/unicamp/`, `/obras-obrigatorias/` e `/temas-de-redacao-enem/`);
+- uma pasta com `index.html` para cada página de leitura (hoje `/provas-anteriores/`, `/calendario-vestibulares/`, `/notas-de-corte/fuvest/`, `/notas-de-corte/unicamp/`, `/obras-obrigatorias/`, `/temas-de-redacao-enem/`, `/calculadora-nota-enem/`, `/acertos-e-nota-enem/` e `/plano-de-estudo/`);
 - `/criar-conta/`: a entrada inteira, copiada do `index.html` da raiz com caminhos absolutos, título próprio e `data-abrir="criar-conta"`, que o `app.js` lê para abrir já no cadastro (o canônico continua na raiz);
 - `404.html` (o Pages a usa em todo endereço que não existe), `robots.txt` e `sitemap.xml`;
 - o bloco de dados estruturados (Organization, WebSite, BreadcrumbList) entre `<!-- dados-estruturados:inicio -->` e `<!-- dados-estruturados:fim -->` nos dois `index.html`.
@@ -24,6 +24,7 @@ As saídas entram no git, porque o Pages publica o que está no ramo. O Caddy e 
    - `contagem` (`id`, `titulo`, `paragrafos`, `de`: id de um bloco `dados`): lista por extenso das linhas desse bloco que têm `contagem` (AAAA-MM-DD), `id`, `rotulo_contagem` ("1ª fase da Unesp", "1º dia do Enem") e `artigo_contagem` (`a` ou `o`; o gerador recusa sem ele); o script da página escreve quantos dias faltam pela data do aparelho ("Faltam 5 dias para a 1ª fase da Unesp, em 22 de novembro de 2026."); o importador monta rótulo e artigo em `rotulo_da_prova` e recusa etapa de prova de forma nova;
    - `links` (lista das páginas do menu);
    - `calculadora` (`id`, `rotulo` para leitores de tela, `paragrafos`): caixa sem título que o script `calculadora.js` troca pelo formulário do simulador; sem script, ficam os parágrafos (a conta por extenso). O gerador recusa o bloco se a página não carrega `calculadora.js`.
+   - `plano` (`id`, `titulo`, `de`: id de um bloco `dados`, `paragrafos`): formulário do plano de estudo (prova, dias livres, questões por dia: 3, 5, 10 ou 20, as metas da tela Conta). As provas são as linhas do bloco `de` com `contagem`, `id` e `artigo_contagem`, nunca digitadas no bloco; o script `plano-de-estudo.js` tira as que já passaram pela data do aparelho, conta os dias até a véspera, alterna as quatro áreas e marca as revisões pela regra do PU (1, 3 e 7 dias; `INTERVALOS` de `app/acompanhamento.py`). Sem script, ficam os parágrafos. O gerador recusa o bloco sem o script, com `de` inexistente ou com linha sem artigo.
 
    Cada linha de `dados` leva `valores`, `fonte` (endereço https oficial) e `conferido_em`; opcionais: `texto_fonte`, `outras_fontes` com `textos_outras_fontes` (mais de uma fonte oficial na mesma linha, todas https), `id` (âncora). Valor de célula é texto ou `{"texto", "link" (https), "nota"}`. Linha de **aviso**: `{"valores": [só as primeiras colunas], "aviso": "Data ainda não encontrada em fonte oficial", "fonte": link opcional da página oficial}`; ela não é dado (sem `data-dado`) e mostra o aviso no lugar das colunas que faltam.
 3. Campos opcionais da página: `relacionadas` (lista de endereços de outras páginas, vira o bloco "Veja também" antes da chamada; o gerador recusa endereço que não existe) e `script` (nome de um arquivo `.js` da pasta `paginas/`). Com `script`, a página carrega só esse arquivo (`<script src="/paginas/nome.js?v=..." defer>`) e a política de conteúdo dela passa a `script-src 'self'`; `connect-src` continua `'none'` e nada é embutido. As outras páginas continuam com `script-src 'none'`. `script` também aceita uma lista, carregada na ordem, com `nome.js` da pasta `paginas/` e módulos de `/app/public/` (o Pages já os serve, porque a entrada da raiz os usa). Hoje: `calendario.js` (contagem), `notas-de-corte.js` (busca) e `["/app/public/simulador.js", "calculadora.js"]` na calculadora. Sem o script a página segue completa.
@@ -35,7 +36,7 @@ A conta e o formulário são os do simulador de dentro (`app/public/simulador.js
 
 ## Páginas que vêm da coleta
 
-Calendário, notas de corte (Fuvest e Unicamp), obras e temas de redação são gerados a partir dos JSON da coleta por `paginas/importar-coleta.py`, que grava `paginas/conteudo/*.json` (os dados ficam no repositório; a publicação não depende da pasta da coleta). Para atualizar:
+Calendário, notas de corte (Fuvest e Unicamp), obras, temas de redação e o plano de estudo (`/plano-de-estudo/`, que usa as linhas de prova do calendário) são gerados a partir dos JSON da coleta por `paginas/importar-coleta.py`, que grava `paginas/conteudo/*.json` (os dados ficam no repositório; a publicação não depende da pasta da coleta). Para atualizar:
 
 ```
 python3 -I paginas/importar-coleta.py --coleta ~/craft/Enem-frentes/dados/coleta

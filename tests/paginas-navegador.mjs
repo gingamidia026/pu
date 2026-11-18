@@ -228,6 +228,58 @@ await item('acertos e nota: quatro tabelas com rolagem só dentro da caixa, 1ª 
   igual(await p.avaliar(`document.querySelectorAll('script[src]').length`), 0, 'página sem script');
 });
 
+// Plano de estudo (frente perfil, 18/11/2026): relógio do aparelho em 17/11/2026, uma terça-feira.
+await item('plano de estudo: dias, questões, áreas alternadas e revisões calculados no aparelho; sem JavaScript, a conta por extenso', async () => {
+  await p.tamanho(390, 844);
+  const {identifier} = await p.s('Page.addScriptToEvaluateOnNewDocument', {source: `{ const Real = Date, fixo = Real.parse('2026-11-17T12:00:00-03:00');
+    globalThis.Date = class extends Real { constructor(...a) { super(...(a.length ? a : [fixo])); } static now() { return fixo; } }; }`});
+  try {
+    await p.ir(BASE + '/plano-de-estudo/');
+    igual(await p.avaliar(`[document.querySelector('[data-plano]').hidden, document.querySelector('.plano .sem-script').hidden]`), [false, true], 'formulário no lugar do texto');
+    // Provas que já passaram saem da lista; a primeira que sobra é a 1ª fase da Unesp (22/11, domingo).
+    igual(await p.avaliar(`[...document.querySelectorAll('#plano-prova option')].map(o => o.dataset.data)`),
+      ['2026-11-22', '2026-11-29', '2026-11-30', '2026-12-06', '2026-12-07', '2026-12-10', '2026-12-11', '2026-12-13'], 'só provas futuras');
+    const dias = () => p.avaliar(`[...document.querySelectorAll('.plano-dias li')].map(l => l.textContent)`);
+    // Padrão: segunda a sexta, 5 por dia: terça 17 a sexta 20 (sábado 21 não está marcado).
+    igual(await p.texto('[data-plano-resumo]'), '4 dias de estudo até a 1ª fase da Unesp, em 22 de novembro de 2026.', 'resumo');
+    verdade((await p.texto('.plano-saida')).includes('são 20 questões novas'), 'total de questões');
+    igual(await dias(), [
+      'ter, 17/115 questões novas, uma área de cada vez: 2 de Linguagens, 1 de Ciências Humanas, 1 de Ciências da Natureza e 1 de Matemática.Sem revisão marcada para este dia.',
+      'qua, 18/115 questões novas, uma área de cada vez: 2 de Ciências Humanas, 1 de Ciências da Natureza, 1 de Matemática e 1 de Linguagens.Revisão do que você errou ou chutou em 17/11 (1ª volta).',
+      'qui, 19/115 questões novas, uma área de cada vez: 2 de Ciências da Natureza, 1 de Matemática, 1 de Linguagens e 1 de Ciências Humanas.Revisão do que você errou ou chutou em 18/11 (1ª volta).',
+      'sex, 20/115 questões novas, uma área de cada vez: 2 de Matemática, 1 de Linguagens, 1 de Ciências Humanas e 1 de Ciências da Natureza.Revisão do que você errou ou chutou em 19/11 (1ª volta).'], 'dias, áreas e revisões');
+    igual(await p.avaliar(`document.querySelector('.plano-saida a.botao').getAttribute('href')`), '/criar-conta/', 'link para começar no PU');
+    // Todos os dias, 20 por dia, até a 2ª fase da Fuvest (06/12): 19 dias; a 3ª volta da revisão de 17/11 cai em 28/11 (18 + 3 + 7).
+    await p.avaliar(`(() => { const s = document.querySelector('#plano-prova'); s.value = 'plano-fuvest-5'; s.dispatchEvent(new Event('change', {bubbles: true})); })()`);
+    for (const dia of ['6', '0']) await p.clicar(`input[name=dia][value="${dia}"]`);
+    await p.clicar('input[name=por-dia][value="20"]');
+    igual(await p.texto('[data-plano-resumo]'), '19 dias de estudo até o 1º dia da 2ª fase da Fuvest, em 6 de dezembro de 2026.', 'resumo com todos os dias');
+    verdade((await p.texto('.plano-saida')).includes('são 380 questões novas'), '19 × 20');
+    igual(await p.avaliar(`document.querySelectorAll('.plano-saida > div > ol.plano-dias > li').length`), 14, 'duas semanas à vista');
+    igual(await p.texto('.plano-saida summary'), 'Ver os outros 5 dias', 'o resto num quadro que abre');
+    const dia28 = (await dias()).find(t => t.startsWith('sáb, 28/11'));
+    // 17 → 18 → 21 → 28 (3ª volta); 24 → 25 → 28 (2ª); 27 → 28 (1ª).
+    igual(dia28, 'sáb, 28/1120 questões novas, uma área de cada vez: 5 de Linguagens, 5 de Ciências Humanas, 5 de Ciências da Natureza e 5 de Matemática.Revisão do que você errou ou chutou em 17/11 (3ª volta), 24/11 (2ª volta), 27/11 (1ª volta).', 'dia 28/11');
+    verdade(await p.semRolagemLateral(), 'sem rolagem lateral com a lista longa');
+    // Toque de 44 px nas fichas e no campo; nomes dos dias por extenso para o leitor de tela.
+    igual(await p.avaliar(`[...document.querySelectorAll('.ficha-marcar, #plano-prova')].filter(e => e.getBoundingClientRect().height < 44).length`), 0, 'alvos de toque com 44 px');
+    igual(await p.avaliar(`[...document.querySelectorAll('input[name=dia]')].map(c => c.closest('label').querySelector('.oculto').textContent)`),
+      ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'], 'nomes dos dias');
+    // Nenhum dia marcado: pede um dia, sem lista.
+    for (const dia of ['1', '2', '3', '4', '5', '6', '0']) await p.clicar(`input[name=dia][value="${dia}"]`);
+    igual([await p.texto('[data-plano-resumo]'), await p.avaliar(`document.querySelectorAll('.plano-dias li').length`)], ['Marque pelo menos um dia livre na semana para ver o plano.', 0], 'sem dia livre');
+    if (FOTOS) {
+      for (const dia of ['1', '3', '5']) await p.clicar(`input[name=dia][value="${dia}"]`);
+      await p.clicar('input[name=por-dia][value="10"]');
+      for (const largura of [390, 1440]) { await p.tamanho(largura, largura < 800 ? 844 : 900); await dormir(150); await p.captura(path.join(FOTOS, `plano-de-estudo-resultado-${largura}.png`)); }
+      await p.tamanho(390, 844);
+    }
+  } finally { await p.s('Page.removeScriptToEvaluateOnNewDocument', {identifier}); }
+  await p.s('Emulation.setScriptExecutionDisabled', {value: true}); await p.recarregar();
+  igual(await p.avaliar(`[document.querySelector('[data-plano]').hidden, getComputedStyle(document.querySelector('.plano .sem-script')).display !== 'none', document.querySelector('[data-plano-saida]').hidden]`), [true, true, true], 'sem script: só a conta por extenso');
+  await p.s('Emulation.setScriptExecutionDisabled', {value: false});
+});
+
 if (FOTOS) {
   fs.mkdirSync(FOTOS, {recursive: true});
   for (const pagina of paginas) {

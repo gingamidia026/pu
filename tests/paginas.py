@@ -11,6 +11,7 @@ Dominique-Oliveira-Claude🤖🧡, 17/11/2026.
 import datetime
 import importlib.util
 import json
+import os
 import re
 import shutil
 import struct
@@ -289,7 +290,8 @@ class PaginasUteis(unittest.TestCase):
         com_script = {p['endereco']: gerar.scripts_de(p) for p in PAGINAS if p.get('script')}
         self.assertEqual(com_script, {'/calendario-vestibulares/': ['calendario.js'], '/notas-de-corte/fuvest/': ['notas-de-corte.js'],
                                       '/notas-de-corte/unicamp/': ['notas-de-corte.js'],
-                                      '/calculadora-nota-enem/': ['/app/public/simulador.js', 'calculadora.js']})
+                                      '/calculadora-nota-enem/': ['/app/public/simulador.js', 'calculadora.js'],
+                                      '/plano-de-estudo/': ['plano-de-estudo.js']})
         for nome in {s for lista in com_script.values() for s in lista if not s.startswith('/')}:
             codigo = (RAIZ / 'paginas' / nome).read_text(encoding='utf-8')
             self.assertNotRegex(codigo, r'fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|import\(|https?://|innerHTML|eval\(|new Function',
@@ -414,6 +416,78 @@ class AcertosENota(unittest.TestCase):
         self.assertIn('muda a cada prova', lida.texto)
         self.assertIn('https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem', lida.links)
         self.assertGreater(lida.texto.count('data-dado'), 150)
+
+
+class PlanoDeEstudo(unittest.TestCase):
+    """Plano de estudo (frente perfil, 18/11/2026): datas das provas vindas da coleta do calendário, conta no aparelho,
+    sem promessa de nota e com fonte em toda frase sobre método."""
+    ENDERECO = '/plano-de-estudo/'
+    COLETA = Path(os.environ.get('PU_COLETA', Path.home() / 'craft/Enem-frentes/dados/coleta'))
+
+    def provas_do_plano(self):
+        pagina = next(p for p in PAGINAS if p['endereco'] == self.ENDERECO)
+        bloco = next(b for b in gerar.blocos_de_dados(pagina) if b['id'] == 'datas-plano')
+        return bloco['linhas']
+
+    def test_no_mapa_no_menu_e_ligada_ao_calendario(self):
+        self.assertIn(f'<loc>{DOMINIO}{self.ENDERECO}</loc>', (RAIZ / 'sitemap.xml').read_text(encoding='utf-8'))
+        self.assertIn(self.ENDERECO, ler(RAIZ / '404.html').links)
+        for pagina in LEITURA:
+            self.assertIn(self.ENDERECO, ler(ARQUIVO[pagina['endereco']]).links, pagina['endereco'])
+        lida = ler(ARQUIVO[self.ENDERECO])
+        self.assertIn('/calendario-vestibulares/', lida.links)
+        self.assertIn('/criar-conta/', lida.links)
+
+    def test_datas_sao_as_do_calendario_e_da_coleta(self):
+        calendario = next(p for p in PAGINAS if p['endereco'] == '/calendario-vestibulares/')
+        do_calendario = [(l['id'], l['contagem'], l['fonte'], l['conferido_em']) for b in gerar.blocos_de_dados(calendario) for l in b['linhas'] if l.get('contagem')]
+        do_plano = [(l['id'].removeprefix('plano-'), l['contagem'], l['fonte'], l['conferido_em']) for l in self.provas_do_plano()]
+        self.assertEqual(do_plano, do_calendario)
+        lida = ler(ARQUIVO[self.ENDERECO])
+        opcoes = re.findall(r'<option value="plano-([a-z0-9-]+)" data-data="(\d{4}-\d{2}-\d{2})"', lida.texto)
+        self.assertEqual(sorted(opcoes), sorted((i, d) for i, d, _, _ in do_calendario))
+        if not (self.COLETA / 'calendario/dados.json').is_file():
+            self.skipTest('sem a coleta do calendário neste computador')
+        coleta = json.loads((self.COLETA / 'calendario/dados.json').read_text(encoding='utf-8'))
+        provas = sorted(e['inicio'] for p in coleta['provas'] for e in p['eventos'] if e['tipo'] == 'prova' and e['inicio'])
+        self.assertEqual(sorted(d for _, d in opcoes), provas)
+
+    def test_sem_promessa_e_metodo_com_fonte(self):
+        lida = ler(ARQUIVO[self.ENDERECO])
+        texto = lida.texto.lower()
+        self.assertNotRegex(texto, r'chance|garantid|você passa|você vai passar|aprovação garantida|comprovad|cientificamente')
+        self.assertIn('não garante nota nem vaga', lida.texto)
+        self.assertIn('O PU não mediu este plano com estudantes', lida.texto)
+        self.assertIn('https://doi.org/10.1177/1529100612453266', lida.links)
+        # Frase sobre o que funciona no estudo só no parágrafo que liga o artigo.
+        for paragrafo in re.findall(r'<p>(.*?)</p>', lida.texto, re.S):
+            if re.search(r'utilidade|eficaz|funciona|melhora|aumenta', paragrafo, re.I):
+                self.assertIn('doi.org/10.1177/1529100612453266', paragrafo, paragrafo)
+
+    def test_conta_no_aparelho_sem_rede(self):
+        codigo = (RAIZ / 'paginas/plano-de-estudo.js').read_text(encoding='utf-8')
+        self.assertIn('INTERVALOS = [1, 3, 7]', codigo)
+        self.assertIn('INTERVALOS = [1, 3, 7]', (RAIZ / 'app/acompanhamento.py').read_text(encoding='utf-8'), 'a revisão do plano é a do PU')
+        self.assertNotRegex(codigo, r'localStorage|sessionStorage|document\.cookie|\d{4}-\d{2}-\d{2}', 'não grava nada nem traz data escrita à mão')
+        lida = ler(ARQUIVO[self.ENDERECO])
+        self.assertIn("connect-src 'none'", lida.texto)
+        self.assertIn('class="sem-script"', lida.texto)
+
+    def test_bloco_plano_exige_script_e_datas(self):
+        pasta = Path(tempfile.mkdtemp(prefix='pu-paginas-'))
+        try:
+            shutil.copytree(RAIZ / 'paginas/conteudo', pasta / 'conteudo')
+            arquivo = pasta / 'conteudo/plano-de-estudo.json'
+            original = json.loads(arquivo.read_text(encoding='utf-8'))
+            for mudar in (lambda d: d.pop('script'), lambda d: d['blocos'][0].update(de='nao-existe'),
+                          lambda d: [l.pop('artigo_contagem') for l in d['blocos'][3]['linhas']]):
+                dados = json.loads(json.dumps(original)); mudar(dados)
+                arquivo.write_text(json.dumps(dados, ensure_ascii=False), encoding='utf-8')
+                with self.assertRaises(gerar.Recusa):
+                    gerar.gerar(pasta / 'saida', conteudo=pasta / 'conteudo')
+            self.assertFalse((pasta / 'saida').exists())
+        finally:
+            shutil.rmtree(pasta, ignore_errors=True)
 
 
 class Recusa(unittest.TestCase):

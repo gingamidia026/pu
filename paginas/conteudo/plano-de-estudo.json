@@ -1,0 +1,257 @@
+{
+ "tipo": "leitura",
+ "endereco": "/plano-de-estudo/",
+ "titulo": "Plano de estudo para o Enem e os vestibulares: questões por dia até a prova",
+ "descricao": "Escolha a prova e os dias livres: o plano mostra quantas questões fazer por dia, a ordem das matérias e as revisões até a data oficial da prova.",
+ "migalha": "Plano de estudo",
+ "h1": "Plano de estudo até a prova",
+ "apoio": "Escolha a prova, marque os dias da semana em que você tem tempo e quantas questões quer fazer por dia. O plano mostra cada dia até a véspera, com as matérias alternadas e as revisões do que você errar.",
+ "tom": "mar",
+ "atualizada_em": "2026-11-17",
+ "menu": true,
+ "sumario": false,
+ "script": "plano-de-estudo.js",
+ "relacionadas": [
+  "/calendario-vestibulares/",
+  "/provas-anteriores/",
+  "/acertos-e-nota-enem/"
+ ],
+ "blocos": [
+  {
+   "tipo": "plano",
+   "id": "plano",
+   "no_sumario": true,
+   "titulo": "Monte o seu plano",
+   "de": "datas-plano",
+   "paragrafos": [
+    "Sem JavaScript, dá para fazer a conta à mão: conte os dias livres entre hoje e a véspera da prova (as datas estão na tabela abaixo) e multiplique pelo número de questões por dia.",
+    "Alterne as matérias a cada questão e volte às que você errar 1, 3 e 7 dias depois."
+   ]
+  },
+  {
+   "tipo": "texto",
+   "id": "como-funciona",
+   "no_sumario": true,
+   "titulo": "Como o plano é montado",
+   "paragrafos": [
+    "Os dias contam a partir de hoje, pela data do seu celular ou computador, e vão até a véspera da prova. Só entram os dias da semana que você marcou.",
+    "As questões de cada dia passam pelas quatro áreas em que o PU organiza as questões, uma de cada vez: Linguagens, Ciências Humanas, Ciências da Natureza e Matemática. O dia seguinte continua de onde o anterior parou.",
+    "A revisão segue a regra do PU: o que você errou ou marcou como chute volta 1 dia depois; se acertar, volta 3 dias depois e, depois, 7. Quando o dia da revisão não é um dia livre, ela passa para o próximo dia livre. O plano supõe que você acerte cada revisão; se errar de novo, a questão volta no dia seguinte.",
+    "Nada do que você marca sai do aparelho: a conta é feita nesta página e não fica gravada."
+   ]
+  },
+  {
+   "tipo": "texto",
+   "id": "pesquisa",
+   "no_sumario": true,
+   "titulo": "O que a pesquisa diz e o que ela não diz",
+   "paragrafos": [
+    "Numa revisão de estudos sobre dez técnicas de estudo, [Dunlosky e colegas (2013)](https://doi.org/10.1177/1529100612453266) deram utilidade alta a duas: responder questões para testar o que sabe e espalhar o estudo no tempo, em vez de concentrar tudo de uma vez. Intercalar assuntos diferentes na prática ficou com utilidade moderada: segundo os autores, os efeitos dessa técnica só começavam a ser estudados de forma sistemática.",
+    "O PU não mediu este plano com estudantes. Ele ajuda a dividir o tempo até a prova; não garante nota nem vaga."
+   ]
+  },
+  {
+   "tipo": "dados",
+   "id": "datas-plano",
+   "titulo": "Datas de prova usadas no plano",
+   "rotulos": true,
+   "colunas": [
+    "Vestibular",
+    "Etapa",
+    "Data"
+   ],
+   "coluna_fonte": "Fonte oficial",
+   "nota": "As mesmas datas do [calendário dos vestibulares](/calendario-vestibulares/), com o link oficial de cada uma. Confira na página da banca antes da prova.",
+   "linhas": [
+    {
+     "valores": [
+      "Enem 2026",
+      "Prova, 1º dia",
+      "08/11/2026"
+     ],
+     "fonte": "https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enem/inscricoes-para-o-enem-2026-estao-abertas",
+     "texto_fonte": "Inep",
+     "conferido_em": "2026-11-17",
+     "id": "plano-enem-4",
+     "contagem": "2026-11-08",
+     "artigo_contagem": "o",
+     "rotulo_contagem": "1º dia do Enem"
+    },
+    {
+     "valores": [
+      "Enem 2026",
+      "Prova, 2º dia",
+      "15/11/2026"
+     ],
+     "fonte": "https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enem/inscricoes-para-o-enem-2026-estao-abertas",
+     "texto_fonte": "Inep",
+     "conferido_em": "2026-11-17",
+     "id": "plano-enem-5",
+     "contagem": "2026-11-15",
+     "artigo_contagem": "o",
+     "rotulo_contagem": "2º dia do Enem"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "Prova, 1ª fase",
+      "01/11/2026"
+     ],
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Fuvest",
+     "conferido_em": "2026-11-17",
+     "id": "plano-fuvest-3",
+     "contagem": "2026-11-01",
+     "artigo_contagem": "a",
+     "rotulo_contagem": "1ª fase da Fuvest"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "Prova, 2ª fase, 1º dia",
+      "06/12/2026"
+     ],
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Fuvest",
+     "conferido_em": "2026-11-17",
+     "id": "plano-fuvest-5",
+     "outras_fontes": [
+      "https://www.fuvest.br/fuvest-2027-fuvest-divulga-datas-da-1a-e-da-2a-fase-do-vestibular-2027/",
+      "https://www.fuvest.br/?p=70747"
+     ],
+     "textos_outras_fontes": [
+      "Fuvest, notícia das fases",
+      "Aviso conjunto Fuvest e Vunesp"
+     ],
+     "contagem": "2026-12-06",
+     "artigo_contagem": "o",
+     "rotulo_contagem": "1º dia da 2ª fase da Fuvest"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "Prova, 2ª fase, 2º dia",
+      "07/12/2026"
+     ],
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Fuvest",
+     "conferido_em": "2026-11-17",
+     "id": "plano-fuvest-6",
+     "outras_fontes": [
+      "https://www.fuvest.br/fuvest-2027-fuvest-divulga-datas-da-1a-e-da-2a-fase-do-vestibular-2027/",
+      "https://www.fuvest.br/?p=70747"
+     ],
+     "textos_outras_fontes": [
+      "Fuvest, notícia das fases",
+      "Aviso conjunto Fuvest e Vunesp"
+     ],
+     "contagem": "2026-12-07",
+     "artigo_contagem": "o",
+     "rotulo_contagem": "2º dia da 2ª fase da Fuvest"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Prova, 1ª fase",
+      "18/10/2026"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "plano-unicamp-3",
+     "contagem": "2026-10-18",
+     "artigo_contagem": "a",
+     "rotulo_contagem": "1ª fase da Unicamp"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Prova, 2ª fase, 1º dia",
+      "29/11/2026"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "plano-unicamp-5",
+     "contagem": "2026-11-29",
+     "artigo_contagem": "o",
+     "rotulo_contagem": "1º dia da 2ª fase da Unicamp"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Prova, 2ª fase, 2º dia",
+      "30/11/2026"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "plano-unicamp-6",
+     "contagem": "2026-11-30",
+     "artigo_contagem": "o",
+     "rotulo_contagem": "2º dia da 2ª fase da Unicamp"
+    },
+    {
+     "valores": [
+      "Unesp 2027",
+      "Prova, 1ª fase",
+      "22/11/2026"
+     ],
+     "fonte": "https://vestibular.unesp.br/",
+     "texto_fonte": "Unesp",
+     "conferido_em": "2026-11-17",
+     "id": "plano-unesp-4",
+     "contagem": "2026-11-22",
+     "artigo_contagem": "a",
+     "rotulo_contagem": "1ª fase da Unesp"
+    },
+    {
+     "valores": [
+      "Unesp 2027",
+      "Prova, 2ª fase",
+      "13 e 14/12/2026"
+     ],
+     "fonte": "https://www.fuvest.br/?p=70747",
+     "texto_fonte": "Aviso conjunto Fuvest e Vunesp",
+     "conferido_em": "2026-11-17",
+     "id": "plano-unesp-5",
+     "contagem": "2026-12-13",
+     "artigo_contagem": "a",
+     "rotulo_contagem": "2ª fase da Unesp"
+    },
+    {
+     "valores": [
+      "Famerp 2027",
+      "Prova de Conhecimentos Gerais",
+      "10/12/2026"
+     ],
+     "fonte": "https://www.famerp.br/wp-content/plugins/download-attachments/includes/download.php?id=31419",
+     "texto_fonte": "Edital da Famerp, Anexo I",
+     "conferido_em": "2026-11-17",
+     "id": "plano-famerp-3",
+     "contagem": "2026-12-10",
+     "artigo_contagem": "a",
+     "rotulo_contagem": "Prova de Conhecimentos Gerais da Famerp"
+    },
+    {
+     "valores": [
+      "Famerp 2027",
+      "Prova de Conhecimentos Específicos e Redação",
+      "11/12/2026"
+     ],
+     "fonte": "https://www.famerp.br/wp-content/plugins/download-attachments/includes/download.php?id=31419",
+     "texto_fonte": "Edital da Famerp, Anexo I",
+     "conferido_em": "2026-11-17",
+     "id": "plano-famerp-4",
+     "contagem": "2026-12-11",
+     "artigo_contagem": "a",
+     "rotulo_contagem": "Prova de Conhecimentos Específicos e Redação da Famerp"
+    }
+   ]
+  }
+ ],
+ "chamada": {
+  "titulo": "Comece o plano hoje no PU",
+  "texto": "No PU, as questões já vêm alternadas e as revisões voltam sozinhas nos dias certos. Em Conta, escolha a meta de questões por dia. É gratuito."
+ }
+}

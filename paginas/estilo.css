@@ -228,6 +228,29 @@ footer p { margin: 0; }
   .simulador button.discreto:not(:disabled):hover { background: var(--amarelo-claro); }
 }
 
+/* Plano de estudo (/plano-de-estudo/): formulário que paginas/plano-de-estudo.js mostra e a lista de dias que ele escreve. */
+.oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.plano .sem-script { padding: 1.25rem 1.25rem .25rem; border: 2px dashed var(--tinta); border-radius: 8px; background: var(--suave); }
+.plano-form .campo { margin: 0 0 1.25rem; }
+.plano-form label[for] { display: block; font-weight: 700; margin-bottom: .375rem; }
+.plano-form select { width: 100%; max-width: 28rem; min-height: 3rem; padding: .625rem .75rem; border: 1px solid var(--tinta); border-radius: 8px; font: inherit; color: var(--texto); background: #FFFFFF; }
+.grupo-fichas { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1.25rem; padding: 0; border: 0; min-width: 0; }
+.grupo-fichas legend { width: 100%; padding: 0; margin-bottom: .5rem; font-weight: 700; }
+.ficha-marcar { position: relative; display: inline-flex; }
+.ficha-marcar input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.ficha-marcar span[aria-hidden], .ficha-marcar span:not(.oculto) { display: inline-flex; align-items: center; justify-content: center; min-width: 3rem; min-height: 2.75rem; padding: .375rem .75rem;
+  border: 1px solid var(--tinta); border-radius: 999px; background: #FFFFFF; font-weight: 700; }
+.ficha-marcar input:checked + span { background: var(--destaque); color: #FFFFFF; }
+.ficha-marcar input:focus-visible + span { outline: 3px solid var(--azul-mar); outline-offset: 3px; }
+.plano-saida { margin-top: 1rem; padding: 1.25rem; border: 1px solid var(--tinta); border-radius: 8px; background: var(--tom-faixa); }
+.plano-saida .resumo-plano { margin: 0 0 .75rem; font-family: var(--fonte-cartaz); font-weight: 800; font-size: clamp(1.375rem, 5vw, 2rem); line-height: 1.15; color: var(--tinta); text-wrap: balance; }
+.plano-dias { margin: 1rem 0 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
+.plano-dias li { padding: .75rem 1rem; border: 1px solid var(--tinta); border-radius: 8px; background: #FFFFFF; }
+.plano-dias .dia { display: block; font-weight: 700; }
+.plano-dias .revisao { display: block; margin-top: .25rem; color: var(--secundario); font-size: .9375rem; }
+.plano-saida details { margin-top: .75rem; }
+.plano-saida summary { min-height: 2.75rem; display: flex; align-items: center; font-weight: 700; cursor: pointer; }
+
 @media (hover: hover) and (pointer: fine) {
   .entrar-topo:hover, .sumario a:hover { background: var(--amarelo-claro); }
   .botao:hover { background: var(--destaque-passar); }

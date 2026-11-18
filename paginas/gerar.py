@@ -310,6 +310,37 @@ def contagem_de(bloco, pagina):
             f'<ol class="datas-de-prova">{itens}</ol>\n</section></div>')
 
 
+DIAS_DA_SEMANA = [(1, 'seg', 'Segunda'), (2, 'ter', 'Terça'), (3, 'qua', 'Quarta'), (4, 'qui', 'Quinta'), (5, 'sex', 'Sexta'), (6, 'sáb', 'Sábado'), (0, 'dom', 'Domingo')]
+QUESTOES_POR_DIA = [3, 5, 10, 20]  # as mesmas metas da tela Conta do PU (app.js); 5 é a meta padrão
+
+
+def plano_de(bloco, pagina):
+    """Formulário do plano de estudo. As provas saem das linhas do bloco 'de' que têm 'contagem' (as datas da coleta
+    do calendário, com fonte e data de conferência); o script da página faz a conta no aparelho. Sem script, os parágrafos."""
+    if 'plano-de-estudo.js' not in scripts_de(pagina):
+        raise Recusa(f"{pagina['_arquivo']}: bloco plano sem o script plano-de-estudo.js")
+    origem = next((b for b in blocos_de_dados(pagina) if b.get('id') == bloco.get('de')), None)
+    if origem is None:
+        raise Recusa(f"{pagina['_arquivo']}: plano aponta para um bloco que não existe: {bloco.get('de')}")
+    provas = sorted((l for l in origem['linhas'] if l.get('contagem') and not l.get('aviso')), key=lambda l: l['contagem'])
+    if not provas or any(not l.get('id') or l.get('artigo_contagem') not in ('a', 'o') for l in provas):
+        raise Recusa(f"{pagina['_arquivo']}: plano sem datas de prova, ou linha sem id ou sem artigo_contagem")
+    titulo_id = id_do_titulo(bloco)
+    opcoes = ''.join(f'<option value="{e(l["id"])}" data-data="{l["contagem"]}" data-artigo="{l["artigo_contagem"]}" data-rotulo="{e(l["rotulo_contagem"])}">'
+                     f'{e(l["rotulo_contagem"][:1].upper() + l["rotulo_contagem"][1:])} ({data_br(l["contagem"])})</option>' for l in provas)
+    dias = ''.join(f'<label class="ficha-marcar"><input type="checkbox" name="dia" value="{n}"{" checked" if n in (1, 2, 3, 4, 5) else ""}>'
+                   f'<span aria-hidden="true">{curto}</span><span class="oculto">{longo}</span></label>' for n, curto, longo in DIAS_DA_SEMANA)
+    quantas = ''.join(f'<label class="ficha-marcar"><input type="radio" name="por-dia" value="{n}"{" checked" if n == 5 else ""}><span>{n}</span></label>' for n in QUESTOES_POR_DIA)
+    texto = ''.join(f'<p>{texto_com_links(p)}</p>\n' for p in bloco.get('paragrafos', []))
+    return (f'<div class="faixa"><section class="miolo bloco plano" id="{e(bloco.get("id", titulo_id))}" aria-labelledby="{titulo_id}">\n'
+            f'<h2 id="{titulo_id}">{e(bloco["titulo"])}</h2>\n<div class="sem-script">\n{texto}</div>\n'
+            f'<form class="plano-form" data-plano hidden>\n'
+            f'<p class="campo"><label for="plano-prova">Prova</label><select id="plano-prova" name="prova">{opcoes}</select></p>\n'
+            f'<fieldset class="grupo-fichas"><legend>Dias livres na semana</legend>{dias}</fieldset>\n'
+            f'<fieldset class="grupo-fichas"><legend>Questões por dia de estudo</legend>{quantas}</fieldset>\n'
+            f'</form>\n<div class="plano-saida" data-plano-saida hidden><p class="resumo-plano" data-plano-resumo aria-live="polite"></p><div data-plano-lista></div></div>\n</section></div>')
+
+
 def html_bloco(bloco, paginas, marcar, pagina):
     tipo = bloco.get('tipo')
     titulo_id = id_do_titulo(bloco)
@@ -338,6 +369,8 @@ def html_bloco(bloco, paginas, marcar, pagina):
                 f'{cabeca}{nota}<div class="par-grade">\n{partes}</div>\n</section></div>')
     if tipo == 'contagem':
         return contagem_de(bloco, pagina)
+    if tipo == 'plano':
+        return plano_de(bloco, pagina)
     if tipo == 'calculadora':
         # Caixa que o script da página preenche com o formulário; sem script, os parágrafos (a conta por extenso).
         if 'calculadora.js' not in scripts_de(pagina):

@@ -518,8 +518,50 @@ def temas(coleta):
     }
 
 
+# ---------- 6. Plano de estudo ----------
+# As datas de prova são as mesmas linhas do calendário (mesma coleta, mesmas fontes); nada é digitado aqui.
+# Frase sobre método só com fonte aberta e conferida: resumo do artigo na Europe PMC (PMID 26173288), lido em 18/11/2026
+# (cópia em /tmp/claude-1000/pu-perfil/baixados/dunlosky/europepmc.json, sha256 94eb38b8…734f).
+DUNLOSKY = 'https://doi.org/10.1177/1529100612453266'
+
+
+def plano(coleta):
+    pagina = calendario(coleta)
+    datas = next(b for b in pagina['blocos'] if b.get('id') == 'calendario')
+    provas = [dict(l, id='plano-' + l['id']) for l in datas['linhas'] if l.get('contagem')]
+    if not provas:
+        raise Erro('calendário sem datas de prova: o plano de estudo não tem o que mostrar')
+    return {
+        'tipo': 'leitura', 'endereco': '/plano-de-estudo/',
+        'titulo': 'Plano de estudo para o Enem e os vestibulares: questões por dia até a prova',
+        'descricao': 'Escolha a prova e os dias livres: o plano mostra quantas questões fazer por dia, a ordem das matérias e as revisões até a data oficial da prova.',
+        'migalha': 'Plano de estudo', 'h1': 'Plano de estudo até a prova',
+        'apoio': 'Escolha a prova, marque os dias da semana em que você tem tempo e quantas questões quer fazer por dia. O plano mostra cada dia até a véspera, com as matérias alternadas e as revisões do que você errar.',
+        'tom': 'mar', 'atualizada_em': pagina['atualizada_em'], 'menu': True, 'sumario': False, 'script': 'plano-de-estudo.js',
+        'relacionadas': ['/calendario-vestibulares/', '/provas-anteriores/', '/acertos-e-nota-enem/'],
+        'blocos': [
+            {'tipo': 'plano', 'id': 'plano', 'no_sumario': True, 'titulo': 'Monte o seu plano', 'de': 'datas-plano',
+             'paragrafos': ['Sem JavaScript, dá para fazer a conta à mão: conte os dias livres entre hoje e a véspera da prova (as datas estão na tabela abaixo) e multiplique pelo número de questões por dia.',
+                            'Alterne as matérias a cada questão e volte às que você errar 1, 3 e 7 dias depois.']},
+            {'tipo': 'texto', 'id': 'como-funciona', 'no_sumario': True, 'titulo': 'Como o plano é montado',
+             'paragrafos': ['Os dias contam a partir de hoje, pela data do seu celular ou computador, e vão até a véspera da prova. Só entram os dias da semana que você marcou.',
+                            'As questões de cada dia passam pelas quatro áreas em que o PU organiza as questões, uma de cada vez: Linguagens, Ciências Humanas, Ciências da Natureza e Matemática. O dia seguinte continua de onde o anterior parou.',
+                            'A revisão segue a regra do PU: o que você errou ou marcou como chute volta 1 dia depois; se acertar, volta 3 dias depois e, depois, 7. Quando o dia da revisão não é um dia livre, ela passa para o próximo dia livre. O plano supõe que você acerte cada revisão; se errar de novo, a questão volta no dia seguinte.',
+                            'Nada do que você marca sai do aparelho: a conta é feita nesta página e não fica gravada.']},
+            {'tipo': 'texto', 'id': 'pesquisa', 'no_sumario': True, 'titulo': 'O que a pesquisa diz e o que ela não diz',
+             'paragrafos': [f'Numa revisão de estudos sobre dez técnicas de estudo, [Dunlosky e colegas (2013)]({DUNLOSKY}) deram utilidade alta a duas: responder questões para testar o que sabe e espalhar o estudo no tempo, em vez de concentrar tudo de uma vez. Intercalar assuntos diferentes na prática ficou com utilidade moderada: segundo os autores, os efeitos dessa técnica só começavam a ser estudados de forma sistemática.',
+                            'O PU não mediu este plano com estudantes. Ele ajuda a dividir o tempo até a prova; não garante nota nem vaga.']},
+            {'tipo': 'dados', 'id': 'datas-plano', 'titulo': 'Datas de prova usadas no plano', 'rotulos': True,
+             'colunas': datas['colunas'], 'coluna_fonte': datas['coluna_fonte'],
+             'nota': 'As mesmas datas do [calendário dos vestibulares](/calendario-vestibulares/), com o link oficial de cada uma. Confira na página da banca antes da prova.',
+             'linhas': provas},
+        ],
+        'chamada': {'titulo': 'Comece o plano hoje no PU', 'texto': 'No PU, as questões já vêm alternadas e as revisões voltam sozinhas nos dias certos. Em Conta, escolha a meta de questões por dia. É gratuito.'},
+    }
+
+
 PAGINAS = {'calendario-vestibulares.json': calendario, 'notas-de-corte-fuvest.json': fuvest, 'notas-de-corte-unicamp.json': unicamp,
-           'obras-obrigatorias.json': obras, 'temas-de-redacao-enem.json': temas}
+           'obras-obrigatorias.json': obras, 'temas-de-redacao-enem.json': temas, 'plano-de-estudo.json': plano}
 
 
 def montar(coleta):
