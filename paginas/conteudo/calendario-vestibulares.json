@@ -1,0 +1,613 @@
+{
+ "tipo": "leitura",
+ "endereco": "/calendario-vestibulares/",
+ "titulo": "Calendário dos vestibulares 2027: Enem, Fuvest, Unicamp, Unesp e Famerp",
+ "descricao": "Inscrição, isenção, provas, resultado e chamadas do Enem 2026 e dos vestibulares 2027 da Fuvest, Unicamp, Unesp e Famerp, com o link oficial de cada data.",
+ "migalha": "Calendário dos vestibulares",
+ "h1": "Calendário dos vestibulares",
+ "apoio": "As datas do Enem 2026 e dos vestibulares 2027 da Fuvest, da Unicamp, da Unesp e da Famerp numa tabela só. Cada data leva à página oficial da banca e diz quando o PU conferiu.",
+ "tom": "sol",
+ "atualizada_em": "2026-11-17",
+ "menu": true,
+ "sumario": true,
+ "script": "calendario.js",
+ "relacionadas": [
+  "/notas-de-corte/fuvest/",
+  "/notas-de-corte/unicamp/",
+  "/obras-obrigatorias/",
+  "/provas-anteriores/"
+ ],
+ "blocos": [
+  {
+   "tipo": "contagem",
+   "id": "contagem",
+   "no_sumario": true,
+   "titulo": "Quanto falta para a próxima prova",
+   "de": "calendario",
+   "paragrafos": [
+    "As datas de prova da tabela, em ordem. A conta de quantos dias faltam usa a data do seu celular ou computador."
+   ]
+  },
+  {
+   "tipo": "texto",
+   "titulo": "Antes de se inscrever",
+   "paragrafos": [
+    "As bancas mudam datas no meio do ano. Antes de pagar a taxa ou pedir isenção, abra o link da linha e confira na página oficial.",
+    "Onde aparece \"data ainda não encontrada em fonte oficial\", a banca ainda não publicou a data ou o PU não achou a data numa página oficial. O PU não usa data de site de cursinho nem de notícia."
+   ]
+  },
+  {
+   "tipo": "dados",
+   "id": "calendario",
+   "titulo": "Datas do Enem 2026 e dos vestibulares 2027",
+   "rotulos": true,
+   "colunas": [
+    "Vestibular",
+    "Etapa",
+    "Data"
+   ],
+   "coluna_fonte": "Fonte oficial",
+   "linhas": [
+    {
+     "valores": [
+      "Enem 2026",
+      {
+       "texto": "Pedido de isenção da taxa",
+       "nota": "O Inep anunciou o prazo até 24/04. Depois, o MEC informou a prorrogação até 30/04."
+      },
+      "13/04 a 30/04/2026"
+     ],
+     "fonte": "https://www.gov.br/mec/pt-br/assuntos/noticias/2026/abril/enem-2026-prazo-para-isencao-da-taxa-e-estendido-ate-30-4",
+     "texto_fonte": "MEC",
+     "conferido_em": "2026-11-17",
+     "id": "enem-1",
+     "outras_fontes": [
+      "https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enem/comeca-prazo-para-solicitar-isencao-da-taxa-de-inscricao-do-enem-2026"
+     ],
+     "textos_outras_fontes": [
+      "Inep"
+     ]
+    },
+    {
+     "valores": [
+      "Enem 2026",
+      {
+       "texto": "Resultado dos pedidos de isenção",
+       "nota": "Data do MEC, depois da prorrogação. O Inep tinha anunciado 08/05."
+      },
+      "13/05/2026"
+     ],
+     "fonte": "https://www.gov.br/mec/pt-br/assuntos/noticias/2026/abril/enem-2026-prazo-para-isencao-da-taxa-e-estendido-ate-30-4",
+     "texto_fonte": "MEC",
+     "conferido_em": "2026-11-17",
+     "id": "enem-2",
+     "outras_fontes": [
+      "https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enem/comeca-prazo-para-solicitar-isencao-da-taxa-de-inscricao-do-enem-2026"
+     ],
+     "textos_outras_fontes": [
+      "Inep"
+     ]
+    },
+    {
+     "valores": [
+      "Enem 2026",
+      {
+       "texto": "Inscrição",
+       "nota": "Na Página do Participante. Pagamento da taxa até 10/06/2026."
+      },
+      "25/05 a 05/06/2026"
+     ],
+     "fonte": "https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enem/inscricoes-para-o-enem-2026-estao-abertas",
+     "texto_fonte": "Inep",
+     "conferido_em": "2026-11-17",
+     "id": "enem-3"
+    },
+    {
+     "valores": [
+      "Enem 2026",
+      "Prova, 1º dia",
+      "08/11/2026"
+     ],
+     "fonte": "https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enem/inscricoes-para-o-enem-2026-estao-abertas",
+     "texto_fonte": "Inep",
+     "conferido_em": "2026-11-17",
+     "id": "enem-4",
+     "contagem": "2026-11-08",
+     "rotulo_contagem": "Enem, 1º dia"
+    },
+    {
+     "valores": [
+      "Enem 2026",
+      "Prova, 2º dia",
+      "15/11/2026"
+     ],
+     "fonte": "https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enem/inscricoes-para-o-enem-2026-estao-abertas",
+     "texto_fonte": "Inep",
+     "conferido_em": "2026-11-17",
+     "id": "enem-5",
+     "contagem": "2026-11-15",
+     "rotulo_contagem": "Enem, 2º dia"
+    },
+    {
+     "valores": [
+      "Enem 2026",
+      "Resultado: notas individuais"
+     ],
+     "aviso": "Data ainda não encontrada em fonte oficial",
+     "id": "enem-6",
+     "fonte": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem",
+     "texto_fonte": "Ver a página oficial"
+    },
+    {
+     "valores": [
+      "Enem 2026",
+      "Chamadas do Sisu"
+     ],
+     "aviso": "Data ainda não encontrada em fonte oficial",
+     "id": "enem-7",
+     "fonte": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem",
+     "texto_fonte": "Ver a página oficial"
+    },
+    {
+     "valores": [
+      "Enem 2026",
+      "Matrícula pelo Sisu"
+     ],
+     "aviso": "Data ainda não encontrada em fonte oficial",
+     "id": "enem-8",
+     "fonte": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem",
+     "texto_fonte": "Ver a página oficial"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "Pedido de isenção ou redução da taxa",
+      "11/05 a 10/07/2026"
+     ],
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Fuvest",
+     "conferido_em": "2026-11-17",
+     "id": "fuvest-1"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "Inscrição para o Vestibular 2027 e recursos específicos",
+      "17/08 a 09/10/2026"
+     ],
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Fuvest",
+     "conferido_em": "2026-11-17",
+     "id": "fuvest-2"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "Prova, 1ª fase",
+      "01/11/2026"
+     ],
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Fuvest",
+     "conferido_em": "2026-11-17",
+     "id": "fuvest-3",
+     "contagem": "2026-11-01",
+     "rotulo_contagem": "Fuvest, 1ª fase"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "Lista de convocados para a 2ª fase e locais de prova",
+      "23/11/2026"
+     ],
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Fuvest",
+     "conferido_em": "2026-11-17",
+     "id": "fuvest-4"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "Prova, 2ª fase, 1º dia",
+      "06/12/2026"
+     ],
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Fuvest",
+     "conferido_em": "2026-11-17",
+     "id": "fuvest-5",
+     "outras_fontes": [
+      "https://www.fuvest.br/fuvest-2027-fuvest-divulga-datas-da-1a-e-da-2a-fase-do-vestibular-2027/",
+      "https://www.fuvest.br/?p=70747"
+     ],
+     "textos_outras_fontes": [
+      "Fuvest, notícia das fases",
+      "Aviso conjunto Fuvest e Vunesp"
+     ],
+     "contagem": "2026-12-06",
+     "rotulo_contagem": "Fuvest, 2ª fase, 1º dia"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "Prova, 2ª fase, 2º dia",
+      "07/12/2026"
+     ],
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Fuvest",
+     "conferido_em": "2026-11-17",
+     "id": "fuvest-6",
+     "outras_fontes": [
+      "https://www.fuvest.br/fuvest-2027-fuvest-divulga-datas-da-1a-e-da-2a-fase-do-vestibular-2027/",
+      "https://www.fuvest.br/?p=70747"
+     ],
+     "textos_outras_fontes": [
+      "Fuvest, notícia das fases",
+      "Aviso conjunto Fuvest e Vunesp"
+     ],
+     "contagem": "2026-12-07",
+     "rotulo_contagem": "Fuvest, 2ª fase, 2º dia"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "1ª chamada",
+      "26/01/2027"
+     ],
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Fuvest",
+     "conferido_em": "2026-11-17",
+     "id": "fuvest-7"
+    },
+    {
+     "valores": [
+      "Fuvest 2027",
+      "Matrícula das chamadas"
+     ],
+     "aviso": "Data ainda não encontrada em fonte oficial",
+     "id": "fuvest-8",
+     "fonte": "https://www.fuvest.br/fuvest-2027-fuvest-divulga-cronograma-completo-do-vestibular-2027/",
+     "texto_fonte": "Ver a página oficial"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Pedido de isenção da taxa",
+      "11/05 a 05/06/2026"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-1"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Inscrição e pagamento da taxa",
+      "03/08 a 08/09/2026"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-2"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Prova, 1ª fase",
+      "18/10/2026"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-3",
+     "contagem": "2026-10-18",
+     "rotulo_contagem": "Unicamp, 1ª fase"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Convocados para a 2ª fase e locais de prova",
+      "23/11/2026"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-4"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Prova, 2ª fase, 1º dia",
+      "29/11/2026"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-5",
+     "contagem": "2026-11-29",
+     "rotulo_contagem": "Unicamp, 2ª fase, 1º dia"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Prova, 2ª fase, 2º dia",
+      "30/11/2026"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-6",
+     "contagem": "2026-11-30",
+     "rotulo_contagem": "Unicamp, 2ª fase, 2º dia"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Aprovados em 1ª chamada",
+      "25/01/2027"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-7"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "2ª chamada",
+      "01/02/2027"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-8"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "3ª chamada",
+      "11/02/2027"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-9"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "4ª chamada",
+      "22/02/2027"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-10"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "5ª chamada",
+      "01/03/2027"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-11"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "6ª chamada",
+      "08/03/2027"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-12"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "7ª chamada e lista de espera",
+      "17/03/2027"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-13"
+    },
+    {
+     "valores": [
+      "Unicamp 2027",
+      "Matrícula virtual da 1ª chamada",
+      "26 e 27/01/2027"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/ingresso-2027/vestibular-2027/",
+     "texto_fonte": "Comvest (Unicamp)",
+     "conferido_em": "2026-11-17",
+     "id": "unicamp-14"
+    },
+    {
+     "valores": [
+      "Unesp 2027",
+      {
+       "texto": "Pedido de isenção ou redução de 50% da taxa do Unesp-Enem 2027 (seleção da Unesp pela nota do Enem)",
+       "nota": "O início do prazo não está na página oficial lida."
+      },
+      "até 22/11/2026"
+     ],
+     "fonte": "https://vestibular.unesp.br/",
+     "texto_fonte": "Unesp",
+     "conferido_em": "2026-11-17",
+     "id": "unesp-1"
+    },
+    {
+     "valores": [
+      "Unesp 2027",
+      "Pedido de isenção do vestibular"
+     ],
+     "aviso": "Data ainda não encontrada em fonte oficial",
+     "id": "unesp-2",
+     "fonte": "https://vestibular.unesp.br/",
+     "texto_fonte": "Ver a página oficial"
+    },
+    {
+     "valores": [
+      "Unesp 2027",
+      "Inscrição"
+     ],
+     "aviso": "Data ainda não encontrada em fonte oficial",
+     "id": "unesp-3",
+     "fonte": "https://vestibular.unesp.br/",
+     "texto_fonte": "Ver a página oficial"
+    },
+    {
+     "valores": [
+      "Unesp 2027",
+      "Prova, 1ª fase",
+      "22/11/2026"
+     ],
+     "fonte": "https://vestibular.unesp.br/",
+     "texto_fonte": "Unesp",
+     "conferido_em": "2026-11-17",
+     "id": "unesp-4",
+     "contagem": "2026-11-22",
+     "rotulo_contagem": "Unesp, 1ª fase"
+    },
+    {
+     "valores": [
+      "Unesp 2027",
+      "Prova, 2ª fase",
+      "13 e 14/12/2026"
+     ],
+     "fonte": "https://www.fuvest.br/?p=70747",
+     "texto_fonte": "Aviso conjunto Fuvest e Vunesp",
+     "conferido_em": "2026-11-17",
+     "id": "unesp-5",
+     "contagem": "2026-12-13",
+     "rotulo_contagem": "Unesp, 2ª fase"
+    },
+    {
+     "valores": [
+      "Unesp 2027",
+      "Resultado"
+     ],
+     "aviso": "Data ainda não encontrada em fonte oficial",
+     "id": "unesp-6",
+     "fonte": "https://vestibular.unesp.br/",
+     "texto_fonte": "Ver a página oficial"
+    },
+    {
+     "valores": [
+      "Unesp 2027",
+      "Chamadas"
+     ],
+     "aviso": "Data ainda não encontrada em fonte oficial",
+     "id": "unesp-7",
+     "fonte": "https://vestibular.unesp.br/",
+     "texto_fonte": "Ver a página oficial"
+    },
+    {
+     "valores": [
+      "Unesp 2027",
+      "Matrícula"
+     ],
+     "aviso": "Data ainda não encontrada em fonte oficial",
+     "id": "unesp-8",
+     "fonte": "https://vestibular.unesp.br/",
+     "texto_fonte": "Ver a página oficial"
+    },
+    {
+     "valores": [
+      "Famerp 2027",
+      {
+       "texto": "Pedido de redução de 50% da taxa",
+       "nota": "O edital diz que não há isenção total (item 5)."
+      },
+      "31/08 a 10/09/2026"
+     ],
+     "fonte": "https://www.famerp.br/wp-content/plugins/download-attachments/includes/download.php?id=31419",
+     "texto_fonte": "Edital da Famerp, Anexo I",
+     "conferido_em": "2026-11-17",
+     "id": "famerp-1"
+    },
+    {
+     "valores": [
+      "Famerp 2027",
+      {
+       "texto": "Inscrição",
+       "nota": "Pagamento da taxa até 06/11/2026."
+      },
+      "31/08 a 05/11/2026"
+     ],
+     "fonte": "https://www.famerp.br/index.php/vestibular/",
+     "texto_fonte": "Famerp",
+     "conferido_em": "2026-11-17",
+     "id": "famerp-2"
+    },
+    {
+     "valores": [
+      "Famerp 2027",
+      "Prova de Conhecimentos Gerais",
+      "10/12/2026"
+     ],
+     "fonte": "https://www.famerp.br/wp-content/plugins/download-attachments/includes/download.php?id=31419",
+     "texto_fonte": "Edital da Famerp, Anexo I",
+     "conferido_em": "2026-11-17",
+     "id": "famerp-3",
+     "contagem": "2026-12-10",
+     "rotulo_contagem": "Famerp, prova de Conhecimentos Gerais"
+    },
+    {
+     "valores": [
+      "Famerp 2027",
+      "Prova de Conhecimentos Específicos e Redação",
+      "11/12/2026"
+     ],
+     "fonte": "https://www.famerp.br/wp-content/plugins/download-attachments/includes/download.php?id=31419",
+     "texto_fonte": "Edital da Famerp, Anexo I",
+     "conferido_em": "2026-11-17",
+     "id": "famerp-4",
+     "contagem": "2026-12-11",
+     "rotulo_contagem": "Famerp, prova de Conhecimentos Específicos e Redação"
+    },
+    {
+     "valores": [
+      "Famerp 2027",
+      "Resultado da 1ª fase"
+     ],
+     "aviso": "Data ainda não encontrada em fonte oficial",
+     "id": "famerp-5",
+     "fonte": "https://www.famerp.br/index.php/vestibular/",
+     "texto_fonte": "Ver a página oficial"
+    },
+    {
+     "valores": [
+      "Famerp 2027",
+      "1ª chamada: lista de convocados",
+      "29/01/2027"
+     ],
+     "fonte": "https://www.famerp.br/wp-content/plugins/download-attachments/includes/download.php?id=31419",
+     "texto_fonte": "Edital da Famerp, Anexo I",
+     "conferido_em": "2026-11-17",
+     "id": "famerp-6"
+    },
+    {
+     "valores": [
+      "Famerp 2027",
+      "Pré-matrícula on-line e apresentação da documentação",
+      "01 e 02/02/2027"
+     ],
+     "fonte": "https://www.famerp.br/wp-content/plugins/download-attachments/includes/download.php?id=31419",
+     "texto_fonte": "Edital da Famerp, Anexo I",
+     "conferido_em": "2026-11-17",
+     "id": "famerp-7"
+    }
+   ]
+  }
+ ],
+ "chamada": {
+  "titulo": "Use o tempo até a prova",
+  "texto": "Questões oficiais do Enem, Fuvest (USP), Unesp, Unicamp e Famerp, uma por vez, com o gabarito oficial. O que você errar volta para a revisão. É gratuito."
+ }
+}

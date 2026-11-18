@@ -1,0 +1,424 @@
+{
+ "tipo": "leitura",
+ "endereco": "/temas-de-redacao-enem/",
+ "titulo": "Temas de redação do Enem de 1998 a 2026",
+ "descricao": "Todos os temas de redação do Enem de 1998 a 2026, ano a ano, com o link da prova no Inep e a fonte de cada tema. Para treinar a escrita com temas reais.",
+ "migalha": "Temas de redação do Enem",
+ "h1": "Temas de redação do Enem",
+ "apoio": "O tema de cada ano, de 2026 até 1998, tirado do caderno oficial do Inep. Use para treinar a escrita com propostas que já caíram.",
+ "tom": "boia",
+ "atualizada_em": "2026-11-17",
+ "menu": true,
+ "sumario": true,
+ "relacionadas": [
+  "/provas-anteriores/",
+  "/calendario-vestibulares/",
+  "/obras-obrigatorias/"
+ ],
+ "blocos": [
+  {
+   "tipo": "texto",
+   "titulo": "Antes de começar",
+   "paragrafos": [
+    "O PU não corrige redação. Esta página serve para você conhecer os temas e treinar a escrita por conta própria, com um professor ou com colegas.",
+    "Cada tema foi lido no caderno de prova do Inep, na página indicada na linha. Em 2026 o caderno ainda não saiu, então o tema vem da notícia oficial do Inep. A lista traz só a aplicação principal de cada ano, sem reaplicação nem a prova para pessoas privadas de liberdade (PPL).",
+    "Alguns cadernos escrevem o tema todo em maiúsculas. Aqui todos aparecem com maiúscula só no começo e nos nomes, sem mudar nenhuma palavra."
+   ]
+  },
+  {
+   "tipo": "dados",
+   "id": "temas",
+   "titulo": "Temas de 2026 a 1998",
+   "rotulos": true,
+   "colunas": [
+    "Ano",
+    "Tema",
+    "Prova"
+   ],
+   "coluna_fonte": "Fonte do tema",
+   "linhas": [
+    {
+     "valores": [
+      "2026",
+      "A valorização do Sistema Único de Saúde (SUS) como direito universal",
+      "O Inep ainda não publicou o caderno desta prova"
+     ],
+     "fonte": "https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enem/tema-da-redacao-a-valorizacao-do-sistema-unico-de-saude-sus-como-direito-universal",
+     "texto_fonte": "Notícia oficial do Inep",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2025",
+      "Perspectivas acerca do envelhecimento na sociedade brasileira",
+      {
+       "texto": "Provas e gabaritos de 2025 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2025"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2025_PV_impresso_D1_CD1.pdf",
+     "texto_fonte": "Caderno do Inep, página 20",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2024",
+      "Desafios para a valorização da herança africana no Brasil",
+      {
+       "texto": "Provas e gabaritos de 2024 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2024"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2024_PV_impresso_D1_CD1.pdf",
+     "texto_fonte": "Caderno do Inep, página 19",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2023",
+      "Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil",
+      {
+       "texto": "Provas e gabaritos de 2023 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2023"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2023_PV_impresso_D1_CD1.pdf",
+     "texto_fonte": "Caderno do Inep, página 19",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2022",
+      "Desafios para a valorização de comunidades e povos tradicionais no Brasil",
+      {
+       "texto": "Provas e gabaritos de 2022 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2022"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2022_PV_impresso_D1_CD1.pdf",
+     "texto_fonte": "Caderno do Inep, página 20",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2021",
+      "Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil",
+      {
+       "texto": "Provas e gabaritos de 2021 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2021"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2021_PV_impresso_D1_CD1.pdf",
+     "texto_fonte": "Caderno do Inep, página 21",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2020",
+      "O estigma associado às doenças mentais na sociedade brasileira",
+      {
+       "texto": "Provas e gabaritos de 2020 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2020"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/enem/provas_e_gabaritos/2020_PV_impresso_D1_CD1.pdf",
+     "texto_fonte": "Caderno do Inep, página 19",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2019",
+      "Democratização do acesso ao cinema no Brasil",
+      {
+       "texto": "Provas e gabaritos de 2019 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2019"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2019/2019_PV_impresso_D1_CD1.pdf",
+     "texto_fonte": "Caderno do Inep, página 20",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2018",
+      "Manipulação do comportamento do usuário pelo controle de dados na internet",
+      {
+       "texto": "Provas e gabaritos de 2018 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2018"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2018/2018_PV_impresso_D1_CD1.pdf",
+     "texto_fonte": "Caderno do Inep, página 19",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2017",
+      "Desafios para a formação educacional de surdos no Brasil",
+      {
+       "texto": "Provas e gabaritos de 2017 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2017"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2017/2017_PV_impresso_D1_CD1.pdf",
+     "texto_fonte": "Caderno do Inep, página 19",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2016",
+      "Caminhos para combater a intolerância religiosa no Brasil",
+      {
+       "texto": "Provas e gabaritos de 2016 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2016"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2016/2016_PV_impresso_D2_CD5.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2015",
+      "A persistência da violência contra a mulher na sociedade brasileira",
+      {
+       "texto": "Provas e gabaritos de 2015 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2015"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2015/2015_PV_impresso_D2_CD5.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2014",
+      "Publicidade infantil em questão no Brasil",
+      {
+       "texto": "Provas e gabaritos de 2014 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2014"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2014/2014_PV_impresso_D2_CD5.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2013",
+      "Efeitos da implantação da Lei Seca no Brasil",
+      {
+       "texto": "Provas e gabaritos de 2013 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2013"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2013/dia2_caderno5_amarelo.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2012",
+      "O movimento imigratório para o Brasil no século XXI",
+      {
+       "texto": "Provas e gabaritos de 2012 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2012"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2012/dia2_caderno5_amarelo.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2011",
+      "Viver em rede no século XXI: os limites entre o público e o privado",
+      {
+       "texto": "Provas e gabaritos de 2011 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2011"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2011/dia2_caderno5_amarelo.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2010",
+      "O trabalho na construção da dignidade humana",
+      {
+       "texto": "Provas e gabaritos de 2010 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2010"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2010/dia2_caderno5_amarelo.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2009",
+      "O indivíduo frente à ética nacional",
+      {
+       "texto": "Provas e gabaritos de 2009 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2009"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2009/dia2_caderno5_amarelo.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2008",
+      {
+       "texto": "Sem título. A proposta pedia: \"Escolha uma dessas ações e, a seguir, redija um texto dissertativo, ressaltando as possibilidades e as limitações da ação escolhida.\"",
+       "nota": "Em 2008 a prova não deu título ao tema. A proposta partia do texto \"A máquina de chuva da Amazônia\"."
+      },
+      {
+       "texto": "Provas e gabaritos de 2008 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2008"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2008/2008_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2007",
+      "O desafio de se conviver com a diferença",
+      {
+       "texto": "Provas e gabaritos de 2007 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2007"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2007/2007_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2006",
+      "O poder de transformação da leitura",
+      {
+       "texto": "Provas e gabaritos de 2006 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2006"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2006/2006_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2005",
+      "O trabalho infantil na realidade brasileira",
+      {
+       "texto": "Provas e gabaritos de 2005 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2005"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2005/2005_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2004",
+      "Como garantir a liberdade de informação e evitar abusos nos meios de comunicação?",
+      {
+       "texto": "Provas e gabaritos de 2004 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2004"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2004/2004_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2003",
+      "A violência na sociedade brasileira: como mudar as regras desse jogo?",
+      {
+       "texto": "Provas e gabaritos de 2003 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2003"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2003/2003_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2002",
+      "O direito de votar: como fazer dessa conquista um meio para promover as transformações sociais de que o Brasil necessita?",
+      {
+       "texto": "Provas e gabaritos de 2002 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2002"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2002/2002_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2001",
+      "Desenvolvimento e preservação ambiental: como conciliar os interesses em conflito?",
+      {
+       "texto": "Provas e gabaritos de 2001 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2001"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2001/2001_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "2000",
+      "Direitos da criança e do adolescente: como enfrentar esse desafio nacional?",
+      {
+       "texto": "Provas e gabaritos de 2000 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/2000"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/2000/2000_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 2",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "1999",
+      "Cidadania e participação social",
+      {
+       "texto": "Provas e gabaritos de 1999 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/1999"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/1999/1999_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 1",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "1998",
+      "Viver e aprender",
+      {
+       "texto": "Provas e gabaritos de 1998 no Inep",
+       "link": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/1998"
+      }
+     ],
+     "fonte": "https://download.inep.gov.br/educacao_basica/enem/provas/1998/1998_amarela.pdf",
+     "texto_fonte": "Caderno do Inep, página 1",
+     "conferido_em": "2026-11-17"
+    }
+   ]
+  }
+ ],
+ "chamada": {
+  "titulo": "Treine as questões objetivas do Enem",
+  "texto": "A redação fica com você. As questões objetivas do Enem de 2021 a 2025 estão no PU, uma por vez, com o gabarito oficial. É gratuito."
+ }
+}

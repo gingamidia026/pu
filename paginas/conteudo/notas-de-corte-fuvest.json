@@ -1,0 +1,1133 @@
+{
+ "tipo": "leitura",
+ "endereco": "/notas-de-corte/fuvest/",
+ "titulo": "Notas de corte da Fuvest 2027 por carreira e modalidade",
+ "descricao": "Nota do último convocado para a 2ª fase da Fuvest 2027 nas 77 carreiras da USP, em ampla concorrência, escola pública e grupo PPI, com o PDF oficial.",
+ "migalha": "Notas de corte da Fuvest",
+ "h1": "Notas de corte da Fuvest 2027",
+ "apoio": "A nota do último convocado para a 2ª fase em cada uma das 77 carreiras da USP, nas três modalidades. Os números vêm do PDF oficial da Fuvest.",
+ "tom": "mar",
+ "atualizada_em": "2026-11-17",
+ "menu": true,
+ "sumario": true,
+ "script": "notas-de-corte.js",
+ "relacionadas": [
+  "/notas-de-corte/unicamp/",
+  "/calendario-vestibulares/",
+  "/provas-anteriores/"
+ ],
+ "blocos": [
+  {
+   "tipo": "texto",
+   "titulo": "O que é a nota de corte da Fuvest",
+   "paragrafos": [
+    "É a nota do último candidato chamado para a 2ª fase do Vestibular Fuvest 2027, em cada carreira e em cada modalidade. Quem fez essa nota ou mais na 1ª fase foi convocado. No PDF, é a coluna dos pontos mínimos dos convocados.",
+    "As modalidades são as do PDF: ampla concorrência, candidatos de escola pública e candidatos de escola pública do grupo PPI (pretos, pardos e indígenas). Quem pode concorrer em cada uma está no edital da Fuvest.",
+    "O PDF não diz qual é a nota máxima da 1ª fase. Por isso o PU mostra o número como a Fuvest publicou, sem converter em porcentagem.",
+    "[Abrir o PDF oficial da Fuvest](https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf)."
+   ]
+  },
+  {
+   "tipo": "dados",
+   "id": "cortes",
+   "titulo": "Nota de corte por carreira",
+   "rotulos": true,
+   "filtro": "Procure sua carreira",
+   "nota": [
+    "77 carreiras do Vestibular Fuvest 2027, 1ª fase.",
+    "Sem nota no PDF: Ciências dos Alimentos (escola pública, grupo PPI). O PDF traz um traço no lugar do número."
+   ],
+   "colunas": [
+    "Carreira",
+    "Ampla concorrência",
+    "Escola pública",
+    "Escola pública, grupo PPI"
+   ],
+   "coluna_fonte": "Fonte oficial",
+   "linhas": [
+    {
+     "valores": [
+      {
+       "texto": "Biotecnologia",
+       "nota": "código 101"
+      },
+      "47",
+      "37",
+      "27"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Ciências Biológicas",
+       "nota": "código 102"
+      },
+      "49",
+      "41",
+      "30"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Ciências Biomédicas",
+       "nota": "código 103"
+      },
+      "54",
+      "45",
+      "37"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Ciências dos Alimentos",
+       "nota": "código 104"
+      },
+      "25",
+      "24",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Educação Física",
+       "nota": "código 105"
+      },
+      "37",
+      "28",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Enfermagem",
+       "nota": "código 106"
+      },
+      "39",
+      "27",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Farmácia",
+       "nota": "código 107"
+      },
+      "50",
+      "41",
+      "28"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Fisioterapia",
+       "nota": "código 108"
+      },
+      "51",
+      "43",
+      "36"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Fonoaudiologia",
+       "nota": "código 109"
+      },
+      "45",
+      "36",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Gerontologia",
+       "nota": "código 110"
+      },
+      "40",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Medicina",
+       "nota": "código 111"
+      },
+      "68",
+      "61",
+      "51"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Medicina Veterinária",
+       "nota": "código 112"
+      },
+      "50",
+      "41",
+      "32"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Nutrição",
+       "nota": "código 113"
+      },
+      "45",
+      "37",
+      "27"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Obstetrícia",
+       "nota": "código 114"
+      },
+      "34",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Odontologia",
+       "nota": "código 115"
+      },
+      "46",
+      "34",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Psicologia",
+       "nota": "código 116"
+      },
+      "58",
+      "48",
+      "40"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Psicologia",
+       "nota": "código 117"
+      },
+      "59",
+      "51",
+      "44"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Saúde Pública",
+       "nota": "código 118"
+      },
+      "24",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Terapia Ocupacional",
+       "nota": "código 119"
+      },
+      "47",
+      "40",
+      "31"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Zootecnia",
+       "nota": "código 120"
+      },
+      "36",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Treinamento Biológicas",
+       "nota": "código 199"
+      },
+      "52",
+      "31",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Engenharia Agronômica; Engenharia Bioquímica; Engenharia Florestal",
+       "nota": "código 201"
+      },
+      "42",
+      "26",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Ciências da Natureza",
+       "nota": "código 301"
+      },
+      "25",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Ciências Exatas",
+       "nota": "código 302"
+      },
+      "27",
+      "26",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Computação",
+       "nota": "código 303"
+      },
+      "52",
+      "44",
+      "34"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Engenharia Aeronáutica",
+       "nota": "código 304"
+      },
+      "62",
+      "49",
+      "33"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Engenharia Ambiental",
+       "nota": "código 305"
+      },
+      "41",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Engenharia Civil",
+       "nota": "código 306"
+      },
+      "51",
+      "39",
+      "27"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Engenharia de Materiais",
+       "nota": "código 307"
+      },
+      "43",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Engenharia Elétrica e de Computação",
+       "nota": "código 308"
+      },
+      "57",
+      "45",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Engenharia Física; Engenharia de Produção; Engenharia Química",
+       "nota": "código 309"
+      },
+      "44",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Engenharia Mecânica; Engenharia Mecatrônica; Engenharia de Produção",
+       "nota": "código 310"
+      },
+      "57",
+      "43",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Engenharias",
+       "nota": "código 311"
+      },
+      "57",
+      "41",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Engenharias FZEA",
+       "nota": "código 312"
+      },
+      "34",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Física / Física Computacional / Física Biomolecular / Meteorologia / Geofísic...",
+       "nota": "código 313"
+      },
+      "43",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Física Médica",
+       "nota": "código 314"
+      },
+      "42",
+      "26",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Geociências e Educação Ambiental",
+       "nota": "código 315"
+      },
+      "24",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Geologia",
+       "nota": "código 316"
+      },
+      "41",
+      "26",
+      "25"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Informática Biomédica",
+       "nota": "código 317"
+      },
+      "41",
+      "25",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Licenciatura em Matemática / Física",
+       "nota": "código 318"
+      },
+      "32",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Oceanografia",
+       "nota": "código 319"
+      },
+      "38",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Química",
+       "nota": "código 320"
+      },
+      "32",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Química",
+       "nota": "código 321"
+      },
+      "41",
+      "29",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Sistemas de Informação",
+       "nota": "código 322"
+      },
+      "47",
+      "40",
+      "30"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Treinamento Exatas",
+       "nota": "código 399"
+      },
+      "54",
+      "34",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Administração, Ciências Contábeis, Ciências Econômicas, Finanças e Negó...",
+       "nota": "código 501"
+      },
+      "47",
+      "34",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Administração, Ciências Atuariais, Ciências Contábeis e Ciências Econômic...",
+       "nota": "código 502"
+      },
+      "53",
+      "42",
+      "30"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Ciências Econômicas e Administração",
+       "nota": "código 503"
+      },
+      "46",
+      "33",
+      "26"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Arquitetura",
+       "nota": "código 504"
+      },
+      "53",
+      "44",
+      "34"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Arquitetura",
+       "nota": "código 505"
+      },
+      "50",
+      "38",
+      "27"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Artes Cênicas",
+       "nota": "código 506"
+      },
+      "46",
+      "38",
+      "29"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Artes Visuais",
+       "nota": "código 507"
+      },
+      "51",
+      "43",
+      "35"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Audiovisual",
+       "nota": "código 508"
+      },
+      "55",
+      "49",
+      "42"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Biblioteconomia e Ciência da Informação",
+       "nota": "código 509"
+      },
+      "42",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Ciências Sociais",
+       "nota": "código 510"
+      },
+      "42",
+      "29",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Design",
+       "nota": "código 511"
+      },
+      "51",
+      "44",
+      "36"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Direito",
+       "nota": "código 512"
+      },
+      "56",
+      "47",
+      "38"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Editoração",
+       "nota": "código 513"
+      },
+      "44",
+      "35",
+      "28"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Educomunicação",
+       "nota": "código 514"
+      },
+      "32",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Filosofia",
+       "nota": "código 515"
+      },
+      "36",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Geografia",
+       "nota": "código 516"
+      },
+      "35",
+      "25",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Gestão Ambiental",
+       "nota": "código 517"
+      },
+      "24",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Gestão de Políticas Públicas",
+       "nota": "código 518"
+      },
+      "38",
+      "27",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "História",
+       "nota": "código 519"
+      },
+      "41",
+      "27",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Jornalismo",
+       "nota": "código 520"
+      },
+      "52",
+      "47",
+      "42"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Letras",
+       "nota": "código 521"
+      },
+      "32",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Marketing",
+       "nota": "código 522"
+      },
+      "40",
+      "32",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Música",
+       "nota": "código 523"
+      },
+      "40",
+      "27",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Música",
+       "nota": "código 524"
+      },
+      "29",
+      "25",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Pedagogia",
+       "nota": "código 525"
+      },
+      "35",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Pedagogia",
+       "nota": "código 526"
+      },
+      "32",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Publicidade e Propaganda",
+       "nota": "código 527"
+      },
+      "49",
+      "44",
+      "39"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Relações Internacionais",
+       "nota": "código 528"
+      },
+      "56",
+      "48",
+      "38"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Relações Públicas",
+       "nota": "código 529"
+      },
+      "47",
+      "41",
+      "33"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Têxtil e Moda",
+       "nota": "código 530"
+      },
+      "41",
+      "34",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Turismo",
+       "nota": "código 531"
+      },
+      "24",
+      "24",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Treinamento Humanas",
+       "nota": "código 599"
+      },
+      "51",
+      "32",
+      "24"
+     ],
+     "fonte": "https://www.fuvest.br/wp-content/uploads/fuvest2027-notas-de-corte.pdf",
+     "texto_fonte": "PDF da Fuvest",
+     "conferido_em": "2026-11-17"
+    }
+   ]
+  }
+ ],
+ "chamada": {
+  "titulo": "Treine para a próxima Fuvest",
+  "texto": "As questões objetivas das provas anteriores da Fuvest estão no PU, uma por vez, com o gabarito oficial. O que você errar volta para a revisão. É gratuito."
+ }
+}

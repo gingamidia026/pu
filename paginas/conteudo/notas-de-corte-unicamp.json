@@ -1,0 +1,1333 @@
+{
+ "tipo": "leitura",
+ "endereco": "/notas-de-corte/unicamp/",
+ "titulo": "Notas de corte da Unicamp 2027 por curso: acertos para a 2ª fase",
+ "descricao": "Número de acertos do último convocado para a 2ª fase da Unicamp 2027 em cada curso, para cotistas, não cotistas e cada faixa do PAAIS, com o PDF oficial.",
+ "migalha": "Notas de corte da Unicamp",
+ "h1": "Notas de corte da Unicamp 2027",
+ "apoio": "Quantas questões o último convocado para a 2ª fase acertou em cada curso, separado por cota e por bônus do PAAIS. Os números vêm do PDF oficial da Comvest.",
+ "tom": "ipe",
+ "atualizada_em": "2026-11-17",
+ "menu": true,
+ "sumario": true,
+ "script": "notas-de-corte.js",
+ "relacionadas": [
+  "/notas-de-corte/fuvest/",
+  "/calendario-vestibulares/",
+  "/obras-obrigatorias/"
+ ],
+ "blocos": [
+  {
+   "tipo": "texto",
+   "titulo": "O que é a nota de corte da Unicamp",
+   "paragrafos": [
+    "Na Unicamp, o corte da 1ª fase vem como número de acertos: quantas questões o último candidato chamado para a 2ª fase acertou, em cada curso e em cada grupo. É contagem de questões certas, sem conversão em nota.",
+    "O PDF não diz quantas questões a prova tinha nem qual é a nota máxima. Por isso o PU mostra o número como a Comvest publicou.",
+    "[Abrir o PDF oficial da Comvest](https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf)."
+   ]
+  },
+  {
+   "tipo": "texto",
+   "id": "colunas",
+   "no_sumario": true,
+   "titulo": "Cotista e PAAIS: o que cada coluna quer dizer",
+   "paragrafos": [
+    "Cotista é quem optou pela reserva de vagas para candidatos autodeclarados pretos e pardos. Não cotista é quem não optou. Fonte: [Manual do Ingresso do Vestibular Unicamp 2027](https://www.comvest.unicamp.br/wp-content/uploads/2026/07/VU2027-Manual-do-Ingresso.pdf), página 13.",
+    "PAAIS é o Programa de Ação Afirmativa e Inclusão Social, um bônus somado à nota da 1ª fase de quem estudou em escola pública no Brasil: 20 pontos para quem cursou o Ensino Fundamental II em escola pública, 40 para quem cursou todo o Ensino Médio em escola pública e 60 para quem cursou os dois. PAAIS 0 é o grupo sem esse bônus. A participação é opcional e se marca na inscrição.",
+    "Fonte do PAAIS: [Manual do Ingresso do Vestibular Unicamp 2027](https://www.comvest.unicamp.br/wp-content/uploads/2026/07/VU2027-Manual-do-Ingresso.pdf), página 16. As letras entre parênteses depois do nome do curso estão como no PDF."
+   ]
+  },
+  {
+   "tipo": "dados",
+   "id": "cortes",
+   "titulo": "Acertos do último convocado, por curso",
+   "largo": true,
+   "filtro": "Procure seu curso",
+   "nota": [
+    "61 cursos e as linhas de treineiros do Vestibular Unicamp 2027, 1ª fase. No celular, arraste a tabela para o lado para ver todas as colunas.",
+    "\"Sem valor\": o PDF traz um traço nessa coluna. Uma linha não foi lida com segurança no PDF e aparece com o aviso; confira no documento oficial."
+   ],
+   "colunas": [
+    "Curso",
+    "Não cotista PAAIS 0",
+    "Não cotista PAAIS 20",
+    "Não cotista PAAIS 40",
+    "Não cotista PAAIS 60",
+    "Cotista PAAIS 0",
+    "Cotista PAAIS 20",
+    "Cotista PAAIS 40",
+    "Cotista PAAIS 60"
+   ],
+   "coluna_fonte": "Fonte oficial",
+   "linhas": [
+    {
+     "valores": [
+      "Administração (N)",
+      "40",
+      "40",
+      "36",
+      "33",
+      "30",
+      "28",
+      "29",
+      "24"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Administração Publica (N)",
+      "33",
+      "41",
+      "29",
+      "27",
+      "24",
+      "sem valor",
+      "26",
+      "17"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Arquitetura e Urbanismo (N)",
+      "51",
+      "52",
+      "48",
+      "46",
+      "45",
+      "sem valor",
+      "40",
+      "38"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Artes Cênicas (I)",
+      "41",
+      "sem valor",
+      "37",
+      "35",
+      "36",
+      "sem valor",
+      "35",
+      "29"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Artes Visuais (I)",
+      "43",
+      "42",
+      "39",
+      "37",
+      "35",
+      "39",
+      "31",
+      "29"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Ciência da Computação (N)"
+     ],
+     "aviso": "Não lido no PDF, ver o documento oficial",
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest"
+    },
+    {
+     "valores": [
+      "Ciências Biológicas (I)",
+      "48",
+      "50",
+      "44",
+      "42",
+      "45",
+      "42",
+      "40",
+      "39"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Ciências Biológicas - Licenciatura (N)",
+      "39",
+      "sem valor",
+      "35",
+      "33",
+      "39",
+      "sem valor",
+      "33",
+      "29"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Ciências do Esporte (I)",
+      "36",
+      "sem valor",
+      "31",
+      "29",
+      "21",
+      "33",
+      "20",
+      "19"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Ciências Econômicas (I)",
+      "50",
+      "49",
+      "46",
+      "46",
+      "43",
+      "sem valor",
+      "38",
+      "36"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Ciências Econômicas (N)",
+      "48",
+      "49",
+      "44",
+      "41",
+      "45",
+      "sem valor",
+      "42",
+      "39"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Ciências Sociais (I)",
+      "37",
+      "sem valor",
+      "33",
+      "31",
+      "28",
+      "sem valor",
+      "27",
+      "22"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Ciências Sociais (N)",
+      "34",
+      "35",
+      "31",
+      "28",
+      "37",
+      "sem valor",
+      "33",
+      "30"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Comunicação Social - Midialogia (I)",
+      "46",
+      "sem valor",
+      "42",
+      "40",
+      "47",
+      "sem valor",
+      "41",
+      "38"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Dança (I)",
+      "29",
+      "27",
+      "25",
+      "22",
+      "28",
+      "sem valor",
+      "37",
+      "22"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Educação Física (I)",
+      "39",
+      "sem valor",
+      "35",
+      "33",
+      "35",
+      "sem valor",
+      "31",
+      "28"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Educação Física (N)",
+      "31",
+      "35",
+      "28",
+      "25",
+      "33",
+      "sem valor",
+      "28",
+      "26"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Enfermagem (I)",
+      "42",
+      "40",
+      "38",
+      "36",
+      "39",
+      "39",
+      "35",
+      "33"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Eng. Fis/Fis/Fis Med. e Biomed./Mat./Mat.Aplic. Comp.(I)",
+      "45",
+      "45",
+      "41",
+      "39",
+      "22",
+      "21",
+      "32",
+      "21"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia Agrícola (I)",
+      "34",
+      "32",
+      "30",
+      "28",
+      "19",
+      "39",
+      "25",
+      "18"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia Ambiental (N)",
+      "16",
+      "sem valor",
+      "23",
+      "19",
+      "16",
+      "sem valor",
+      "32",
+      "25"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia Civil (I)",
+      "45",
+      "46",
+      "41",
+      "39",
+      "36",
+      "43",
+      "32",
+      "30"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia de Alimentos (I)",
+      "30",
+      "sem valor",
+      "25",
+      "27",
+      "20",
+      "33",
+      "25",
+      "23"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia de Alimentos (N)",
+      "33",
+      "32",
+      "29",
+      "27",
+      "sem valor",
+      "39",
+      "33",
+      "28"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia de Computação (I)",
+      "56",
+      "57",
+      "52",
+      "50",
+      "45",
+      "45",
+      "41",
+      "39"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia de Controle e Automação (N)",
+      "45",
+      "sem valor",
+      "41",
+      "39",
+      "40",
+      "sem valor",
+      "34",
+      "30"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia de Manufatura (I)",
+      "20",
+      "sem valor",
+      "22",
+      "33",
+      "20",
+      "27",
+      "50",
+      "21"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia de Producao (I)",
+      "50",
+      "55",
+      "46",
+      "44",
+      "33",
+      "35",
+      "30",
+      "28"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia de Telecomunicações (I)",
+      "25",
+      "sem valor",
+      "29",
+      "30",
+      "21",
+      "sem valor",
+      "sem valor",
+      "26"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia de Transportes (N)",
+      "21",
+      "sem valor",
+      "27",
+      "19",
+      "35",
+      "sem valor",
+      "47",
+      "18"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia Elétrica (I)",
+      "53",
+      "58",
+      "49",
+      "46",
+      "41",
+      "39",
+      "36",
+      "35"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia Elétrica (N)",
+      "45",
+      "44",
+      "41",
+      "39",
+      "42",
+      "sem valor",
+      "40",
+      "35"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia Mecânica (I)",
+      "52",
+      "50",
+      "48",
+      "45",
+      "40",
+      "38",
+      "37",
+      "34"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia Química (I)",
+      "52",
+      "51",
+      "48",
+      "46",
+      "42",
+      "43",
+      "38",
+      "35"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Engenharia Química (N)",
+      "45",
+      "44",
+      "41",
+      "39",
+      "41",
+      "56",
+      "37",
+      "34"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Estatística (I)",
+      "40",
+      "sem valor",
+      "36",
+      "35",
+      "13",
+      "23",
+      "22",
+      "20"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Estudos Literários (I)",
+      "36",
+      "sem valor",
+      "34",
+      "29",
+      "41",
+      "sem valor",
+      "28",
+      "21"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Farmácia (I)",
+      "48",
+      "53",
+      "44",
+      "42",
+      "43",
+      "44",
+      "39",
+      "37"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Filosofia (I)",
+      "31",
+      "sem valor",
+      "31",
+      "27",
+      "31",
+      "30",
+      "36",
+      "24"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Física - Licenciatura (N)",
+      "21",
+      "sem valor",
+      "22",
+      "24",
+      "43",
+      "23",
+      "39",
+      "19"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Fonoaudiologia (I)",
+      "45",
+      "43",
+      "41",
+      "39",
+      "41",
+      "sem valor",
+      "37",
+      "35"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Geografia (I)",
+      "39",
+      "sem valor",
+      "38",
+      "33",
+      "23",
+      "sem valor",
+      "sem valor",
+      "24"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Geografia (N)",
+      "32",
+      "33",
+      "28",
+      "26",
+      "33",
+      "29",
+      "19",
+      "20"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Geologia (I)",
+      "38",
+      "41",
+      "34",
+      "32",
+      "26",
+      "sem valor",
+      "26",
+      "20"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Historia (I)",
+      "42",
+      "41",
+      "38",
+      "36",
+      "37",
+      "sem valor",
+      "36",
+      "30"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Inteligencia Artificial e Ciência de Dados (I)",
+      "45",
+      "50",
+      "41",
+      "39",
+      "38",
+      "39",
+      "40",
+      "32"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Letras - Licenciatura (I)",
+      "41",
+      "sem valor",
+      "37",
+      "36",
+      "34",
+      "31",
+      "39",
+      "26"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Letras - Licenciatura (N)",
+      "40",
+      "42",
+      "35",
+      "33",
+      "42",
+      "sem valor",
+      "40",
+      "32"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Licenciatura Integrada Química/Física (N)",
+      "37",
+      "sem valor",
+      "33",
+      "32",
+      "27",
+      "sem valor",
+      "23",
+      "16"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Linguística (I)",
+      "38",
+      "45",
+      "33",
+      "33",
+      "26",
+      "sem valor",
+      "35",
+      "25"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Matemática - Licenciatura (N)",
+      "21",
+      "26",
+      "22",
+      "23",
+      "31",
+      "sem valor",
+      "29",
+      "26"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Medicina (I)",
+      "62",
+      "60",
+      "58",
+      "56",
+      "57",
+      "56",
+      "53",
+      "51"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Nutrição (I)",
+      "42",
+      "41",
+      "38",
+      "36",
+      "34",
+      "sem valor",
+      "30",
+      "28"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Odontologia (I)",
+      "45",
+      "43",
+      "40",
+      "38",
+      "36",
+      "sem valor",
+      "32",
+      "29"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Pedagogia - Licenciatura (I)",
+      "30",
+      "33",
+      "27",
+      "24",
+      "27",
+      "sem valor",
+      "31",
+      "16"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Pedagogia - Licenciatura (N)",
+      "35",
+      "39",
+      "31",
+      "29",
+      "57",
+      "sem valor",
+      "33",
+      "31"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Química (I)",
+      "40",
+      "42",
+      "36",
+      "34",
+      "27",
+      "51",
+      "26",
+      "22"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Química Tecnológica (N)",
+      "31",
+      "29",
+      "30",
+      "24",
+      "33",
+      "sem valor",
+      "35",
+      "19"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Relações Internacionais (I)",
+      "46",
+      "52",
+      "42",
+      "40",
+      "44",
+      "48",
+      "39",
+      "37"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Sistemas de Informação (I)",
+      "43",
+      "45",
+      "39",
+      "37",
+      "34",
+      "31",
+      "31",
+      "26"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Tecnologia em Analise e Des. de Sist. (N)",
+      "39",
+      "43",
+      "35",
+      "33",
+      "34",
+      "sem valor",
+      "45",
+      "26"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Treineiros - Área de Biológicas",
+       "nota": "treineiros"
+      },
+      "41",
+      "42",
+      "37",
+      "35",
+      "19",
+      "24",
+      "24",
+      "19"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Treineiros - Área de Exatas",
+       "nota": "treineiros"
+      },
+      "46",
+      "45",
+      "42",
+      "39",
+      "22",
+      "sem valor",
+      "25",
+      "22"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      {
+       "texto": "Treineiros - Área de Humanas",
+       "nota": "treineiros"
+      },
+      "36",
+      "sem valor",
+      "32",
+      "30",
+      "20",
+      "34",
+      "31",
+      "18"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-de-corte.pdf",
+     "texto_fonte": "PDF da Comvest",
+     "conferido_em": "2026-11-17"
+    }
+   ]
+  },
+  {
+   "tipo": "dados",
+   "id": "musica",
+   "titulo": "Cursos de música: outra escala",
+   "rotulos": true,
+   "nota": [
+    "O corte dos cursos de música vem em outro PDF da Comvest e em outra escala: uma nota com casa decimal, no lugar do número de acertos. Por isso fica numa tabela à parte. Não compare estes números com os da tabela de cima. O PDF não diz a nota máxima.",
+    "22 cursos de música. \"Sem nota no PDF\": o documento não traz nota nesse grupo."
+   ],
+   "colunas": [
+    "Curso",
+    "Não cotista",
+    "Cotista"
+   ],
+   "coluna_fonte": "Fonte oficial",
+   "linhas": [
+    {
+     "valores": [
+      "Música: Composição (I)",
+      "458,9",
+      "483,9"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música: Licenciatura (I)",
+      "464,3",
+      "485,7"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música: Regência (I)",
+      "529,7",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Flauta (I)",
+      "548,5",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Percussão (I)",
+      "592,6",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Piano (I)",
+      "571,5",
+      "412,5"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Trombone (I)",
+      "446,5",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Trompete (I)",
+      "461,9",
+      "418,8"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Viola (I)",
+      "522,8",
+      "478,7"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Violino (I)",
+      "557,7",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Violoncelo (I)",
+      "522,0",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Canto (I)",
+      "445,7",
+      "490,2"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Violão (I)",
+      "sem nota no PDF",
+      "551,5"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Clarineta (I)",
+      "557,0",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Erudita: Trompa (I)",
+      "366,4",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Popular: Bateria (I)",
+      "531,5",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Popular: Contrabaixo (I)",
+      "475,8",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Popular: Guitarra (I)",
+      "552,8",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Popular: Piano (I)",
+      "562,5",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Popular: Saxofone (I)",
+      "424,1",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Popular: Violão (I)",
+      "479,5",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    },
+    {
+     "valores": [
+      "Música Popular: Canto (I)",
+      "551,4",
+      "sem nota no PDF"
+     ],
+     "fonte": "https://www.comvest.unicamp.br/wp-content/uploads/2026/11/VU2027-nota-corte-musica.pdf",
+     "texto_fonte": "PDF da Comvest (música)",
+     "conferido_em": "2026-11-17"
+    }
+   ]
+  }
+ ],
+ "chamada": {
+  "titulo": "Treine para a próxima Unicamp",
+  "texto": "As questões objetivas das provas anteriores da Unicamp estão no PU, uma por vez, com o gabarito oficial. O que você errar volta para a revisão. É gratuito."
+ }
+}

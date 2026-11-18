@@ -1,0 +1,549 @@
+{
+ "tipo": "leitura",
+ "endereco": "/obras-obrigatorias/",
+ "titulo": "Obras obrigatórias da Fuvest e da Unicamp 2027 e 2028",
+ "descricao": "Lista de leituras obrigatórias da Fuvest e da Unicamp para 2027 e 2028, lado a lado, com o que entra e o que sai e o link do texto livre das obras em domínio público.",
+ "migalha": "Obras obrigatórias",
+ "h1": "Obras obrigatórias da Fuvest e da Unicamp",
+ "apoio": "As leituras de 2027 e de 2028 das duas listas oficiais, lado a lado. Quando a obra está em domínio público e o PU achou o texto numa biblioteca oficial, a linha leva ao PDF.",
+ "tom": "goiaba",
+ "atualizada_em": "2026-11-17",
+ "menu": true,
+ "sumario": true,
+ "relacionadas": [
+  "/calendario-vestibulares/",
+  "/temas-de-redacao-enem/",
+  "/provas-anteriores/"
+ ],
+ "blocos": [
+  {
+   "tipo": "texto",
+   "titulo": "Como usar estas listas",
+   "paragrafos": [
+    "Os títulos e os nomes estão escritos como nas páginas oficiais: [lista da Fuvest de 2026 a 2029](https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/) e [lista da Unicamp de 2027 a 2029](https://www.comvest.unicamp.br/lista-de-obras/). Antes de comprar um livro, confira a edição e os trechos pedidos na página oficial.",
+    "Esta página não traz resumo de obra. A leitura é sua: o PU só diz onde achar a lista e o texto.",
+    "A Fuvest não informa o gênero de cada obra, então a coluna de gênero aparece só na Unicamp."
+   ]
+  },
+  {
+   "tipo": "par",
+   "id": "ano-2027",
+   "titulo": "Vestibular 2027",
+   "blocos": [
+    {
+     "tipo": "dados",
+     "id": "fuvest-2027",
+     "titulo": "Fuvest (USP) 2027",
+     "rotulos": true,
+     "colunas": [
+      "Obra",
+      "Autora ou autor",
+      "Texto livre"
+     ],
+     "coluna_fonte": "Fonte oficial",
+     "linhas": [
+      {
+       "valores": [
+        "Opúsculo Humanitário (1853)",
+        "Nísia Floresta",
+        {
+         "link": "https://digital.bbm.usp.br/bitstream/bbm/7743/1/45000012375_Output.o.pdf",
+         "texto": "PDF na Biblioteca Brasiliana (USP)",
+         "nota": "arquivo grande, cerca de 65 MB"
+        }
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Nebulosas (1872)",
+        "Narcisa Amália",
+        "Em domínio público. O PU ainda não achou um link oficial."
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Memórias de Martha (1899)",
+        "Julia Lopes de Almeida",
+        {
+         "link": "https://www.bbm.usp.br/documents/120/Mem%C3%B3rias_de_Martha_1899.pdf",
+         "texto": "PDF na Biblioteca Brasiliana (USP)"
+        }
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Caminho de pedras (1937)",
+        "Rachel de Queiroz",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "A paixão segundo G. H. (1964)",
+        "Clarice Lispector",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Geografia (1967)",
+        "Sophia de Mello Breyner Andresen",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Balada de amor ao vento (1990)",
+        "Paulina Chiziane",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Canção para ninar menino grande (2018)",
+        "Conceição Evaristo",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "A visão das plantas (2019)",
+        "Djaimilia Pereira de Almeida",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      }
+     ]
+    },
+    {
+     "tipo": "dados",
+     "id": "unicamp-2027",
+     "titulo": "Unicamp 2027",
+     "rotulos": true,
+     "colunas": [
+      "Obra",
+      "Autora ou autor",
+      "Gênero",
+      "O que ler",
+      "Texto livre"
+     ],
+     "coluna_fonte": "Fonte oficial",
+     "linhas": [
+      {
+       "valores": [
+        "Prosas seguidas de odes mínimas",
+        "José Paulo Paes",
+        "Poesia",
+        "Obra completa",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Canções escolhidas",
+        "Paulo César Pinheiro",
+        "Poesia",
+        "Textos escolhidos (lista na página oficial)",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Os funerais da Mamãe Grande",
+        "Gabriel García Márquez",
+        "Contos",
+        "Obra completa",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Morangos mofados (Contos escolhidos)",
+        "Caio Fernando Abreu",
+        "Contos",
+        "Textos escolhidos (lista na página oficial)",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Olhos d’água",
+        "Conceição Evaristo",
+        "Contos",
+        "Obra completa",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "No seu pescoço",
+        "Chimamanda Ngozi Adichie",
+        "Contos",
+        "Obra completa",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Vida e morte de M.J. Gonzaga de Sá",
+        "Lima Barreto",
+        "Romances",
+        "Obra completa",
+        {
+         "link": "https://digital.bbm.usp.br/bitstream/bbm/4800/1/001232_COMPLETO.pdf",
+         "texto": "PDF na Biblioteca Brasiliana (USP)"
+        }
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Memórias Póstumas de Brás Cubas",
+        "Machado de Assis",
+        "Romances",
+        "Obra completa",
+        {
+         "link": "https://machado.mec.gov.br/obra-completa-lista/item/download/16_4568b91b47f09e6ffc1d1369ed2dc17e",
+         "texto": "PDF no portal Machado de Assis (MEC)"
+        }
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "A vida não é útil",
+        "Ailton Krenak",
+        "Ensaio",
+        "Obra completa",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "tipo": "par",
+   "id": "ano-2028",
+   "titulo": "Vestibular 2028",
+   "blocos": [
+    {
+     "tipo": "dados",
+     "id": "fuvest-2028",
+     "titulo": "Fuvest (USP) 2028",
+     "rotulos": true,
+     "colunas": [
+      "Obra",
+      "Autora ou autor",
+      "Texto livre"
+     ],
+     "coluna_fonte": "Fonte oficial",
+     "linhas": [
+      {
+       "valores": [
+        "Conselhos à minha filha (1842)",
+        "Nísia Floresta",
+        "Em domínio público. O PU ainda não achou um link oficial."
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Nebulosas (1872)",
+        "Narcisa Amália",
+        "Em domínio público. O PU ainda não achou um link oficial."
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Memórias de Martha (1899)",
+        "Julia Lopes de Almeida",
+        {
+         "link": "https://www.bbm.usp.br/documents/120/Mem%C3%B3rias_de_Martha_1899.pdf",
+         "texto": "PDF na Biblioteca Brasiliana (USP)"
+        }
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "João Miguel (1932)",
+        "Rachel de Queiroz",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "A paixão segundo G. H. (1964)",
+        "Clarice Lispector",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Geografia (1967)",
+        "Sophia de Mello Breyner Andresen",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Balada de amor ao vento (1990)",
+        "Paulina Chiziane",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "Canção para ninar menino grande (2018)",
+        "Conceição Evaristo",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      },
+      {
+       "valores": [
+        "A visão das plantas (2019)",
+        "Djaimilia Pereira de Almeida",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.fuvest.br/fuvest-renova-sua-lista-de-leituras-obrigatorias-para-o-vestibular-2026-2029/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Fuvest"
+      }
+     ]
+    },
+    {
+     "tipo": "dados",
+     "id": "unicamp-2028",
+     "titulo": "Unicamp 2028",
+     "rotulos": true,
+     "colunas": [
+      "Obra",
+      "Autora ou autor",
+      "Gênero",
+      "O que ler",
+      "Texto livre"
+     ],
+     "coluna_fonte": "Fonte oficial",
+     "linhas": [
+      {
+       "valores": [
+        "Prosas seguidas de odes mínimas",
+        "José Paulo Paes",
+        "Poesia",
+        "Obra completa",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Canções escolhidas",
+        "Paulo César Pinheiro",
+        "Poesia",
+        "Textos escolhidos (lista na página oficial)",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "No seu pescoço",
+        "Chimamanda Ngozi Adichie",
+        "Contos",
+        "Obra completa",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Os funerais da Mamãe Grande",
+        "Gabriel García Márquez",
+        "Contos",
+        "Obra completa",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Vida e morte de M.J. Gonzaga de Sá",
+        "Lima Barreto",
+        "Romances",
+        "Obra completa",
+        {
+         "link": "https://digital.bbm.usp.br/bitstream/bbm/4800/1/001232_COMPLETO.pdf",
+         "texto": "PDF na Biblioteca Brasiliana (USP)"
+        }
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Memórias Póstumas de Brás Cubas",
+        "Machado de Assis",
+        "Romances",
+        "Obra completa",
+        {
+         "link": "https://machado.mec.gov.br/obra-completa-lista/item/download/16_4568b91b47f09e6ffc1d1369ed2dc17e",
+         "texto": "PDF no portal Machado de Assis (MEC)"
+        }
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "O quinze",
+        "Rachel de Queiroz",
+        "Romances",
+        "Obra completa",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "Quarenta dias",
+        "Maria Valéria Rezende",
+        "Romances",
+        "Obra completa",
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      },
+      {
+       "valores": [
+        "O direito à literatura",
+        "Antônio Candido",
+        "Ensaio",
+        {
+         "texto": "Obra completa, pela tabela oficial",
+         "nota": "O comunicado da Comvest chama o texto de capítulo de Vários Escritos, de Antonio Candido."
+        },
+        "Sem texto livre"
+       ],
+       "fonte": "https://www.comvest.unicamp.br/lista-de-obras/",
+       "conferido_em": "2026-11-17",
+       "texto_fonte": "Lista da Comvest"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "tipo": "texto",
+   "id": "mudancas",
+   "no_sumario": true,
+   "titulo": "O que entra e o que sai em 2028",
+   "paragrafos": [
+    "O PU comparou as listas oficiais de 2027 e de 2028 de cada instituição. O resultado abaixo é esse cálculo, não um texto das bancas.",
+    "Fuvest: entram Conselhos à minha filha e João Miguel; saem Opúsculo Humanitário e Caminho de pedras.",
+    "Unicamp: entram O quinze, Quarenta dias e O direito à literatura; saem Morangos mofados (Contos escolhidos), Olhos d’água e A vida não é útil.",
+    "Nenhuma obra aparece nas duas listas no mesmo ano. Com livros diferentes, Conceição Evaristo está nas duas instituições em 2027, e Rachel de Queiroz em 2028."
+   ]
+  },
+  {
+   "tipo": "aviso",
+   "id": "unesp",
+   "titulo": "Unesp: lista não encontrada em fonte oficial",
+   "paragrafos": [
+    "O PU leu a [página do vestibular da Unesp](https://vestibular.unesp.br/) e não achou lista de obras obrigatórias. O Manual do Candidato 2027 e o site da Vunesp não abriram na conferência.",
+    "Isso não quer dizer que a Unesp não tem lista: quer dizer que o PU ainda não confirmou numa fonte oficial. Confira no Manual do Candidato da Unesp."
+   ]
+  }
+ ],
+ "chamada": {
+  "titulo": "Treine as outras matérias no PU",
+  "texto": "Questões oficiais do Enem, Fuvest (USP), Unesp, Unicamp e Famerp, uma por vez, com o gabarito oficial. O que você errar volta para a revisão. É gratuito."
+ }
+}
