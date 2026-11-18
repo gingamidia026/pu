@@ -490,6 +490,46 @@ class PlanoDeEstudo(unittest.TestCase):
             shutil.rmtree(pasta, ignore_errors=True)
 
 
+class DataDaConferencia(unittest.TestCase):
+    """Cartão "Atualizar as páginas do PU": toda página pública mostra a data da última conferência na fonte, tirada
+    dos dados (conferido_em das linhas ou do arquivo do importador), nunca escrita à mão."""
+    def test_toda_pagina_de_leitura_mostra_a_data(self):
+        self.assertEqual(len(LEITURA), 9)
+        for pagina in LEITURA:
+            texto = ler(ARQUIVO[pagina['endereco']]).texto
+            linhas = re.findall(r'<p class="conferencia" data-conferencia="(\d{4}-\d{2}-\d{2})">Dados conferidos na fonte oficial (.*?)\.</p>', texto)
+            self.assertEqual(len(linhas), 1, pagina['endereco'])
+            datas = gerar.conferencias_de(pagina)
+            self.assertEqual(linhas[0][0], datas[-1], pagina['endereco'])
+            self.assertIn(datetime.date.fromisoformat(datas[-1]).strftime('%d/%m/%Y'), linhas[0][1])
+            self.assertLessEqual(datas[-1], datetime.date.today().isoformat())
+            # Logo depois do apoio, na faixa do topo: aparece antes de qualquer bloco.
+            self.assertLess(texto.index('class="conferencia"'), texto.index('<div class="onda"'), pagina['endereco'])
+
+    def test_data_da_calculadora_vem_do_importador_do_sisu(self):
+        pagina = next(p for p in PAGINAS if p['endereco'] == '/calculadora-nota-enem/')
+        arquivo = (RAIZ / 'app/public/pesos-sisu.js').read_text(encoding='utf-8')
+        self.assertEqual(gerar.conferencias_de(pagina), [gerar.CONFERIDO_EM_ARQUIVO.search(arquivo).group(1)])
+        self.assertNotRegex(json.dumps(pagina['blocos'], ensure_ascii=False), r'conferidas? em \d', 'sem data escrita no texto')
+
+    def test_sem_data_recusa_e_nao_grava(self):
+        pasta = Path(tempfile.mkdtemp(prefix='pu-paginas-'))
+        try:
+            shutil.copytree(RAIZ / 'paginas/conteudo', pasta / 'conteudo')
+            arquivo = pasta / 'conteudo/calculadora-nota-enem.json'
+            original = json.loads(arquivo.read_text(encoding='utf-8'))
+            for valor in (None, '/../segredo.json', '/paginas/calculadora.js'):
+                dados = dict(original)
+                if valor is None: dados.pop('conferido_de')
+                else: dados['conferido_de'] = valor
+                arquivo.write_text(json.dumps(dados, ensure_ascii=False), encoding='utf-8')
+                with self.assertRaises(gerar.Recusa, msg=str(valor)):
+                    gerar.gerar(pasta / 'saida', conteudo=pasta / 'conteudo')
+            self.assertFalse((pasta / 'saida').exists())
+        finally:
+            shutil.rmtree(pasta, ignore_errors=True)
+
+
 class Recusa(unittest.TestCase):
     """O gerador recusa dado sem fonte; com --marcar-a-confirmar, grava com o aviso visível."""
     def setUp(self):

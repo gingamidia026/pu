@@ -229,6 +229,7 @@ footer p { margin: 0; }
 }
 
 /* Plano de estudo (/plano-de-estudo/): formulário que paginas/plano-de-estudo.js mostra e a lista de dias que ele escreve. */
+.conferencia { margin: .75rem 0 0; font-size: .9375rem; color: var(--texto); }
 .oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 .plano .sem-script { padding: 1.25rem 1.25rem .25rem; border: 2px dashed var(--tinta); border-radius: 8px; background: var(--suave); }
 .plano-form .campo { margin: 0 0 1.25rem; }

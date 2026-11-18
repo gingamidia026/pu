@@ -177,6 +177,40 @@ def problemas_de_fonte(pagina, hoje):
     return problemas
 
 
+# ---------- Data da última conferência (cartão "Atualizar as páginas do PU", 18/11/2026) ----------
+CONFERIDO_EM_ARQUIVO = re.compile(r'"conferido_em"\s*:\s*"(\d{4}-\d{2}-\d{2})"')
+
+
+def conferencias_de(pagina, hoje=None):
+    """Datas em que os dados da página foram conferidos na fonte: as das linhas de dados e, com o campo
+    'conferido_de' (arquivo do repositório gravado por um importador, como /app/public/pesos-sisu.js), a desse arquivo.
+    Nunca uma data digitada no conteúdo da página. Linha sem fonte https ou com data no futuro (rascunho com
+    --marcar-a-confirmar) não conta."""
+    limite = (hoje or datetime.date.today()).isoformat()
+    datas = [l['conferido_em'] for b in blocos_de_dados(pagina) for l in b.get('linhas', [])
+             if not l.get('aviso') and str(l.get('fonte', '')).startswith('https://') and DATA.fullmatch(l.get('conferido_em', '')) and l['conferido_em'] <= limite]
+    if pagina.get('conferido_de'):
+        arquivo = RAIZ / str(pagina['conferido_de']).lstrip('/')
+        if not re.fullmatch(r'/[a-z0-9/-]+\.(js|json)', str(pagina['conferido_de'])) or not arquivo.is_file():
+            raise Recusa(f"{pagina['_arquivo']}: conferido_de deve ser um arquivo .js ou .json do repositório: {pagina['conferido_de']}")
+        achada = CONFERIDO_EM_ARQUIVO.search(arquivo.read_text(encoding='utf-8'))
+        if not achada:
+            raise Recusa(f"{pagina['_arquivo']}: {pagina['conferido_de']} sem \"conferido_em\": \"AAAA-MM-DD\"")
+        if achada.group(1) > limite:
+            raise Recusa(f"{pagina['_arquivo']}: data de conferência no futuro em {pagina['conferido_de']}: {achada.group(1)}")
+        datas.append(achada.group(1))
+    return sorted(set(datas))
+
+
+def conferencia_html(pagina, hoje):
+    datas = conferencias_de(pagina, hoje)
+    if not datas:
+        raise Recusa(f"{pagina['_arquivo']}: página de leitura sem data de conferência na fonte (linhas de dados com conferido_em ou conferido_de)")
+    tempo = lambda d: f'<time datetime="{d}">{data_br(d)}</time>'
+    quando = f'em {tempo(datas[0])}' if len(datas) == 1 else f'entre {tempo(datas[0])} e {tempo(datas[-1])}'
+    return f'<p class="conferencia" data-conferencia="{datas[-1]}">Dados conferidos na fonte oficial {quando}.</p>\n'
+
+
 # ---------- Partes comuns ----------
 def migalhas_de(pagina, inicio):
     itens = [inicio] if pagina['tipo'] != 'entrada' else []
@@ -397,7 +431,7 @@ def chamada_de(pagina):
             f'<p>{texto_com_links(c["texto"])}</p>\n<p class="acoes"><a class="botao" href="/criar-conta/">Criar minha conta</a> <a class="entrar" href="/#entrar">Já tenho conta</a></p>\n</section></div>')
 
 
-def pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, imagem_alt, marcar, versoes_script=None):
+def pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, imagem_alt, marcar, versoes_script=None, hoje=None):
     erro = pagina['tipo'] == 'erro'
     trilha = migalhas_de(pagina, inicio)
     itens = ''.join(f'<li><a href="{e(p["endereco"])}">{e(p["migalha"])}</a></li>' for p in trilha[:-1])
@@ -417,6 +451,7 @@ def pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, ima
         'imagem': e(absoluto(pagina.get('imagem', imagem))), 'imagem_alt': e(pagina.get('imagem_alt', imagem_alt)),
         'versao_estilo': versao_estilo, 'dados_estruturados': dados_estruturados(pagina, inicio), 'tom': pagina.get('tom', 'mar'),
         'migalhas': migalhas, 'h1': e(pagina['h1']), 'apoio': texto_com_links(pagina['apoio']), 'sumario': sumario,
+        'conferencia': '' if erro else conferencia_html(pagina, hoje or datetime.date.today()),
         'blocos': '\n'.join(html_bloco(b, paginas, marcar, pagina) for b in pagina.get('blocos', [])),
         'chamada': relacionadas_de(pagina, paginas) + chamada_de(pagina), 'menu': menu,
         # Página sem script: script-src 'none'. Com o campo "script": só o arquivo do próprio site, nada embutido.
@@ -499,7 +534,7 @@ def gerar(saida, marcar=False, raiz=RAIZ, conteudo=None, hoje=None):
             arquivos[pagina['endereco'].strip('/') + '/index.html'] = porta_do_cadastro(index_raiz, pagina, inicio)
         elif pagina['tipo'] in ('leitura', 'erro'):
             destino = '404.html' if pagina['tipo'] == 'erro' else pagina['endereco'].strip('/') + '/index.html'
-            arquivos[destino] = pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, imagem_alt, marcar, versoes_script)
+            arquivos[destino] = pagina_de_leitura(pagina, paginas, inicio, molde, versao_estilo, imagem, imagem_alt, marcar, versoes_script, hoje)
         if pagina.get('titulo'):
             titulos.append(e(pagina['titulo']))
     if len(set(titulos)) != len(titulos):
